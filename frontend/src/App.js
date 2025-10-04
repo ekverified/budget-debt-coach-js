@@ -11,8 +11,9 @@ function App() {
   const [savingsPct, setSavingsPct] = useState(10);
   const [debtPct, setDebtPct] = useState(20);
   const [expensesPct, setExpensesPct] = useState(70);
-  const [loans, setLoans] = useState([]);
-  const [expenses, setExpenses] = useState([]);
+  const [householdSize, setHouseholdSize] = useState(1); // NEW: Household size for scaled advice
+  const [loans, setLoans] = useState([]); // Each loan now includes { ..., isEssential: false }
+  const [expenses, setExpenses] = useState([]); // Each expense now includes { ..., isEssential: false }
   const [emergencyTarget, setEmergencyTarget] = useState(0);
   const [currentSavings, setCurrentSavings] = useState(0);
   const [history, setHistory] = useState([]);
@@ -38,7 +39,7 @@ function App() {
   const clearOnFocus = (e) => e.target.select();  // Selects "0" to replace when typing
 
   const addLoan = () => {
-    setLoans([...loans, { name: '', balance: 0, rate: 0, minPayment: 0 }]);
+    setLoans([...loans, { name: '', balance: 0, rate: 0, minPayment: 0, isEssential: false }]); // NEW: Add essential flag
   };
 
   const updateLoan = (index, field, value) => {
@@ -47,13 +48,25 @@ function App() {
     setLoans(updatedLoans);
   };
 
+  const toggleLoanEssential = (index) => {
+    const updatedLoans = [...loans];
+    updatedLoans[index].isEssential = !updatedLoans[index].isEssential;
+    setLoans(updatedLoans);
+  };
+
   const addExpense = () => {
-    setExpenses([...expenses, { name: '', amount: 0 }]);
+    setExpenses([...expenses, { name: '', amount: 0, isEssential: false }]); // NEW: Add essential flag
   };
 
   const updateExpense = (index, field, value) => {
     const updatedExpenses = [...expenses];
     updatedExpenses[index][field] = field === 'name' ? value : (parseFloat(value) || 0);
+    setExpenses(updatedExpenses);
+  };
+
+  const toggleExpenseEssential = (index) => {
+    const updatedExpenses = [...expenses];
+    updatedExpenses[index].isEssential = !updatedExpenses[index].isEssential;
     setExpenses(updatedExpenses);
   };
 
@@ -63,7 +76,7 @@ function App() {
   };
 
   const avalanche = (loans, extra) => {
-    const sortedLoans = [...loans].sort((a, b) => b.rate - a.rate);
+    const sortedLoans = [...loans].sort((a, b) => b.rate - a.rate); // Prioritizes high interest
     return simulate(sortedLoans, extra);
   };
 
@@ -95,16 +108,16 @@ function App() {
     return { months, totalInterest };
   };
 
-  // New: Free AI Advice Function using Hugging Face
+  // New: Free AI Advice Function using Hugging Face (updated prompt with new fields)
   const getFreeAIAdvice = async (userData) => {
     const model = 'distilgpt2'; // Free, fast model; change to 'microsoft/DialoGPT-medium' for better chat
-    const prompt = `You are a financial advisor focused on Kenyan users. Provide concise, actionable advice on debt payoff, expense cuts, savings habits, and low-risk investing (e.g., MMFs, treasury bonds). User data: Salary KES ${userData.salary}, Debt budget KES ${userData.debtBudget}, Total expenses KES ${userData.totalExpenses}, Loans: ${JSON.stringify(userData.loans.map(l => ({ name: l.name, balance: l.balance, rate: l.rate })))}, Suggested cuts: ${userData.suggestedCuts || 'None'}. Emphasize saving culture and survival tips if over budget. Output: 2-3 bullet points only.`;
+    const prompt = `You are a financial advisor focused on Kenyan users with ${userData.householdSize} household members. Provide concise, actionable advice on debt payoff (prioritize high-interest/essential loans), specific expense cuts (respect essentials and household size, e.g., min shopping KES 1000/person), savings habits, and low-risk investing (e.g., MMFs, treasury bonds). User data: Salary KES ${userData.salary}, Debt budget KES ${userData.debtBudget}, Total expenses KES ${userData.totalExpenses}, Loans: ${JSON.stringify(userData.loans.map(l => ({ name: l.name, balance: l.balance, rate: l.rate, isEssential: l.isEssential })))}, Expenses: ${JSON.stringify(userData.expenses.map(e => ({ name: e.name, amount: e.amount, isEssential: e.isEssential })))}, Suggested cuts: ${userData.suggestedCuts || 'None'}. Include 3-month emergency fund build plan. Emphasize saving culture and survival tips if over budget. Output: 3-4 bullet points only.`;
 
     try {
       const response = await fetch(`https://api-inference.huggingface.co/models/${model}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ inputs: prompt, parameters: { max_new_tokens: 150, temperature: 0.7 } }) // Limits output length
+        body: JSON.stringify({ inputs: prompt, parameters: { max_new_tokens: 200, temperature: 0.7 } }) // Slightly longer output
       });
 
       if (!response.ok) {
@@ -112,10 +125,10 @@ function App() {
       }
 
       const data = await response.json();
-      return data[0]?.generated_text?.split('Output:')[1]?.trim() || 'AI unavailable—fallback: Track spends daily and save 10% first.'; // Extract response
+      return data[0]?.generated_text?.split('Output:')[1]?.trim() || 'AI unavailable—fallback: Prioritize high-interest loans, save 10% first, build emergency fund gradually.'; // Extract response
     } catch (error) {
       console.error('AI Integration Error:', error);
-      return 'Tip: Review your top expense and redirect 10% to an emergency fund.';
+      return 'Tip: Review top non-essential expense and redirect 10% to an emergency fund; prioritize loans with >5% interest.';
     }
   };
 
@@ -132,52 +145,91 @@ function App() {
     const totalMinPayments = loans.reduce((sum, loan) => sum + loan.minPayment, 0);
     const totalExpenses = expenses.reduce((sum, exp) => sum + exp.amount, 0);
 
-    // NEW: Auto-adjust if over budget (no more halting)
+    // NEW: Auto-adjust if over budget (improved: prioritize cuts from non-essentials first)
     let adjustedSavings = savings;
     let adjustedDebtBudget = debtBudget;
     let adjustedExpensesBudget = expensesBudget;
     let adjustedTotalExpenses = totalExpenses;
     let adjustedTotalMinPayments = totalMinPayments;
     let overageAdvice = '';
-    const adjustments = []; // For table
+    const adjustments = []; // For table - now individual items
 
+    // Handle debt overage first (cover from non-essential expenses before savings)
+    let debtOverage = 0;
     if (totalMinPayments > debtBudget) {
-      const debtOverage = totalMinPayments - debtBudget;
-      adjustedDebtBudget = totalMinPayments; // Prioritize min payments
-      adjustedExpensesBudget -= debtOverage; // Pull from expenses
-      adjustedSavings = Math.max(salary * 0.05, savings - (debtOverage * 0.2)); // Enforce 5% min savings, take 20% from savings if needed
-      adjustedTotalMinPayments = totalMinPayments; // No cut on essentials
-      overageAdvice += `Debt overage: Reduced expenses by KES ${debtOverage.toLocaleString()} to cover min payments. `;
-      adjustments.push({ category: 'Debt Min Payments', current: totalMinPayments, adjusted: adjustedTotalMinPayments, suggestion: 'Prioritize—no cuts needed' });
-    } else {
-      adjustments.push({ category: 'Debt Min Payments', current: totalMinPayments, adjusted: totalMinPayments, suggestion: 'Within budget' });
-    }
+      debtOverage = totalMinPayments - debtBudget;
+      adjustedDebtBudget = totalMinPayments; // Prioritize min payments (essential by default)
 
-    if (totalExpenses > expensesBudget) {
-      const expOverage = totalExpenses - expensesBudget;
-      // Sort expenses descending and suggest cuts on top 3 non-essentials (assume names like "Entertainment" are cuttable)
-      const sortedExpenses = [...expenses].sort((a, b) => b.amount - a.amount);
-      let cutAmount = 0;
-      sortedExpenses.slice(0, 3).forEach(exp => {
-        if (exp.name.toLowerCase().includes('entertainment') || exp.name.toLowerCase().includes('dining')) {
-          const cut = exp.amount * 0.3; // 30% cut on fun stuff
-          cutAmount += cut;
-          adjustments.push({ category: exp.name, current: exp.amount, adjusted: exp.amount - cut, suggestion: `Cut 30% (KES ${cut.toLocaleString()})—redirect to savings` });
+      // Try to cover from non-essential expenses
+      let coveredFromExpenses = 0;
+      const nonEssentialExpenses = expenses.filter((exp, i) => !exp.isEssential);
+      nonEssentialExpenses.forEach(exp => {
+        const maxCut = Math.max(0, exp.amount - (1000 * householdSize)); // Min KES 1000/person for basics
+        const cut = Math.min(maxCut, debtOverage - coveredFromExpenses);
+        if (cut > 0) {
+          coveredFromExpenses += cut;
+          adjustments.push({ 
+            category: `Debt Overage Coverage - ${exp.name}`, 
+            current: 0, 
+            adjusted: -cut, 
+            suggestion: `Cut ${exp.name} by KES ${cut.toLocaleString()} (non-essential; min preserved for ${householdSize} members)` 
+          });
         }
       });
-      adjustedTotalExpenses = Math.max(0, totalExpenses - Math.min(cutAmount, expOverage));
-      adjustedExpensesBudget = adjustedTotalExpenses;
-      overageAdvice += `Expense overage: Suggested cuts save KES ${Math.min(cutAmount, expOverage).toLocaleString()}. `;
+
+      // If still overage, dip minimally into savings (enforce 5% min)
+      const remainingOverage = debtOverage - coveredFromExpenses;
+      if (remainingOverage > 0) {
+        const cutFromSavings = Math.min(remainingOverage, savings * 0.3); // Max 30% of savings
+        adjustedSavings = Math.max(salary * 0.05, savings - cutFromSavings);
+        adjustments.push({ 
+          category: 'Savings Adjustment for Debt', 
+          current: savings, 
+          adjusted: adjustedSavings, 
+          suggestion: `Reduced savings by KES ${cutFromSavings.toLocaleString()} to cover remaining debt overage` 
+        });
+      }
+
+      overageAdvice += `Debt overage covered: KES ${coveredFromExpenses.toLocaleString()} from expenses + adjustments to savings. `;
+      adjustments.push({ category: 'Total Debt Min Payments', current: totalMinPayments, adjusted: totalMinPayments, suggestion: 'Prioritized (high-interest first: e.g., ${loans.filter(l => l.rate > 5).map(l => l.name).join(', ') || 'None >5%'})—no cuts' });
     } else {
-      adjustments.push({ category: 'Total Expenses', current: totalExpenses, adjusted: totalExpenses, suggestion: 'Within budget' });
+      adjustments.push({ category: 'Total Debt Min Payments', current: totalMinPayments, adjusted: totalMinPayments, suggestion: 'Within budget; prioritize high-interest loans like ${loans.sort((a,b)=>b.rate-a.rate)[0]?.name || 'N/A'}' });
     }
 
-    // Enforce saving culture: Always reserve 5-10% if possible
+    // Handle expenses overage (only cut non-essentials, scaled by household)
+    let expOverage = 0;
+    if (totalExpenses > expensesBudget) {
+      expOverage = totalExpenses - expensesBudget;
+      let cutAmount = 0;
+      const nonEssentialExpenses = expenses.filter(exp => !exp.isEssential).sort((a, b) => b.amount - a.amount); // Sort by amount
+      nonEssentialExpenses.forEach(exp => {
+        const minPerPerson = exp.name.toLowerCase().includes('shopping') || exp.name.toLowerCase().includes('food') ? 1500 : 500; // Scaled min
+        const maxCut = Math.max(0, exp.amount - (minPerPerson * householdSize));
+        const cut = Math.min(maxCut * 0.3, expOverage - cutAmount); // 30% max cut
+        if (cut > 0) {
+          cutAmount += cut;
+          adjustments.push({ 
+            category: exp.name, 
+            current: exp.amount, 
+            adjusted: exp.amount - cut, 
+            suggestion: `Cut 30% (KES ${cut.toLocaleString()})—sustainable for ${householdSize} members; redirect to emergency fund` 
+          });
+        }
+      });
+      adjustedTotalExpenses = Math.max(0, totalExpenses - cutAmount);
+      adjustedExpensesBudget = adjustedTotalExpenses;
+      overageAdvice += `Expense overage: Specific cuts save KES ${cutAmount.toLocaleString()}. `;
+    } else {
+      adjustments.push({ category: 'Total Expenses', current: totalExpenses, adjusted: totalExpenses, suggestion: 'Within budget; review non-essentials like ${expenses.filter(e => !e.isEssential).map(e => e.name).join(', ') || 'None'}.' });
+    }
+
+    // Enforce saving culture: Always reserve 5% min; use any spare for emergency build
     const totalAdjustedOutgo = adjustedTotalMinPayments + adjustedTotalExpenses;
+    const spareCash = salary - totalAdjustedOutgo - adjustedSavings;
     if (totalAdjustedOutgo > salary * 0.95) {
       const forcedSavings = salary * 0.05;
-      adjustedSavings = forcedSavings;
-      overageAdvice += `Tight budget: Forced 5% (KES ${forcedSavings.toLocaleString()}) to savings for emergencies. Start a side hustle (e.g., freelance on Upwork) to add KES 5k/month. `;
+      adjustedSavings = Math.max(adjustedSavings, forcedSavings);
+      overageAdvice += `Tight budget: Enforced 5% (KES ${adjustedSavings.toLocaleString()}) to savings. Consider side hustle for ${householdSize} members (e.g., family tutoring). `;
     }
 
     const { months: snowMonths, totalInterest: snowInterest } = snowball(loans, adjustedDebtBudget);
@@ -188,27 +240,34 @@ function App() {
       adviceText = 'No loans? Excellent! Focus on savings: Aim for 20% in investments (e.g., money market funds at 10% return). Break expenses into 50% needs (rent/food), 30% wants (entertainment), 20% savings buffer. Build an emergency fund of 3-6 months expenses for financial freedom.';
     } else {
       adviceText = avaInterest < snowInterest ? 'Avalanche saves more on interest—stick to it if disciplined.' : 'Snowball for quick wins—use it for motivation.';
+      adviceText += ` Prioritize high-interest loans (e.g., ${loans.filter(l => l.rate > 0).sort((a,b)=>b.rate-a.rate).slice(0,2).map(l => `${l.name} at ${l.rate}%`).join(', ')}).`;
     }
 
-    // Enhanced advice with overage/survival tips
-    const totalOutgo = totalMinPayments + totalExpenses;
-    if (totalOutgo > salary) {
-      const overage = totalOutgo - salary;
-      adviceText += `\n\n🚨 Survival Mode: Outgo exceeds salary by KES ${overage.toLocaleString()}. Short-term: Borrow KES ${overage.toLocaleString()} at 5% over 6 months (monthly: ~KES ${(overage / 6 + (overage * 0.05 / 12) * 6).toLocaleString()}). Long-term: Negotiate loan rates down 1-2%, sell unused items for KES 2k quick cash. Build saving culture: Track daily spends in app—aim for 1 "no-spend" day/week. Invest any surplus in S&P 500 ETF (7-10% avg return). ${overageAdvice}`;
-    } else if (totalOutgo < salary * 0.9) {
-      adviceText += `\n\n💡 Opportunity: Spare KES ${(salary - totalOutgo).toLocaleString()}—boost savings to 15%, invest in treasury bonds (8% yield). Automate transfers to avoid temptation.`;
+    // FIXED: Use adjusted totals for advice consistency
+    const adjustedTotalOutgo = adjustedTotalMinPayments + adjustedTotalExpenses;
+    if (adjustedTotalOutgo > salary) {
+      const overage = adjustedTotalOutgo - salary;
+      adviceText += `\n\n🚨 Survival Mode: Adjusted outgo exceeds salary by KES ${overage.toLocaleString()}. Short-term: Borrow KES ${overage.toLocaleString()} at 5% over 6 months (monthly: ~KES ${(overage / 6 + (overage * 0.05 / 12) * 6).toLocaleString()}). Long-term: Negotiate essential loan rates down 1-2%, sell unused items for KES 2k quick cash. Build saving culture: Track daily spends in app—aim for 1 "no-spend" day/week per family member. Invest any surplus in S&P 500 ETF (7-10% avg return). ${overageAdvice}`;
+    } else if (spareCash > 0) {
+      adviceText += `\n\n💡 Opportunity: Spare KES ${spareCash.toLocaleString()} after adjustments—boost savings to 15%, invest in treasury bonds (8% yield). Automate transfers to avoid temptation.`;
     }
 
-    // Tabulated adjustments
+    // NEW: 3-Month Emergency Fund Advice
+    const monthlyExpensesForEmergency = adjustedTotalExpenses;
+    const threeMonthTarget = monthlyExpensesForEmergency * 3;
+    const monthsToEmergency = threeMonthTarget > 0 ? Math.ceil((threeMonthTarget - currentSavings) / adjustedSavings) : 0;
+    adviceText += `\n\n🛡️ 3-Month Emergency Fund: Target KES ${threeMonthTarget.toLocaleString()} (covers ${householdSize} members for essentials). Current: KES ${currentSavings.toLocaleString()}. Save KES ${adjustedSavings.toLocaleString()}/month to reach in ${monthsToEmergency} months. Start small: Add spare KES ${Math.min(spareCash, 1000).toLocaleString()} this month to a high-yield Sacco account.`;
+
+    // Tabulated adjustments (now more individual)
     const tableMarkdown = `
 | Category | Current (KES) | Adjusted (KES) | Suggestion |
 |----------|---------------|----------------|------------|
 ${adjustments.map(adj => `| ${adj.category} | ${adj.current.toLocaleString()} | ${adj.adjusted.toLocaleString()} | ${adj.suggestion} |`).join('\n')}
-| **Savings Buffer** | ${savings.toLocaleString()} | **${adjustedSavings.toLocaleString()}** | Enforced min 5%—invest in low-risk funds |
+| **Savings Buffer** | ${savings.toLocaleString()} | **${adjustedSavings.toLocaleString()}** | Enforced min 5%—invest in low-risk funds; build emergency as priority |
     `;
     adviceText += `\n\n**Adjusted Spending Plan:**\n${tableMarkdown}`;
 
-    // NEW: Get AI advice if enabled
+    // NEW: Get AI advice if enabled (with household/essential data)
     let aiTip = '';
     if (enableAI) {
       aiTip = await getFreeAIAdvice({
@@ -216,6 +275,8 @@ ${adjustments.map(adj => `| ${adj.category} | ${adj.current.toLocaleString()} | 
         debtBudget: adjustedDebtBudget,
         totalExpenses: adjustedTotalExpenses,
         loans,
+        expenses,
+        householdSize,
         suggestedCuts: adjustments.map(adj => `${adj.category}: ${adj.suggestion}`).join('; ')
       });
       adviceText += `\n\n🤖 Free AI Tip (via Hugging Face): ${aiTip}`;
@@ -235,23 +296,26 @@ ${adjustments.map(adj => `| ${adj.category} | ${adj.current.toLocaleString()} | 
       snowInterest,
       avaMonths,
       avaInterest,
-      emergencyTarget,
+      emergencyTarget: threeMonthTarget, // NEW: Auto-set 3-month target
       currentSavings: currentSavings + adjustedSavings,
-      adjustments: overageAdvice // Log adjustments
+      adjustments: overageAdvice, // Log adjustments
+      householdSize
     };
     setCurrentSavings(historyEntry.currentSavings);
     setHistory([...history, historyEntry]);
 
-    // Generate PDF with table and AI tip
+    // Generate PDF with table, AI tip, and emergency
     const doc = new jsPDF();
     let yPos = 10;
-    doc.text(`Budget Report - Salary KES ${salary.toLocaleString()}`, 10, yPos);
+    doc.text(`Budget Report - Salary KES ${salary.toLocaleString()} (Household: ${householdSize})`, 10, yPos);
     yPos += 10;
     doc.text(`Adjusted Allocation: ${Math.round((adjustedSavings / salary) * 100)}% Savings, ${Math.round((adjustedDebtBudget / salary) * 100)}% Debt, ${Math.round((adjustedExpensesBudget / salary) * 100)}% Expenses`, 10, yPos);
     yPos += 10;
     doc.text(`Snowball: ${snowMonths} months, Interest KES ${snowInterest.toLocaleString()}`, 10, yPos);
     yPos += 10;
     doc.text(`Avalanche: ${avaMonths} months, Interest KES ${avaInterest.toLocaleString()}`, 10, yPos);
+    yPos += 10;
+    doc.text(`Emergency Target: KES ${threeMonthTarget.toLocaleString()} (3 months for ${householdSize} members)`, 10, yPos);
     yPos += 10;
     if (aiTip) {
       doc.text('AI Tip:', 10, yPos);
@@ -283,8 +347,8 @@ ${adjustments.map(adj => `| ${adj.category} | ${adj.current.toLocaleString()} | 
   };
 
   const downloadHistory = () => {
-    const csv = 'Month,Salary,Savings,Debt Budget,Expenses Budget,Total Expenses,Snowball Months,Snowball Interest,Avalanche Months,Avalanche Interest,Emergency Target,Current Savings,Adjustments\n' +
-      history.map(entry => `${entry.month},${entry.salary},${entry.savings},${entry.debtBudget},${entry.expensesBudget},${entry.totalExpenses},${entry.snowMonths},${entry.snowInterest},${entry.avaMonths},${entry.avaInterest},${entry.emergencyTarget},${entry.currentSavings},"${entry.adjustments || ''}"`).join('\n');
+    const csv = 'Month,Salary,Savings,Debt Budget,Expenses Budget,Total Expenses,Snowball Months,Snowball Interest,Avalanche Months,Avalanche Interest,Emergency Target,Current Savings,Adjustments,Household Size\n' +
+      history.map(entry => `${entry.month},${entry.salary},${entry.savings},${entry.debtBudget},${entry.expensesBudget},${entry.totalExpenses},${entry.snowMonths},${entry.snowInterest},${entry.avaMonths},${entry.avaInterest},${entry.emergencyTarget},${entry.currentSavings},"${entry.adjustments || ''}",${entry.householdSize || 1}`).join('\n');
     const blob = new Blob([csv], { type: 'text/csv' });
     const url = window.URL.createObjectURL(blob);
     const a = document.createElement('a');
@@ -327,13 +391,16 @@ ${adjustments.map(adj => `| ${adj.category} | ${adj.current.toLocaleString()} | 
         <label>Monthly Salary (KES): </label>
         <input type="number" value={salary} onChange={(e) => setSalary(parseFloat(e.target.value) || 0)} onFocus={clearOnFocus} style={{ margin: '5px', padding: '5px' }} />
         <br />
+        <label>Household Size: </label>
+        <input type="number" min="1" value={householdSize} onChange={(e) => setHouseholdSize(parseInt(e.target.value) || 1)} style={{ margin: '5px', padding: '5px', width: '50px' }} /> (Scales advice for family needs)
+        <br />
         <label>Customization (%): </label>
         <input type="range" min="0" max="50" value={savingsPct} onChange={(e) => setSavingsPct(parseInt(e.target.value))} style={{ margin: '5px' }} /> Savings: {savingsPct}%
         <input type="range" min="0" max="50" value={debtPct} onChange={(e) => setDebtPct(parseInt(e.target.value))} style={{ margin: '5px' }} /> Debt: {debtPct}%
         <input type="range" min="0" max="100" value={expensesPct} onChange={(e) => setExpensesPct(parseInt(e.target.value))} style={{ margin: '5px' }} /> Expenses: {expensesPct}% (must sum to 100%)
         <br />
         <label>Emergency Fund Target (KES): </label>
-        <input type="number" value={emergencyTarget} onChange={(e) => setEmergencyTarget(parseFloat(e.target.value) || 0)} onFocus={clearOnFocus} style={{ margin: '5px', padding: '5px' }} />
+        <input type="number" value={emergencyTarget} onChange={(e) => setEmergencyTarget(parseFloat(e.target.value) || 0)} onFocus={clearOnFocus} style={{ margin: '5px', padding: '5px' }} /> (Auto-suggests 3 months below)
       </section>
 
       <section style={{ marginBottom: '30px' }}>
@@ -352,6 +419,9 @@ ${adjustments.map(adj => `| ${adj.category} | ${adj.current.toLocaleString()} | 
             <br />
             <label>Min Payment (KES): </label>
             <input type="number" value={loan.minPayment} onChange={(e) => updateLoan(i, 'minPayment', e.target.value)} onFocus={clearOnFocus} style={{ margin: '5px', padding: '5px' }} />
+            <br />
+            <label>Essential? (Cannot Cut/Pay Full): </label>
+            <input type="checkbox" checked={loan.isEssential} onChange={() => toggleLoanEssential(i)} style={{ margin: '5px' }} />
           </div>
         ))}
         <button onClick={addLoan} style={{ padding: '10px', background: '#4CAF50', color: 'white', border: 'none', borderRadius: '5px' }}>Add Loan</button>
@@ -367,6 +437,9 @@ ${adjustments.map(adj => `| ${adj.category} | ${adj.current.toLocaleString()} | 
             <br />
             <label>Amount (KES): </label>
             <input type="number" value={exp.amount} onChange={(e) => updateExpense(i, 'amount', e.target.value)} onFocus={clearOnFocus} style={{ margin: '5px', padding: '5px' }} />
+            <br />
+            <label>Essential? (Fixed, e.g., Transport/Medical): </label>
+            <input type="checkbox" checked={exp.isEssential} onChange={() => toggleExpenseEssential(i)} style={{ margin: '5px' }} />
           </div>
         ))}
         <button onClick={addExpense} style={{ padding: '10px', background: '#4CAF50', color: 'white', border: 'none', borderRadius: '5px' }}>Add Expense</button>
@@ -429,7 +502,7 @@ ${adjustments.map(adj => `| ${adj.category} | ${adj.current.toLocaleString()} | 
         <ul style={{ listStyleType: 'none', padding: 0 }}>
           {history.map((entry, i) => (
             <li key={i} style={{ margin: '5px 0', padding: '5px', borderBottom: '1px solid #eee' }}>
-              <strong>{entry.month}:</strong> Salary KES {entry.salary.toLocaleString()}, Savings KES {entry.savings.toLocaleString()}, Debt Budget KES {entry.debtBudget.toLocaleString()}, Expenses KES {entry.totalExpenses.toLocaleString()} {entry.adjustments ? `(Adjustments: ${entry.adjustments})` : ''}
+              <strong>{entry.month}:</strong> Salary KES {entry.salary.toLocaleString()}, Savings KES {entry.savings.toLocaleString()}, Debt Budget KES {entry.debtBudget.toLocaleString()}, Expenses KES {entry.totalExpenses.toLocaleString()} {entry.adjustments ? `(Adjustments: ${entry.adjustments})` : ''} (Household: {entry.householdSize || 1})
             </li>
           ))}
         </ul>
