@@ -37,7 +37,7 @@ function App() {
 
   const updateLoan = (index, field, value) => {
     const updatedLoans = [...loans];
-    updatedLoans[index][field] = parseFloat(value) || 0;
+    updatedLoans[index][field] = field === 'name' ? value : (parseFloat(value) || 0);
     setLoans(updatedLoans);
   };
 
@@ -47,7 +47,7 @@ function App() {
 
   const updateExpense = (index, field, value) => {
     const updatedExpenses = [...expenses];
-    updatedExpenses[index][field] = parseFloat(value) || 0;
+    updatedExpenses[index][field] = field === 'name' ? value : (parseFloat(value) || 0);
     setExpenses(updatedExpenses);
   };
 
@@ -113,7 +113,22 @@ function App() {
     const { months: snowMonths, totalInterest: snowInterest } = snowball(loans, debtBudget);
     const { months: avaMonths, totalInterest: avaInterest } = avalanche(loans, debtBudget);
 
-    const adviceText = avaInterest < snowInterest ? 'Avalanche saves more on interest—stick to it if disciplined.' : 'Snowball for quick wins—use it for motivation.';
+    let adviceText = '';
+    if (loans.length === 0) {
+      adviceText = 'No loans? Excellent! Focus on savings: Aim for 20% in investments (e.g., money market funds at 10% return). Break expenses into 50% needs (rent/food), 30% wants (entertainment), 20% savings buffer. Build an emergency fund of 3-6 months expenses for financial freedom.';
+    } else {
+      adviceText = avaInterest < snowInterest ? 'Avalanche saves more on interest—stick to it if disciplined.' : 'Snowball for quick wins—use it for motivation.';
+    }
+
+    // Enhanced advice if total exceeds salary
+    const totalOutgo = totalMinPayments + totalExpenses;
+    if (totalOutgo > salary) {
+      const overage = totalOutgo - salary;
+      adviceText += `\n\nAlert: Total outgo (KES ${totalOutgo.toLocaleString()}) exceeds salary by KES ${overage.toLocaleString()}. Suggestions: Reduce expenses by 10-20% (cut non-essentials like dining out). Increase debt % to 25% for faster payoff. Borrow short-term from family (0% interest) to bridge gap. Long-term: Side hustle for extra income to become debt-free in <2 years and invest savings (e.g., S&P 500 index for 7-10% annual return).`;
+    } else if (totalOutgo < salary * 0.9) {
+      adviceText += `\n\nTip: With spare KES ${(salary - totalOutgo).toLocaleString()}, boost savings to 15% and invest in low-risk options (e.g., treasury bonds at 8% yield).`;
+    }
+
     setAdvice(adviceText);
 
     const historyEntry = {
