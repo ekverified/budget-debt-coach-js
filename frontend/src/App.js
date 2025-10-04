@@ -31,6 +31,8 @@ function App() {
     localStorage.setItem('budgetHistory', JSON.stringify(history));
   }, [history]);
 
+  const clearOnFocus = (e) => e.target.select();  // Selects "0" to replace when typing
+
   const addLoan = () => {
     setLoans([...loans, { name: '', balance: 0, rate: 0, minPayment: 0 }]);
   };
@@ -124,7 +126,12 @@ function App() {
     const totalOutgo = totalMinPayments + totalExpenses;
     if (totalOutgo > salary) {
       const overage = totalOutgo - salary;
-      adviceText += `\n\nAlert: Total outgo (KES ${totalOutgo.toLocaleString()}) exceeds salary by KES ${overage.toLocaleString()}. Suggestions: Reduce expenses by 10-20% (cut non-essentials like dining out). Increase debt % to 25% for faster payoff. Borrow short-term from family (0% interest) to bridge gap. Long-term: Side hustle for extra income to become debt-free in <2 years and invest savings (e.g., S&P 500 index for 7-10% annual return).`;
+      const sortedExpenses = [...expenses].sort((a, b) => b.amount - a.amount);
+      const topExpense = sortedExpenses[0];
+      const suggestedCut = topExpense.amount * 0.5;  // Suggest 50% cut on top expense
+      const adjustedExpensesPct = Math.max(50, expensesPct - 10);  // Reduce expenses %
+      const adjustedDebtPct = debtPct + 5;  // Increase debt %
+      adviceText += `\n\nAlert: Total outgo (KES ${totalOutgo.toLocaleString()}) exceeds salary by KES ${overage.toLocaleString()}. Suggestions: Reduce "${topExpense.name}" from KES ${topExpense.amount.toLocaleString()} to KES ${(topExpense.amount - suggestedCut).toLocaleString()} (save KES ${suggestedCut.toLocaleString()}). Adjust to ${adjustedExpensesPct}% expenses, ${adjustedDebtPct}% debt. Borrow KES ${overage.toLocaleString()} at 5% rate over 6 months (monthly installment KES ${(overage / 6 + (overage * 0.05 / 12) * 6).toLocaleString()}). Long-term: Side hustle for extra income to become debt-free in <2 years and invest savings (e.g., S&P 500 index for 7-10% annual return).`;
     } else if (totalOutgo < salary * 0.9) {
       adviceText += `\n\nTip: With spare KES ${(salary - totalOutgo).toLocaleString()}, boost savings to 15% and invest in low-risk options (e.g., treasury bonds at 8% yield).`;
     }
@@ -211,7 +218,7 @@ function App() {
       <section style={{ marginBottom: '30px' }}>
         <h2>Budget Settings</h2>
         <label>Monthly Salary (KES): </label>
-        <input type="number" value={salary} onChange={(e) => setSalary(parseFloat(e.target.value) || 0)} style={{ margin: '5px', padding: '5px' }} />
+        <input type="number" value={salary} onChange={(e) => setSalary(parseFloat(e.target.value) || 0)} onFocus={clearOnFocus} style={{ margin: '5px', padding: '5px' }} />
         <br />
         <label>Customization (%): </label>
         <input type="range" min="0" max="50" value={savingsPct} onChange={(e) => setSavingsPct(parseInt(e.target.value))} style={{ margin: '5px' }} /> Savings: {savingsPct}%
@@ -219,7 +226,7 @@ function App() {
         <input type="range" min="0" max="100" value={expensesPct} onChange={(e) => setExpensesPct(parseInt(e.target.value))} style={{ margin: '5px' }} /> Expenses: {expensesPct}% (must sum to 100%)
         <br />
         <label>Emergency Fund Target (KES): </label>
-        <input type="number" value={emergencyTarget} onChange={(e) => setEmergencyTarget(parseFloat(e.target.value) || 0)} style={{ margin: '5px', padding: '5px' }} />
+        <input type="number" value={emergencyTarget} onChange={(e) => setEmergencyTarget(parseFloat(e.target.value) || 0)} onFocus={clearOnFocus} style={{ margin: '5px', padding: '5px' }} />
       </section>
 
       <section style={{ marginBottom: '30px' }}>
@@ -231,13 +238,13 @@ function App() {
             <input type="text" value={loan.name} onChange={(e) => updateLoan(i, 'name', e.target.value)} style={{ margin: '5px', padding: '5px' }} />
             <br />
             <label>Balance (KES): </label>
-            <input type="number" value={loan.balance} onChange={(e) => updateLoan(i, 'balance', e.target.value)} style={{ margin: '5px', padding: '5px' }} />
+            <input type="number" value={loan.balance} onChange={(e) => updateLoan(i, 'balance', e.target.value)} onFocus={clearOnFocus} style={{ margin: '5px', padding: '5px' }} />
             <br />
             <label>Rate (%): </label>
-            <input type="number" step="0.1" value={loan.rate} onChange={(e) => updateLoan(i, 'rate', e.target.value)} style={{ margin: '5px', padding: '5px' }} />
+            <input type="number" step="0.1" value={loan.rate} onChange={(e) => updateLoan(i, 'rate', e.target.value)} onFocus={clearOnFocus} style={{ margin: '5px', padding: '5px' }} />
             <br />
             <label>Min Payment (KES): </label>
-            <input type="number" value={loan.minPayment} onChange={(e) => updateLoan(i, 'minPayment', e.target.value)} style={{ margin: '5px', padding: '5px' }} />
+            <input type="number" value={loan.minPayment} onChange={(e) => updateLoan(i, 'minPayment', e.target.value)} onFocus={clearOnFocus} style={{ margin: '5px', padding: '5px' }} />
           </div>
         ))}
         <button onClick={addLoan} style={{ padding: '10px', background: '#4CAF50', color: 'white', border: 'none', borderRadius: '5px' }}>Add Loan</button>
@@ -252,7 +259,7 @@ function App() {
             <input type="text" value={exp.name} onChange={(e) => updateExpense(i, 'name', e.target.value)} style={{ margin: '5px', padding: '5px' }} />
             <br />
             <label>Amount (KES): </label>
-            <input type="number" value={exp.amount} onChange={(e) => updateExpense(i, 'amount', e.target.value)} style={{ margin: '5px', padding: '5px' }} />
+            <input type="number" value={exp.amount} onChange={(e) => updateExpense(i, 'amount', e.target.value)} onFocus={clearOnFocus} style={{ margin: '5px', padding: '5px' }} />
           </div>
         ))}
         <button onClick={addExpense} style={{ padding: '10px', background: '#4CAF50', color: 'white', border: 'none', borderRadius: '5px' }}>Add Expense</button>
