@@ -125,10 +125,10 @@ function App() {
       }
 
       const data = await response.json();
-      return data[0]?.generated_text?.split('Output:')[1]?.trim() || `Fallback for ${userData.householdSize} members: Prioritize ${highInterestLoans}; cut non-essentials like cloths by 20% (save KES 1k); save KES ${userData.savings}/month toward 3-month fund.`; // Extract response
+      return data[0]?.generated_text?.split('Output:')[1]?.trim() || `Fallback for ${userData.householdSize} members: Prioritize ${userData.highInterestLoans || 'high-interest loans'}; cut non-essentials like cloths by 20% (save KES 1k); save KES ${userData.savings}/month toward 3-month fund.`; // Extract response
     } catch (error) {
       console.error('AI Integration Error:', error);
-      return `Tip for ${userData.householdSize} members: Review top non-essential (e.g., cloths) and redirect 10% to emergency fund; prioritize loans >5% interest like ${highInterestLoans}.`;
+      return `Tip for ${userData.householdSize} members: Review top non-essential (e.g., cloths) and redirect 10% to emergency fund; prioritize loans >5% interest like ${userData.highInterestLoans || 'your top loans'}.`;
     }
   };
 
@@ -318,7 +318,8 @@ ${adjustments.map(adj => `| ${adj.category} | ${adj.current.toLocaleString()} | 
         expenses,
         householdSize,
         suggestedCuts: adjustments.map(adj => `${adj.category}: ${adj.suggestion}`).join('; '),
-        savings: adjustedSavings
+        savings: adjustedSavings,
+        highInterestLoans
       });
       adviceText += `\n\n🤖 Free AI Tip (via Hugging Face): ${aiTip}`;
     }
