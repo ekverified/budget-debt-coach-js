@@ -191,9 +191,23 @@ function App() {
       }
 
       overageAdvice += `Debt overage covered: KES ${coveredFromExpenses.toLocaleString()} from expenses + adjustments to savings. `;
-      adjustments.push({ category: 'Total Debt Min Payments', current: totalMinPayments, adjusted: totalMinPayments, suggestion: 'Prioritized (high-interest first: e.g., ${loans.filter(l => l.rate > 5).map(l => l.name).join(', ') || 'None >5%'})—no cuts' });
+      // FIXED: Simplified interpolation (no deep nesting)
+      const highInterestLoans = loans
+        .filter(l => l.rate > 0)
+        .sort((a, b) => b.rate - a.rate)
+        .slice(0, 2)
+        .map(l => `${l.name} at ${l.rate}%`)
+        .join(', ') || 'None >0%';
+      adjustments.push({ category: 'Total Debt Min Payments', current: totalMinPayments, adjusted: totalMinPayments, suggestion: `Prioritized (high-interest first: e.g., ${highInterestLoans})—no cuts` });
     } else {
-      adjustments.push({ category: 'Total Debt Min Payments', current: totalMinPayments, adjusted: totalMinPayments, suggestion: 'Within budget; prioritize high-interest loans like ${loans.sort((a,b)=>b.rate-a.rate)[0]?.name || 'N/A'}' });
+      // FIXED: Same simplification here
+      const highInterestLoans = loans
+        .filter(l => l.rate > 0)
+        .sort((a, b) => b.rate - a.rate)
+        .slice(0, 1)
+        .map(l => l.name)
+        .join(', ') || 'N/A';
+      adjustments.push({ category: 'Total Debt Min Payments', current: totalMinPayments, adjusted: totalMinPayments, suggestion: `Within budget; prioritize high-interest loans like ${highInterestLoans}` });
     }
 
     // Handle expenses overage (only cut non-essentials, scaled by household)
@@ -220,7 +234,8 @@ function App() {
       adjustedExpensesBudget = adjustedTotalExpenses;
       overageAdvice += `Expense overage: Specific cuts save KES ${cutAmount.toLocaleString()}. `;
     } else {
-      adjustments.push({ category: 'Total Expenses', current: totalExpenses, adjusted: totalExpenses, suggestion: 'Within budget; review non-essentials like ${expenses.filter(e => !e.isEssential).map(e => e.name).join(', ') || 'None'}.' });
+      const nonEssentials = expenses.filter(e => !e.isEssential).map(e => e.name).join(', ') || 'None';
+      adjustments.push({ category: 'Total Expenses', current: totalExpenses, adjusted: totalExpenses, suggestion: `Within budget; review non-essentials like ${nonEssentials}.` });
     }
 
     // Enforce saving culture: Always reserve 5% min; use any spare for emergency build
@@ -240,7 +255,7 @@ function App() {
       adviceText = 'No loans? Excellent! Focus on savings: Aim for 20% in investments (e.g., money market funds at 10% return). Break expenses into 50% needs (rent/food), 30% wants (entertainment), 20% savings buffer. Build an emergency fund of 3-6 months expenses for financial freedom.';
     } else {
       adviceText = avaInterest < snowInterest ? 'Avalanche saves more on interest—stick to it if disciplined.' : 'Snowball for quick wins—use it for motivation.';
-      adviceText += ` Prioritize high-interest loans (e.g., ${loans.filter(l => l.rate > 0).sort((a,b)=>b.rate-a.rate).slice(0,2).map(l => `${l.name} at ${l.rate}%`).join(', ')}).`;
+      adviceText += ` Prioritize high-interest loans (e.g., ${highInterestLoans}).`;
     }
 
     // FIXED: Use adjusted totals for advice consistency
