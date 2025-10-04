@@ -7,7 +7,7 @@ import jsPDF from 'jspdf';
 ChartJS.register(ArcElement, Tooltip, Legend, LineElement, PointElement, LinearScale, CategoryScale);
 
 function App() {
-  const [salary, setSalary] = useState(34547);
+  const [salary, setSalary] = useState(0);  // Default to 0 for manual input
   const [savingsPct, setSavingsPct] = useState(10);
   const [debtPct, setDebtPct] = useState(20);
   const [expensesPct, setExpensesPct] = useState(70);
