@@ -145,6 +145,14 @@ function App() {
     const totalMinPayments = loans.reduce((sum, loan) => sum + loan.minPayment, 0);
     const totalExpenses = expenses.reduce((sum, exp) => sum + exp.amount, 0);
 
+    // FIXED: Define highInterestLoans early (before if-else) for full scope
+    const highInterestLoans = loans
+      .filter(l => l.rate > 0)
+      .sort((a, b) => b.rate - a.rate)
+      .slice(0, 2)
+      .map(l => `${l.name} at ${l.rate}%`)
+      .join(', ') || 'None >0%';
+
     // NEW: Auto-adjust if over budget (improved: prioritize cuts from non-essentials first)
     let adjustedSavings = savings;
     let adjustedDebtBudget = debtBudget;
@@ -191,23 +199,15 @@ function App() {
       }
 
       overageAdvice += `Debt overage covered: KES ${coveredFromExpenses.toLocaleString()} from expenses + adjustments to savings. `;
-      // FIXED: Simplified interpolation (no deep nesting)
-      const highInterestLoans = loans
-        .filter(l => l.rate > 0)
-        .sort((a, b) => b.rate - a.rate)
-        .slice(0, 2)
-        .map(l => `${l.name} at ${l.rate}%`)
-        .join(', ') || 'None >0%';
       adjustments.push({ category: 'Total Debt Min Payments', current: totalMinPayments, adjusted: totalMinPayments, suggestion: `Prioritized (high-interest first: e.g., ${highInterestLoans})—no cuts` });
     } else {
-      // FIXED: Same simplification here
-      const highInterestLoans = loans
+      const highInterestLoanName = loans
         .filter(l => l.rate > 0)
         .sort((a, b) => b.rate - a.rate)
         .slice(0, 1)
         .map(l => l.name)
         .join(', ') || 'N/A';
-      adjustments.push({ category: 'Total Debt Min Payments', current: totalMinPayments, adjusted: totalMinPayments, suggestion: `Within budget; prioritize high-interest loans like ${highInterestLoans}` });
+      adjustments.push({ category: 'Total Debt Min Payments', current: totalMinPayments, adjusted: totalMinPayments, suggestion: `Within budget; prioritize high-interest loans like ${highInterestLoanName}` });
     }
 
     // Handle expenses overage (only cut non-essentials, scaled by household)
