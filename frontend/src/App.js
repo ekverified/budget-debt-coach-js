@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Chart as ChartJS, ArcElement, Tooltip, Legend, LineElement, PointElement, LinearScale, CategoryScale } from 'chart.js';
 import { Pie, Line } from 'react-chartjs-2';
 import jsPDF from 'jspdf';
@@ -25,7 +25,15 @@ function App() {
   useEffect(() => {
     const savedHistory = localStorage.getItem('budgetHistory');
     if (savedHistory) {
-      setHistory(JSON.parse(savedHistory));
+      try {
+        const parsed = JSON.parse(savedHistory);
+        if (parsed && parsed.length > 0) {
+          setHistory(parsed);
+        }
+      } catch (e) {
+        console.warn('Invalid history in localStorage, clearing:', e);
+        localStorage.removeItem('budgetHistory');
+      }
     }
   }, []);
 
@@ -35,40 +43,47 @@ function App() {
 
   const clearOnFocus = (e) => e.target.select();
 
-  const addLoan = () => {
-    setLoans([...loans, { name: '', balance: 0, rate: 0, minPayment: 0, isEssential: false }]);
-  };
+  const addLoan = useCallback(() => {
+    setLoans(prev => [...prev, { name: '', balance: 0, rate: 0, minPayment: 0, isEssential: false }]);
+  }, []);
 
-  const updateLoan = (index, field, value) => {
-    const updatedLoans = [...loans];
-    updatedLoans[index][field] = field === 'name' ? value : (parseFloat(value) || 0);
-    setLoans(updatedLoans);
-  };
+  const updateLoan = useCallback((index, field, value) => {
+    setLoans(prev => {
+      const updated = [...prev];
+      updated[index][field] = field === 'name' ? value : (parseFloat(value) || 0);
+      return updated;
+    });
+  }, []);
 
-  const toggleLoanEssential = (index) => {
-    const updatedLoans = [...loans];
-    updatedLoans[index].isEssential = !updatedLoans[index].isEssential;
-    setLoans(updatedLoans);
-  };
+  const toggleLoanEssential = useCallback((index) => {
+    setLoans(prev => {
+      const updated = [...prev];
+      updated[index].isEssential = !updated[index].isEssential;
+      return updated;
+    });
+  }, []);
 
-  const addExpense = () => {
-    setExpenses([...expenses, { name: '', amount: 0, isEssential: false }]);
-  };
+  const addExpense = useCallback(() => {
+    setExpenses(prev => [...prev, { name: '', amount: 0, isEssential: false }]);
+  }, []);
 
-  const updateExpense = (index, field, value) => {
-    const updatedExpenses = [...expenses];
-    updatedExpenses[index][field] = field === 'name' ? value : (parseFloat(value) || 0);
-    setExpenses(updatedExpenses);
-  };
+  const updateExpense = useCallback((index, field, value) => {
+    setExpenses(prev => {
+      const updated = [...prev];
+      updated[index][field] = field === 'name' ? value : (parseFloat(value) || 0);
+      return updated;
+    });
+  }, []);
 
-  const toggleExpenseEssential = (index) => {
-    const updatedExpenses = [...expenses];
-    updatedExpenses[index].isEssential = !updatedExpenses[index].isEssential;
-    setExpenses(updatedExpenses);
-  };
+  const toggleExpenseEssential = useCallback((index) => {
+    setExpenses(prev => {
+      const updated = [...prev];
+      updated[index].isEssential = !updated[index].isEssential;
+      return updated;
+    });
+  }, []);
 
-  // FIXED: Simulate now properly targets loan each month via sorter
-  const simulate = (loans, extra, sorter) => {
+  const simulate = useCallback((loans, extra, sorter) => {
     const clonedLoans = loans.map(l => ({ ...l }));
     let months = 0;
     let totalInterest = 0;
@@ -96,35 +111,39 @@ function App() {
       months++;
     }
     return { months, totalInterest };
-  };
+  }, []);
 
-  const snowball = (loans, extra) => simulate(loans, extra, (a, b) => a.balance - b.balance);
-  const avalanche = (loans, extra) => simulate(loans, extra, (a, b) => b.rate - a.rate);
+  const snowball = useCallback((loans, extra) => simulate(loans, extra, (a, b) => a.balance - b.balance), [simulate]);
+  const avalanche = useCallback((loans, extra) => simulate(loans, extra, (a, b) => b.rate - a.rate), [simulate]);
 
-  const getFreeAIAdvice = async (userData) => {
+  const getFreeAIAdvice = useCallback(async (userData) => {
     if (!enableAI) return '';
     const model = 'distilgpt2';
-    const prompt = `Financial advisor for Kenyan family of ${userData.householdSize}. Concise advice: Debt payoff (high-interest first), expense cuts (min KES1000/person essentials), savings, low-risk invest (MMFs/treasury). Data: Salary ${userData.salary}KES, Debt ${userData.debtBudget}KES, Expenses ${userData.totalExpenses}KES. Loans: ${JSON.stringify(userData.loans.slice(0,3))}. Expenses: ${JSON.stringify(userData.expenses.slice(0,3))}. Cuts: ${userData.suggestedCuts?.slice(0,200) || 'None'}. 3-mo emergency plan. 3 bullets only.`;
+    const prompt = `Kenyan financial advisor for ${userData.householdSize} members. Advice: Debt (high-interest), cuts (min 1000KES/person), savings, invest (MMFs). Data: Salary ${userData.salary}KES, Debt ${userData.debtBudget}, Expenses ${userData.totalExpenses}. Loans/Expenses: ${JSON.stringify([...userData.loans, ...userData.expenses].slice(0,4))}. Cuts: ${userData.suggestedCuts?.slice(0,100)||'None'}. 3-mo emergency. 3 bullets.`;
 
     try {
       const response = await fetch(`https://api-inference.huggingface.co/models/${model}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ inputs: prompt, parameters: { max_new_tokens: 150, temperature: 0.7 } })
+        body: JSON.stringify({ inputs: prompt, parameters: { max_new_tokens: 120, temperature: 0.7 } })
       });
       if (!response.ok) throw new Error(`HTTP ${response.status}`);
       const data = await response.json();
-      return data[0]?.generated_text?.split('Output:')[1]?.trim() || '';
+      return data[0]?.generated_text?.split('Output:')[1]?.trim() || data[0]?.generated_text?.trim() || '';
     } catch (error) {
       console.error('AI Error:', error);
       const highInt = userData.highInterestLoans || 'high-interest loans';
-      return `- Prioritize ${highInt} payoff.\n- Cut non-essentials 20% (save 1k/family), redirect to emergency fund.\n- Save ${userData.savings}KES/mo for 3-mo target (${(userData.totalExpenses * 3).toLocaleString()}KES).`;
+      return `- Prioritize ${highInt} payoff first.\n- Cut non-essentials 20% (save 1k/person), add to emergency fund.\n- Save ${userData.savings.toLocaleString()}KES/mo toward 3-mo target (${(userData.totalExpenses * 3).toLocaleString()}KES).`;
     }
-  };
+  }, [enableAI]);
 
-  const handleCalculate = async () => {
+  // FIXED: useCallback with all deps to avoid stale closure
+  const handleCalculate = useCallback(async () => {
     try {
-      console.log('Calculate started');
+      // FIXED: Debug logs to trace stale state
+      console.log('Calc debug - Salary:', salary);
+      console.log('Calc debug - Loans:', loans, 'length:', loans.length);
+      console.log('Calc debug - Expenses:', expenses, 'length:', expenses.length);
       if (savingsPct + debtPct + expensesPct !== 100) {
         alert('Percentages must sum to 100%');
         return;
@@ -136,6 +155,8 @@ function App() {
 
       const totalMinPayments = loans.reduce((sum, loan) => sum + loan.minPayment, 0);
       const totalExpenses = expenses.reduce((sum, exp) => sum + exp.amount, 0);
+      // FIXED: More debug
+      console.log('Calc debug - totalMinPayments:', totalMinPayments, 'totalExpenses:', totalExpenses);
 
       const highInterestLoans = loans
         .filter(l => l.rate > 0)
@@ -152,7 +173,7 @@ function App() {
       let overageAdvice = '';
       const adjustments = [];
 
-      // Handle debt overage
+      // Debt overage - Compute cuts without mutation
       let debtOverage = 0;
       if (totalMinPayments > debtBudget) {
         debtOverage = totalMinPayments - debtBudget;
@@ -174,7 +195,6 @@ function App() {
           }
         });
 
-        // FIXED: Apply cuts to total
         adjustedTotalExpenses -= coveredFromExpenses;
 
         const remainingOverage = debtOverage - coveredFromExpenses;
@@ -206,7 +226,7 @@ function App() {
         });
       }
 
-      // FIXED: Handle expenses overage on *adjusted* total (after debt cuts)
+      // Expenses overage - Compute without mutation
       let cutAmount = 0;
       if (adjustedTotalExpenses > expensesBudget) {
         const expOverage = adjustedTotalExpenses - expensesBudget;
@@ -239,7 +259,7 @@ function App() {
         suggestion: `${totalExpenses > expensesBudget || cutAmount > 0 ? `Adjusted (saved KES ${cutAmount.toLocaleString()})` : 'Within budget'}; review ${nonEssentials}`
       });
 
-      // Enforce total <= salary
+      // Balance cuts - Compute without mutation
       let totalAdjustedOutgo = adjustedTotalMinPayments + adjustedTotalExpenses;
       let overageAfterCuts = Math.max(0, totalAdjustedOutgo + adjustedSavings - salary);
       if (overageAfterCuts > 0) {
@@ -286,9 +306,9 @@ function App() {
 
       adviceText += `\nTotal Spend: KES ${(totalAdjustedOutgo + adjustedSavings).toLocaleString()} (fits salary).`;
 
-      // 3-Month Emergency
-      const monthlyExpensesForEmergency = adjustedTotalExpenses;
-      const threeMonthTarget = monthlyExpensesForEmergency * 3;
+      // 3-Month Emergency - FIXED: Use max(manual, auto) to avoid 0 override
+      const monthlyExpensesForEmergency = Math.max(adjustedTotalExpenses, emergencyTarget / 3 || 0);
+      const threeMonthTarget = Math.max(emergencyTarget, monthlyExpensesForEmergency * 3);
       const monthsToEmergency = adjustedSavings > 0 ? Math.ceil((threeMonthTarget - currentSavings) / adjustedSavings) : 0;
       const thisMonthAdd = Math.min(spareCash, 1000);
       adviceText += `\n🛡️ Emergency Fund: Target KES ${threeMonthTarget.toLocaleString()} (${householdSize} members). Current: KES ${currentSavings.toLocaleString()}. Reach in ${monthsToEmergency} mo. Add KES ${thisMonthAdd.toLocaleString()} to Sacco this mo.`;
@@ -309,7 +329,7 @@ function App() {
 
       setAdvice(adviceText);
       setAdjustedData(adjustments);
-      setEmergencyTarget(threeMonthTarget);  // FIXED: Auto-update progress bar to 3-mo target
+      setEmergencyTarget(threeMonthTarget);
 
       const historyEntry = {
         month: new Date().toISOString().slice(0, 7),
@@ -318,9 +338,9 @@ function App() {
         emergencyTarget: threeMonthTarget, currentSavings: currentSavings + adjustedSavings, adjustments: overageAdvice, householdSize
       };
       setCurrentSavings(historyEntry.currentSavings);
-      setHistory([...history, historyEntry]);
+      setHistory(prev => [...prev, historyEntry]);
 
-      // PDF (wrapped in try to avoid halting)
+      // PDF
       try {
         const doc = new jsPDF();
         let yPos = 10;
@@ -332,7 +352,7 @@ function App() {
         if (aiTip) { doc.text('AI Tip:', 10, yPos); yPos += 7; doc.text(aiTip.substring(0, 100) + '...', 10, yPos); yPos += 10; }
         doc.text('Plan:', 10, yPos); yPos += 10;
         adjustments.forEach((adj, i) => {
-          if (yPos > 270) { doc.addPage(); yPos = 10; }  // FIXED: Basic paging
+          if (yPos > 270) { doc.addPage(); yPos = 10; }
           doc.text(`${adj.category}: ${adj.current.toLocaleString()} → ${adj.adjusted.toLocaleString()} (${adj.suggestion.substring(0, 50)}...)`, 10, yPos);
           yPos += 7;
         });
@@ -340,7 +360,6 @@ function App() {
         doc.save('budget_report.pdf');
       } catch (pdfError) {
         console.error('PDF Error:', pdfError);
-        alert('Plan generated! PDF failed (check console)—download via browser print.');
       }
 
       // Chart
@@ -355,9 +374,9 @@ function App() {
       console.error('Calculate Error:', error);
       alert(`Calc failed: ${error.message}. Check console. Try disabling AI.`);
     }
-  };
+  }, [salary, savingsPct, debtPct, expensesPct, householdSize, loans, expenses, emergencyTarget, currentSavings, enableAI, history, snowball, avalanche, getFreeAIAdvice]);  // FIXED: Full deps for fresh state
 
-  const downloadHistory = () => {
+  const downloadHistory = useCallback(() => {
     const csv = 'Month,Salary,Savings,Debt Budget,Expenses Budget,Total Expenses,Snowball Months,Snowball Interest,Avalanche Months,Avalanche Interest,Emergency Target,Current Savings,Adjustments,Household Size\n' +
       history.map(entry => `${entry.month},${entry.salary},${entry.savings},${entry.debtBudget},${entry.expensesBudget},${entry.totalExpenses},${entry.snowMonths},${entry.snowInterest},${entry.avaMonths},${entry.avaInterest},${entry.emergencyTarget},${entry.currentSavings},"${entry.adjustments || ''}",${entry.householdSize || 1}`).join('\n');
     const blob = new Blob([csv], { type: 'text/csv' });
@@ -367,7 +386,7 @@ function App() {
     a.download = 'budget_history.csv';
     a.click();
     window.URL.revokeObjectURL(url);
-  };
+  }, [history]);
 
   const historyData = {
     labels: history.map(entry => entry.month).reverse(),
@@ -386,25 +405,25 @@ function App() {
 
       <section style={{ marginBottom: '30px' }}>
         <h2>Budget Settings</h2>
-        <label>Monthly Salary (KES): <input type="number" value={salary} onChange={(e) => setSalary(parseFloat(e.target.value) || 0)} onFocus={clearOnFocus} style={{ margin: '5px', padding: '5px' }} /></label><br />
-        <label>Household Size: <input type="number" min="1" value={householdSize} onChange={(e) => setHouseholdSize(parseInt(e.target.value) || 1)} style={{ margin: '5px', padding: '5px', width: '50px' }} /> (Scales advice)</label><br />
+        <label>Monthly Salary (KES): <input key="salary" type="number" value={salary || 0} onChange={(e) => setSalary(parseFloat(e.target.value) || 0)} onFocus={clearOnFocus} style={{ margin: '5px', padding: '5px' }} /></label><br />
+        <label>Household Size: <input key="household" type="number" min="1" value={householdSize} onChange={(e) => setHouseholdSize(parseInt(e.target.value) || 1)} style={{ margin: '5px', padding: '5px', width: '50px' }} /> (Scales advice)</label><br />
         <label>Customization (%): </label>
         <input type="range" min="0" max="50" value={savingsPct} onChange={(e) => setSavingsPct(parseInt(e.target.value))} style={{ margin: '5px' }} /> Savings: {savingsPct}%
         <input type="range" min="0" max="50" value={debtPct} onChange={(e) => setDebtPct(parseInt(e.target.value))} style={{ margin: '5px' }} /> Debt: {debtPct}%
         <input type="range" min="0" max="100" value={expensesPct} onChange={(e) => setExpensesPct(parseInt(e.target.value))} style={{ margin: '5px' }} /> Expenses: {expensesPct}%<br />
-        <label>Emergency Target (KES): <input type="number" value={emergencyTarget} onChange={(e) => setEmergencyTarget(parseFloat(e.target.value) || 0)} onFocus={clearOnFocus} style={{ margin: '5px', padding: '5px' }} /> (Auto-updates below)</label>
+        <label>Emergency Target (KES): <input key="emergency" type="number" value={emergencyTarget || 0} onChange={(e) => setEmergencyTarget(parseFloat(e.target.value) || 0)} onFocus={clearOnFocus} style={{ margin: '5px', padding: '5px' }} /> (Auto-updates below)</label>
       </section>
 
       <section style={{ marginBottom: '30px' }}>
         <h2>Loans</h2>
         {loans.map((loan, i) => (
-          <div key={i} style={{ border: '1px solid #ccc', margin: '10px 0', padding: '10px', borderRadius: '5px' }}>
+          <div key={`loan-${i}`} style={{ border: '1px solid #ccc', margin: '10px 0', padding: '10px', borderRadius: '5px' }}>
             <h3>Loan {i+1}</h3>
             <label>Name: <input type="text" value={loan.name} onChange={(e) => updateLoan(i, 'name', e.target.value)} style={{ margin: '5px', padding: '5px' }} /></label><br />
-            <label>Balance (KES): <input type="number" value={loan.balance} onChange={(e) => updateLoan(i, 'balance', e.target.value)} onFocus={clearOnFocus} style={{ margin: '5px', padding: '5px' }} /></label><br />
-            <label>Rate (%): <input type="number" step="0.1" value={loan.rate} onChange={(e) => updateLoan(i, 'rate', e.target.value)} onFocus={clearOnFocus} style={{ margin: '5px', padding: '5px' }} /></label><br />
-            <label>Min Payment (KES): <input type="number" value={loan.minPayment} onChange={(e) => updateLoan(i, 'minPayment', e.target.value)} onFocus={clearOnFocus} style={{ margin: '5px', padding: '5px' }} /></label><br />
-            <label>Essential?: <input type="checkbox" checked={loan.isEssential} onChange={() => toggleLoanEssential(i)} style={{ margin: '5px' }} /></label>
+            <label>Balance (KES): <input type="number" value={loan.balance || 0} onChange={(e) => updateLoan(i, 'balance', e.target.value)} onFocus={clearOnFocus} style={{ margin: '5px', padding: '5px' }} /></label><br />
+            <label>Rate (%): <input type="number" step="0.1" value={loan.rate || 0} onChange={(e) => updateLoan(i, 'rate', e.target.value)} onFocus={clearOnFocus} style={{ margin: '5px', padding: '5px' }} /></label><br />
+            <label>Min Payment (KES): <input type="number" value={loan.minPayment || 0} onChange={(e) => updateLoan(i, 'minPayment', e.target.value)} onFocus={clearOnFocus} style={{ margin: '5px', padding: '5px' }} /></label><br />
+            <label>Essential?: <input type="checkbox" checked={loan.isEssential || false} onChange={() => toggleLoanEssential(i)} style={{ margin: '5px' }} /></label>
           </div>
         ))}
         <button onClick={addLoan} style={{ padding: '10px', background: '#4CAF50', color: 'white', border: 'none', borderRadius: '5px' }}>Add Loan</button>
@@ -413,11 +432,11 @@ function App() {
       <section style={{ marginBottom: '30px' }}>
         <h2>Expenses</h2>
         {expenses.map((exp, i) => (
-          <div key={i} style={{ border: '1px solid #ccc', margin: '10px 0', padding: '10px', borderRadius: '5px' }}>
+          <div key={`exp-${i}`} style={{ border: '1px solid #ccc', margin: '10px 0', padding: '10px', borderRadius: '5px' }}>
             <h3>Expense {i+1}</h3>
             <label>Name: <input type="text" value={exp.name} onChange={(e) => updateExpense(i, 'name', e.target.value)} style={{ margin: '5px', padding: '5px' }} /></label><br />
-            <label>Amount (KES): <input type="number" value={exp.amount} onChange={(e) => updateExpense(i, 'amount', e.target.value)} onFocus={clearOnFocus} style={{ margin: '5px', padding: '5px' }} /></label><br />
-            <label>Essential?: <input type="checkbox" checked={exp.isEssential} onChange={() => toggleExpenseEssential(i)} style={{ margin: '5px' }} /></label>
+            <label>Amount (KES): <input type="number" value={exp.amount || 0} onChange={(e) => updateExpense(i, 'amount', e.target.value)} onFocus={clearOnFocus} style={{ margin: '5px', padding: '5px' }} /></label><br />
+            <label>Essential?: <input type="checkbox" checked={exp.isEssential || false} onChange={() => toggleExpenseEssential(i)} style={{ margin: '5px' }} /></label>
           </div>
         ))}
         <button onClick={addExpense} style={{ padding: '10px', background: '#4CAF50', color: 'white', border: 'none', borderRadius: '5px' }}>Add Expense</button>
