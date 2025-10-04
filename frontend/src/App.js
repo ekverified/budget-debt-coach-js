@@ -430,21 +430,28 @@ ${adjustments.map(adj => `| ${adj.category} | ${adj.current.toLocaleString()} | 
 
       <section style={{ marginBottom: '30px' }}>
         <h2>Budget Settings</h2>
-        <label>Monthly Salary (KES): </label>
-        <input type="number" value={salary} onChange={(e) => setSalary(parseFloat(e.target.value) || 0)} onFocus={clearOnFocus} style={{ margin: '5px', padding: '5px' }} />
-        <br />
-        <label>Household Size: </label>
-        <input type="number" min="1" value={householdSize} onChange={(e) => setHouseholdSize(parseInt(e.target.value) || 1)} style={{ margin: '5px', padding: '5px', width: '50px' }} /> (Scales advice for family needs)
-        <br />
-        <div className="budget-settings">
-          <label>Customization (%): </label>
-          <input type="range" min="0" max="50" value={savingsPct} onChange={(e) => setSavingsPct(parseInt(e.target.value))} style={{ margin: '5px' }} /> Savings: {savingsPct}%
-          <input type="range" min="0" max="50" value={debtPct} onChange={(e) => setDebtPct(parseInt(e.target.value))} style={{ margin: '5px' }} /> Debt: {debtPct}%
-          <input type="range" min="0" max="100" value={expensesPct} onChange={(e) => setExpensesPct(parseInt(e.target.value))} style={{ margin: '5px' }} /> Expenses: {expensesPct}% (must sum to 100%)
-        </div>
-        <br />
-        <label>Emergency Fund Target (KES): </label>
-        <input type="number" value={emergencyTarget} onChange={(e) => setEmergencyTarget(parseFloat(e.target.value) || 0)} onFocus={clearOnFocus} style={{ margin: '5px', padding: '5px' }} /> (Auto-suggests 3 months below)
+        <form>
+          <div className="form-row">
+            <label>Monthly Salary (KES): </label>
+            <input type="number" value={salary} onChange={(e) => setSalary(parseFloat(e.target.value) || 0)} onFocus={clearOnFocus} />
+          </div>
+          <div className="form-row">
+            <label>Household Size: </label>
+            <input type="number" min="1" value={householdSize} onChange={(e) => setHouseholdSize(parseInt(e.target.value) || 1)} />
+            <small>(Scales advice for family needs)</small>
+          </div>
+          <div className="budget-settings">
+            <label>Customization (%): </label>
+            <input type="range" min="0" max="50" value={savingsPct} onChange={(e) => setSavingsPct(parseInt(e.target.value))} /> Savings: {savingsPct}%
+            <input type="range" min="0" max="50" value={debtPct} onChange={(e) => setDebtPct(parseInt(e.target.value))} /> Debt: {debtPct}%
+            <input type="range" min="0" max="100" value={expensesPct} onChange={(e) => setExpensesPct(parseInt(e.target.value))} /> Expenses: {expensesPct}% (must sum to 100%)
+          </div>
+          <div className="form-row">
+            <label>Emergency Fund Target (KES): </label>
+            <input type="number" value={emergencyTarget} onChange={(e) => setEmergencyTarget(parseFloat(e.target.value) || 0)} onFocus={clearOnFocus} />
+            <small>(Auto-suggests 3 months below)</small>
+          </div>
+        </form>
       </section>
 
       <section style={{ marginBottom: '30px' }}>
@@ -452,20 +459,26 @@ ${adjustments.map(adj => `| ${adj.category} | ${adj.current.toLocaleString()} | 
         {loans.map((loan, i) => (
           <div key={i} className="loan-card" style={{ border: '1px solid #ccc', margin: '10px 0', padding: '10px', borderRadius: '5px' }}>
             <h3>Loan {i+1}</h3>
-            <label>Name: </label>
-            <input type="text" value={loan.name} onChange={(e) => updateLoan(i, 'name', e.target.value)} style={{ margin: '5px', padding: '5px' }} />
-            <br />
-            <label>Balance (KES): </label>
-            <input type="number" value={loan.balance} onChange={(e) => updateLoan(i, 'balance', e.target.value)} onFocus={clearOnFocus} style={{ margin: '5px', padding: '5px' }} />
-            <br />
-            <label>Rate (%): </label>
-            <input type="number" step="0.1" value={loan.rate} onChange={(e) => updateLoan(i, 'rate', e.target.value)} onFocus={clearOnFocus} style={{ margin: '5px', padding: '5px' }} />
-            <br />
-            <label>Min Payment (KES): </label>
-            <input type="number" value={loan.minPayment} onChange={(e) => updateLoan(i, 'minPayment', e.target.value)} onFocus={clearOnFocus} style={{ margin: '5px', padding: '5px' }} />
-            <br />
-            <label>Essential? (Cannot Cut/Pay Full): </label>
-            <input type="checkbox" checked={loan.isEssential} onChange={() => toggleLoanEssential(i)} style={{ margin: '5px' }} />
+            <div className="form-row">
+              <label>Name: </label>
+              <input type="text" value={loan.name} onChange={(e) => updateLoan(i, 'name', e.target.value)} />
+            </div>
+            <div className="form-row">
+              <label>Balance (KES): </label>
+              <input type="number" value={loan.balance} onChange={(e) => updateLoan(i, 'balance', e.target.value)} onFocus={clearOnFocus} />
+            </div>
+            <div className="form-row">
+              <label>Rate (%): </label>
+              <input type="number" step="0.1" value={loan.rate} onChange={(e) => updateLoan(i, 'rate', e.target.value)} onFocus={clearOnFocus} />
+            </div>
+            <div className="form-row">
+              <label>Min Payment (KES): </label>
+              <input type="number" value={loan.minPayment} onChange={(e) => updateLoan(i, 'minPayment', e.target.value)} onFocus={clearOnFocus} />
+            </div>
+            <div className="form-row">
+              <label>Essential? (Cannot Cut/Pay Full): </label>
+              <input type="checkbox" checked={loan.isEssential} onChange={() => toggleLoanEssential(i)} />
+            </div>
           </div>
         ))}
         <button className="btn-success" onClick={addLoan} style={{ padding: '10px', background: '#4CAF50', color: 'white', border: 'none', borderRadius: '5px' }}>Add Loan</button>
@@ -476,14 +489,18 @@ ${adjustments.map(adj => `| ${adj.category} | ${adj.current.toLocaleString()} | 
         {expenses.map((exp, i) => (
           <div key={i} className="expense-card" style={{ border: '1px solid #ccc', margin: '10px 0', padding: '10px', borderRadius: '5px' }}>
             <h3>Expense {i+1}</h3>
-            <label>Name: </label>
-            <input type="text" value={exp.name} onChange={(e) => updateExpense(i, 'name', e.target.value)} style={{ margin: '5px', padding: '5px' }} />
-            <br />
-            <label>Amount (KES): </label>
-            <input type="number" value={exp.amount} onChange={(e) => updateExpense(i, 'amount', e.target.value)} onFocus={clearOnFocus} style={{ margin: '5px', padding: '5px' }} />
-            <br />
-            <label>Essential? (Fixed, e.g., Transport/Medical): </label>
-            <input type="checkbox" checked={exp.isEssential} onChange={() => toggleExpenseEssential(i)} style={{ margin: '5px' }} />
+            <div className="form-row">
+              <label>Name: </label>
+              <input type="text" value={exp.name} onChange={(e) => updateExpense(i, 'name', e.target.value)} />
+            </div>
+            <div className="form-row">
+              <label>Amount (KES): </label>
+              <input type="number" value={exp.amount} onChange={(e) => updateExpense(i, 'amount', e.target.value)} onFocus={clearOnFocus} />
+            </div>
+            <div className="form-row">
+              <label>Essential? (Fixed, e.g., Transport/Medical): </label>
+              <input type="checkbox" checked={exp.isEssential} onChange={() => toggleExpenseEssential(i)} />
+            </div>
           </div>
         ))}
         <button className="btn-success" onClick={addExpense} style={{ padding: '10px', background: '#4CAF50', color: 'white', border: 'none', borderRadius: '5px' }}>Add Expense</button>
@@ -491,9 +508,16 @@ ${adjustments.map(adj => `| ${adj.category} | ${adj.current.toLocaleString()} | 
 
       <section style={{ marginBottom: '30px' }}>
         <h2>Actions</h2>
-        <label style={{ display: 'block', marginBottom: '10px' }}>Enable Free AI Advice: <input type="checkbox" checked={enableAI} onChange={(e) => setEnableAI(e.target.checked)} /></label>
-        <button className="btn-primary" onClick={handleCalculate} style={{ padding: '10px 20px', background: '#2196F3', color: 'white', border: 'none', borderRadius: '5px', margin: '10px' }}>Calculate & Generate Plan</button>
-        <button className="btn-secondary" onClick={downloadHistory} style={{ padding: '10px 20px', background: '#FF9800', color: 'white', border: 'none', borderRadius: '5px', margin: '10px' }}>Download History CSV</button>
+        <form>
+          <div className="form-row">
+            <label>Enable Free AI Advice: </label>
+            <input type="checkbox" checked={enableAI} onChange={(e) => setEnableAI(e.target.checked)} />
+          </div>
+          <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', justifyContent: 'center' }}>
+            <button className="btn-primary" onClick={handleCalculate} style={{ padding: '10px 20px', background: '#2196F3', color: 'white', border: 'none', borderRadius: '5px', margin: '10px' }}>Calculate & Generate Plan</button>
+            <button className="btn-secondary" onClick={downloadHistory} style={{ padding: '10px 20px', background: '#FF9800', color: 'white', border: 'none', borderRadius: '5px', margin: '10px' }}>Download History CSV</button>
+          </div>
+        </form>
       </section>
 
       {chartData && (
