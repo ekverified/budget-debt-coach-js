@@ -1,19 +1,27 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en-KE">
   <head>
     <meta charset="utf-8" />
     <link rel="icon" href="%PUBLIC_URL%/favicon.ico" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="theme-color" content="#000000" />
+    <meta name="theme-color" content="#3498db" /> <!-- Matches app's primary blue -->
     <meta
       name="description"
-      content="Web site created using create-react-app"
+      content="Budget & Debt Coach: Free Kenyan personal finance planner. Track expenses, manage loans with snowball/avalanche methods, get AI advice, and build emergency funds in KES."
     />
+    <!-- Open Graph for social sharing -->
+    <meta property="og:title" content="Budget & Debt Coach" />
+    <meta property="og:description" content="Empower your finances: Budget, pay off debt, and save smarter with tailored Kenyan advice." />
+    <meta property="og:image" content="%PUBLIC_URL%/logo192.png" />
+    <meta property="og:url" content="%PUBLIC_URL%" />
+    <meta property="og:type" content="website" />
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Budget & Debt Coach" />
+    <meta name="twitter:description" content="Track expenses, crush debt, and build savings—free AI-powered tool for Kenyans." />
+    <meta name="twitter:image" content="%PUBLIC_URL%/logo192.png" />
+    <!-- Apple Touch Icon & PWA -->
     <link rel="apple-touch-icon" href="%PUBLIC_URL%/logo192.png" />
-    <!--
-      manifest.json provides metadata used when your web app is installed on a
-      user's mobile device or desktop. See https://developers.google.com/web/fundamentals/web-app-manifest/
-    -->
     <link rel="manifest" href="%PUBLIC_URL%/manifest.json" />
     <!--
       Notice the use of %PUBLIC_URL% in the tags above.
@@ -24,10 +32,16 @@
       work correctly both with client-side routing and a non-root public URL.
       Learn how to configure a non-root public URL by running `npm run build`.
     -->
-    <title>React App</title>
+    <title>Budget & Debt Coach - Personal Finance & Debt Planner (KES)</title>
   </head>
   <body>
-    <noscript>You need to enable JavaScript to run this app.</noscript>
+    <noscript>
+      <div style="padding: 20px; text-align: center; background: #f8f9fa; color: #333; border: 1px solid #ddd; margin: 20px;">
+        <h2>JavaScript is Required</h2>
+        <p>This budgeting app relies on JavaScript for calculations, charts, and AI advice. Please enable it in your browser settings to get started with managing your finances.</p>
+        <p><strong>Quick Tip:</strong> If you're in Kenya, try refreshing or checking your connection—most modern browsers support JS by default.</p>
+      </div>
+    </noscript>
     <div id="root"></div>
     <!--
       This HTML file is a template.
