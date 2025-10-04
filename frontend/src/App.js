@@ -422,8 +422,8 @@ ${adjustments.map(adj => `| ${adj.category} | ${adj.current.toLocaleString()} | 
   };
 
   return (
-    <div style={{ padding: '20px', maxWidth: '1200px', margin: '0 auto' }}>
-      <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+    <div className="App" style={{ padding: '20px', maxWidth: '1200px', margin: '0 auto' }}>
+      <header className="App-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <h1>Budget & Debt Coach</h1>
         <p>Open Access - Auth coming soon</p>
       </header>
@@ -436,10 +436,12 @@ ${adjustments.map(adj => `| ${adj.category} | ${adj.current.toLocaleString()} | 
         <label>Household Size: </label>
         <input type="number" min="1" value={householdSize} onChange={(e) => setHouseholdSize(parseInt(e.target.value) || 1)} style={{ margin: '5px', padding: '5px', width: '50px' }} /> (Scales advice for family needs)
         <br />
-        <label>Customization (%): </label>
-        <input type="range" min="0" max="50" value={savingsPct} onChange={(e) => setSavingsPct(parseInt(e.target.value))} style={{ margin: '5px' }} /> Savings: {savingsPct}%
-        <input type="range" min="0" max="50" value={debtPct} onChange={(e) => setDebtPct(parseInt(e.target.value))} style={{ margin: '5px' }} /> Debt: {debtPct}%
-        <input type="range" min="0" max="100" value={expensesPct} onChange={(e) => setExpensesPct(parseInt(e.target.value))} style={{ margin: '5px' }} /> Expenses: {expensesPct}% (must sum to 100%)
+        <div className="budget-settings">
+          <label>Customization (%): </label>
+          <input type="range" min="0" max="50" value={savingsPct} onChange={(e) => setSavingsPct(parseInt(e.target.value))} style={{ margin: '5px' }} /> Savings: {savingsPct}%
+          <input type="range" min="0" max="50" value={debtPct} onChange={(e) => setDebtPct(parseInt(e.target.value))} style={{ margin: '5px' }} /> Debt: {debtPct}%
+          <input type="range" min="0" max="100" value={expensesPct} onChange={(e) => setExpensesPct(parseInt(e.target.value))} style={{ margin: '5px' }} /> Expenses: {expensesPct}% (must sum to 100%)
+        </div>
         <br />
         <label>Emergency Fund Target (KES): </label>
         <input type="number" value={emergencyTarget} onChange={(e) => setEmergencyTarget(parseFloat(e.target.value) || 0)} onFocus={clearOnFocus} style={{ margin: '5px', padding: '5px' }} /> (Auto-suggests 3 months below)
@@ -448,7 +450,7 @@ ${adjustments.map(adj => `| ${adj.category} | ${adj.current.toLocaleString()} | 
       <section style={{ marginBottom: '30px' }}>
         <h2>Loans</h2>
         {loans.map((loan, i) => (
-          <div key={i} style={{ border: '1px solid #ccc', margin: '10px 0', padding: '10px', borderRadius: '5px' }}>
+          <div key={i} className="loan-card" style={{ border: '1px solid #ccc', margin: '10px 0', padding: '10px', borderRadius: '5px' }}>
             <h3>Loan {i+1}</h3>
             <label>Name: </label>
             <input type="text" value={loan.name} onChange={(e) => updateLoan(i, 'name', e.target.value)} style={{ margin: '5px', padding: '5px' }} />
@@ -466,13 +468,13 @@ ${adjustments.map(adj => `| ${adj.category} | ${adj.current.toLocaleString()} | 
             <input type="checkbox" checked={loan.isEssential} onChange={() => toggleLoanEssential(i)} style={{ margin: '5px' }} />
           </div>
         ))}
-        <button onClick={addLoan} style={{ padding: '10px', background: '#4CAF50', color: 'white', border: 'none', borderRadius: '5px' }}>Add Loan</button>
+        <button className="btn-success" onClick={addLoan} style={{ padding: '10px', background: '#4CAF50', color: 'white', border: 'none', borderRadius: '5px' }}>Add Loan</button>
       </section>
 
       <section style={{ marginBottom: '30px' }}>
         <h2>Expenses</h2>
         {expenses.map((exp, i) => (
-          <div key={i} style={{ border: '1px solid #ccc', margin: '10px 0', padding: '10px', borderRadius: '5px' }}>
+          <div key={i} className="expense-card" style={{ border: '1px solid #ccc', margin: '10px 0', padding: '10px', borderRadius: '5px' }}>
             <h3>Expense {i+1}</h3>
             <label>Name: </label>
             <input type="text" value={exp.name} onChange={(e) => updateExpense(i, 'name', e.target.value)} style={{ margin: '5px', padding: '5px' }} />
@@ -484,27 +486,27 @@ ${adjustments.map(adj => `| ${adj.category} | ${adj.current.toLocaleString()} | 
             <input type="checkbox" checked={exp.isEssential} onChange={() => toggleExpenseEssential(i)} style={{ margin: '5px' }} />
           </div>
         ))}
-        <button onClick={addExpense} style={{ padding: '10px', background: '#4CAF50', color: 'white', border: 'none', borderRadius: '5px' }}>Add Expense</button>
+        <button className="btn-success" onClick={addExpense} style={{ padding: '10px', background: '#4CAF50', color: 'white', border: 'none', borderRadius: '5px' }}>Add Expense</button>
       </section>
 
       <section style={{ marginBottom: '30px' }}>
         <h2>Actions</h2>
         <label style={{ display: 'block', marginBottom: '10px' }}>Enable Free AI Advice: <input type="checkbox" checked={enableAI} onChange={(e) => setEnableAI(e.target.checked)} /></label>
-        <button onClick={handleCalculate} style={{ padding: '10px 20px', background: '#2196F3', color: 'white', border: 'none', borderRadius: '5px', margin: '10px' }}>Calculate & Generate Plan</button>
-        <button onClick={downloadHistory} style={{ padding: '10px 20px', background: '#FF9800', color: 'white', border: 'none', borderRadius: '5px', margin: '10px' }}>Download History CSV</button>
+        <button className="btn-primary" onClick={handleCalculate} style={{ padding: '10px 20px', background: '#2196F3', color: 'white', border: 'none', borderRadius: '5px', margin: '10px' }}>Calculate & Generate Plan</button>
+        <button className="btn-secondary" onClick={downloadHistory} style={{ padding: '10px 20px', background: '#FF9800', color: 'white', border: 'none', borderRadius: '5px', margin: '10px' }}>Download History CSV</button>
       </section>
 
       {chartData && (
         <section style={{ marginBottom: '30px' }}>
           <h2>Adjusted Allocation Chart</h2>
-          <div style={{ width: '400px', height: '400px', margin: '0 auto' }}>
-            <Pie data={chartData} />
+          <div className="chart-container" style={{ width: '400px', height: '400px', margin: '0 auto' }}>
+            <Pie data={chartData} options={{ responsive: true, maintainAspectRatio: true }} />
           </div>
         </section>
       )}
 
       {advice && (
-        <section style={{ marginBottom: '30px' }}>
+        <section className="advice-section" style={{ marginBottom: '30px' }}>
           <h2>Financial Advice</h2>
           <div style={{ background: '#e8f5e8', padding: '10px', borderRadius: '5px', whiteSpace: 'pre-line' }}>{advice}</div>
         </section>
@@ -513,35 +515,37 @@ ${adjustments.map(adj => `| ${adj.category} | ${adj.current.toLocaleString()} | 
       {adjustedData && (
         <section style={{ marginBottom: '30px' }}>
           <h2>Adjusted Spending Table</h2>
-          <table style={{ width: '100%', borderCollapse: 'collapse', border: '1px solid #ccc' }}>
-            <thead>
-              <tr>
-                <th style={{ border: '1px solid #ccc', padding: '8px' }}>Category</th>
-                <th style={{ border: '1px solid #ccc', padding: '8px' }}>Current (KES)</th>
-                <th style={{ border: '1px solid #ccc', padding: '8px' }}>Adjusted (KES)</th>
-                <th style={{ border: '1px solid #ccc', padding: '8px' }}>Suggestion</th>
-              </tr>
-            </thead>
-            <tbody>
-              {adjustedData.map((adj, i) => (
-                <tr key={i}>
-                  <td style={{ border: '1px solid #ccc', padding: '8px' }}>{adj.category}</td>
-                  <td style={{ border: '1px solid #ccc', padding: '8px' }}>{adj.current.toLocaleString()}</td>
-                  <td style={{ border: '1px solid #ccc', padding: '8px' }}>{adj.adjusted.toLocaleString()}</td>
-                  <td style={{ border: '1px solid #ccc', padding: '8px' }}>{adj.suggestion}</td>
+          <div className="table-responsive">
+            <table style={{ width: '100%', borderCollapse: 'collapse', border: '1px solid #ccc' }}>
+              <thead>
+                <tr>
+                  <th style={{ border: '1px solid #ccc', padding: '8px' }}>Category</th>
+                  <th style={{ border: '1px solid #ccc', padding: '8px' }}>Current (KES)</th>
+                  <th style={{ border: '1px solid #ccc', padding: '8px' }}>Adjusted (KES)</th>
+                  <th style={{ border: '1px solid #ccc', padding: '8px' }}>Suggestion</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {adjustedData.map((adj, i) => (
+                  <tr key={i}>
+                    <td style={{ border: '1px solid #ccc', padding: '8px' }}>{adj.category}</td>
+                    <td style={{ border: '1px solid #ccc', padding: '8px' }}>{adj.current.toLocaleString()}</td>
+                    <td style={{ border: '1px solid #ccc', padding: '8px' }}>{adj.adjusted.toLocaleString()}</td>
+                    <td style={{ border: '1px solid #ccc', padding: '8px' }}>{adj.suggestion}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </section>
       )}
 
       <section style={{ marginBottom: '30px' }}>
         <h2>History</h2>
-        <div style={{ width: '800px', height: '400px', margin: '0 auto' }}>
-          <Line data={historyData} />
+        <div className="chart-container" style={{ width: '800px', height: '400px', margin: '0 auto' }}>
+          <Line data={historyData} options={{ responsive: true, maintainAspectRatio: true }} />
         </div>
-        <ul style={{ listStyleType: 'none', padding: 0 }}>
+        <ul className="history-list" style={{ listStyleType: 'none', padding: 0 }}>
           {history.map((entry, i) => (
             <li key={i} style={{ margin: '5px 0', padding: '5px', borderBottom: '1px solid #eee' }}>
               <strong>{entry.month}:</strong> Salary KES {entry.salary.toLocaleString()}, Savings KES {entry.savings.toLocaleString()}, Debt Budget KES {entry.debtBudget.toLocaleString()}, Expenses KES {entry.totalExpenses.toLocaleString()} {entry.adjustments ? `(Adjustments: ${entry.adjustments})` : ''} (Household: {entry.householdSize || 1})
