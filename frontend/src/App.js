@@ -40,6 +40,14 @@ function App() {
 
   const addLoan = () => {
     setLoans([...loans, { name: '', balance: 0, rate: 0, minPayment: 0, isEssential: false }]); // NEW: Add essential flag
+    
+    // NEW: Track GA4 event for adding loan
+    if (typeof window !== 'undefined' && window.gtag) {
+      window.gtag('event', 'add_loan', {
+        event_category: 'User Action',
+        event_label: 'Loans Section'
+      });
+    }
   };
 
   const updateLoan = (index, field, value) => {
@@ -56,6 +64,14 @@ function App() {
 
   const addExpense = () => {
     setExpenses([...expenses, { name: '', amount: 0, isEssential: false }]); // NEW: Add essential flag
+    
+    // NEW: Track GA4 event for adding expense
+    if (typeof window !== 'undefined' && window.gtag) {
+      window.gtag('event', 'add_expense', {
+        event_category: 'User Action',
+        event_label: 'Expenses Section'
+      });
+    }
   };
 
   const updateExpense = (index, field, value) => {
@@ -324,6 +340,15 @@ ${adjustments.map(adj => `| ${adj.category} | ${adj.current.toLocaleString()} | 
       adviceText += `\n\n🤖 Free AI Tip (via Hugging Face): ${aiTip}`;
     }
 
+    // NEW: Track GA4 event for generating plan
+    if (typeof window !== 'undefined' && window.gtag) {
+      window.gtag('event', 'generate_plan', {
+        event_category: 'User Action',
+        event_label: `Household: ${householdSize}, AI: ${enableAI}`,
+        value: Math.round(salary)  // Integer value for GA
+      });
+    }
+
     setAdvice(adviceText);
     setAdjustedData(adjustments); // For UI table
 
@@ -377,6 +402,14 @@ ${adjustments.map(adj => `| ${adj.category} | ${adj.current.toLocaleString()} | 
     doc.text(adviceText.substring(0, 1500), 10, yPos, { maxWidth: 180 }); // Truncate if too long
     doc.save('budget_report.pdf');
 
+    // NEW: Track GA4 event for PDF download
+    if (typeof window !== 'undefined' && window.gtag) {
+      window.gtag('event', 'download_pdf', {
+        event_category: 'User Action',
+        event_label: 'Budget Report'
+      });
+    }
+
     // Allocation Pie Chart (use adjusted values)
     const pieData = {
       labels: ['Savings', 'Debt', 'Expenses'],
@@ -398,6 +431,14 @@ ${adjustments.map(adj => `| ${adj.category} | ${adj.current.toLocaleString()} | 
     a.download = 'budget_history.csv';
     a.click();
     window.URL.revokeObjectURL(url);
+
+    // NEW: Track GA4 event for downloading history
+    if (typeof window !== 'undefined' && window.gtag) {
+      window.gtag('event', 'download_history', {
+        event_category: 'User Action',
+        event_label: 'CSV Export'
+      });
+    }
   };
 
   // Allocation Pie Chart
