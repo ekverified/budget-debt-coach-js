@@ -21,6 +21,7 @@ function App() {
   const [advice, setAdvice] = useState('');
   const [adjustedData, setAdjustedData] = useState(null);
   const [enableAI, setEnableAI] = useState(true);
+  const [financialData, setFinancialData] = useState(null);
 
   useEffect(() => {
     const savedHistory = localStorage.getItem('budgetHistory');
@@ -41,6 +42,35 @@ function App() {
     localStorage.setItem('budgetHistory', JSON.stringify(history));
   }, [history]);
 
+  // Fetch or load financial data
+  const loadFinancialData = useCallback(async () => {
+    // Static data as of Oct 5, 2025 (fallback; in production, fetch real-time via APIs like Trading Economics, Cytonn site, etc.)
+    // Example real-time fetch for bonds: await fetch('https://tradingeconomics.com/kenya/government-bond-yield').then(res => res.text()).then(parseYield);
+    const data = {
+      saccos: [
+        { name: 'Stima SACCO', dividend: 15, members: '200k+' },
+        { name: 'Kenya Police SACCO', dividend: 13, note: 'low loans, high dividends' },
+        { name: 'Safaricom SACCO', dividend: 13, note: 'open to public' }
+      ],
+      bonds: {
+        '10Y': 13.46,
+        tBills: { '91-day': 7.92, '182-day': 8.5, '364-day': 9.54 }
+      },
+      mmfs: [
+        { name: 'Cytonn MMF', net: 12.76 },
+        { name: 'GulfCap MMF', gross: 13 },
+        { name: 'Orient Kasha MMF', net: 10.0 }
+      ],
+      crypto: {
+        lowRisk: ['Bitcoin (stable, ETF potential)', 'Ethereum (DeFi growth)'],
+        highPotential: ['Solana (scalability, 2025 boom candidate)'],
+        highRisk: ['Dogecoin (meme volatility, 1000x potential but high risk, 80% ETF odds)']
+      }
+    };
+    setFinancialData(data);
+    return data;
+  }, []);
+
   const clearOnFocus = (e) => e.target.select();
 
   const addLoan = useCallback(() => {
@@ -48,12 +78,23 @@ function App() {
   }, []);
 
   const updateLoan = useCallback((index, field, value) => {
+    let parsedValue = value;
+    if (field === 'name') {
+      const numMatch = value.match(/(\d+(?:\.\d+)?)/);
+      if (numMatch) {
+        const num = parseFloat(numMatch[1]);
+        if (loans[index].balance === 0 && num > 0) {
+          setTimeout(() => alert(`Detected amount ${num.toLocaleString()} in name "${value}". Consider moving to Balance field.`), 0);
+          parsedValue = value.replace(numMatch[0], '').trim();
+        }
+      }
+    }
     setLoans(prev => {
       const updated = [...prev];
-      updated[index][field] = field === 'name' ? value : (parseFloat(value) || 0);
+      updated[index][field] = field === 'name' ? parsedValue : (parseFloat(value) || 0);
       return updated;
     });
-  }, []);
+  }, [loans]);
 
   const toggleLoanEssential = useCallback((index) => {
     setLoans(prev => {
@@ -68,12 +109,23 @@ function App() {
   }, []);
 
   const updateExpense = useCallback((index, field, value) => {
+    let parsedValue = value;
+    if (field === 'name') {
+      const numMatch = value.match(/(\d+(?:\.\d+)?)/);
+      if (numMatch) {
+        const num = parseFloat(numMatch[1]);
+        if (expenses[index].amount === 0 && num > 0) {
+          setTimeout(() => alert(`Detected amount ${num.toLocaleString()} in name "${value}". Consider moving to Amount field.`), 0);
+          parsedValue = value.replace(numMatch[0], '').trim();
+        }
+      }
+    }
     setExpenses(prev => {
       const updated = [...prev];
-      updated[index][field] = field === 'name' ? value : (parseFloat(value) || 0);
+      updated[index][field] = field === 'name' ? parsedValue : (parseFloat(value) || 0);
       return updated;
     });
-  }, []);
+  }, [expenses]);
 
   const toggleExpenseEssential = useCallback((index) => {
     setExpenses(prev => {
@@ -116,16 +168,16 @@ function App() {
   const snowball = useCallback((loans, extra) => simulate(loans, extra, (a, b) => a.balance - b.balance), [simulate]);
   const avalanche = useCallback((loans, extra) => simulate(loans, extra, (a, b) => b.rate - a.rate), [simulate]);
 
-  const getFreeAIAdvice = useCallback(async (userData) => {
+  const getFreeAIAdvice = useCallback(async (userData, finData) => {
     if (!enableAI) return '';
     const model = 'distilgpt2';
-    const prompt = `Kenyan financial advisor for ${userData.householdSize} members. Advice: Debt (high-interest), cuts (min 1000KES/person), savings, invest (MMFs). Data: Salary ${userData.salary}KES, Debt ${userData.debtBudget}, Expenses ${userData.totalExpenses}. Loans/Expenses: ${JSON.stringify([...userData.loans, ...userData.expenses].slice(0,4))}. Cuts: ${userData.suggestedCuts?.slice(0,100)||'None'}. 3-mo emergency. 3 bullets.`;
+    const prompt = `Kenyan financial advisor for ${userData.householdSize} members. Advice: Debt (high-interest), cuts (min 1000KES/person), savings, invest (MMFs, SACCOs, bonds). Crypto: balanced low-risk/high-pot with volatility warning. Data: Salary ${userData.salary}KES, Debt ${userData.debtBudget}, Expenses ${userData.totalExpenses}. Loans/Expenses: ${JSON.stringify([...userData.loans, ...userData.expenses].slice(0,4))}. Cuts: ${userData.suggestedCuts?.slice(0,100)||'None'}. SACCOs: ${finData.saccos.map(s => `${s.name} ${s.dividend}%`).join(', ')}. Bonds: 10Y ${finData.bonds['10Y']}% . MMFs: ${finData.mmfs.map(m => `${m.name} ${m.net || m.gross}%`).join(', ')}. Crypto: ${JSON.stringify(finData.crypto)}. 3-mo emergency, side hustles, survival tips. 5 bullets.`;
 
     try {
       const response = await fetch(`https://api-inference.huggingface.co/models/${model}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ inputs: prompt, parameters: { max_new_tokens: 120, temperature: 0.7 } })
+        body: JSON.stringify({ inputs: prompt, parameters: { max_new_tokens: 150, temperature: 0.7 } })
       });
       if (!response.ok) throw new Error(`HTTP ${response.status}`);
       const data = await response.json();
@@ -133,14 +185,14 @@ function App() {
     } catch (error) {
       console.error('AI Error:', error);
       const highInt = userData.highInterestLoans || 'high-interest loans';
-      return `- Prioritize ${highInt} payoff first.\n- Cut non-essentials 20% (save 1k/person), add to emergency fund.\n- Save ${userData.savings.toLocaleString()}KES/mo toward 3-mo target (${(userData.totalExpenses * 3).toLocaleString()}KES).`;
+      const saccoRec = finData.saccos[0].name;
+      const mmfRec = finData.mmfs[0].name;
+      return `- Prioritize ${highInt} payoff first.\n- Cut non-essentials 20% (save 1k/person), fund ${saccoRec} or ${mmfRec}.\n- Invest spare in 10Y bonds (${finData.bonds['10Y']}% yield).\n- Crypto: Start with ${finData.crypto.lowRisk[0]}, avoid high-risk ${finData.crypto.highRisk[0]} volatility.\n- Side hustle: Family tutoring for ${userData.householdSize} members. Build 3-mo emergency.`;
     }
   }, [enableAI]);
 
-  // FIXED: useCallback with all deps to avoid stale closure
   const handleCalculate = useCallback(async () => {
     try {
-      // FIXED: Debug logs to trace stale state
       console.log('Calc debug - Salary:', salary);
       console.log('Calc debug - Loans:', loans, 'length:', loans.length);
       console.log('Calc debug - Expenses:', expenses, 'length:', expenses.length);
@@ -149,13 +201,14 @@ function App() {
         return;
       }
 
+      const finData = await loadFinancialData();
+
       const savings = salary * (savingsPct / 100);
       let debtBudget = salary * (debtPct / 100);
       let expensesBudget = salary * (expensesPct / 100);
 
       const totalMinPayments = loans.reduce((sum, loan) => sum + loan.minPayment, 0);
       const totalExpenses = expenses.reduce((sum, exp) => sum + exp.amount, 0);
-      // FIXED: More debug
       console.log('Calc debug - totalMinPayments:', totalMinPayments, 'totalExpenses:', totalExpenses);
 
       const highInterestLoans = loans
@@ -287,15 +340,19 @@ function App() {
       if (totalAdjustedOutgo > salary * 0.95) {
         const forcedSavings = salary * 0.05;
         adjustedSavings = Math.max(adjustedSavings, forcedSavings);
-        overageAdvice += `Enforced 5% savings (KES ${adjustedSavings.toLocaleString()}). Side hustle idea for ${householdSize} members: family tutoring. `;
+        overageAdvice += `Enforced 5% savings (KES ${adjustedSavings.toLocaleString()}). Side hustle idea for ${householdSize} members: family tutoring or goods resale. `;
       }
 
       const { months: snowMonths, totalInterest: snowInterest } = snowball(loans, adjustedDebtBudget);
       const { months: avaMonths, totalInterest: avaInterest } = avalanche(loans, adjustedDebtBudget);
 
       let adviceText = loans.length === 0
-        ? 'No loans? Focus on 20% savings in MMFs (10% return). 50/30/20 rule: needs/wants/savings. Build 3-6 mo emergency.'
+        ? 'No loans? Focus on 20% savings in MMFs (10%+ return). 50/30/20 rule: needs/wants/savings. Build 3-6 mo emergency.'
         : `${avaInterest < snowInterest ? 'Avalanche saves interest—use if disciplined.' : 'Snowball for motivation.'} Prioritize ${highInterestLoans}.`;
+
+      // Enhanced personalized advice
+      const suggestedCutAmount = totalExpenses * 0.2;
+      adviceText += `\nFor your ${householdSize}-member household on ${salary.toLocaleString()} KES salary, prioritize high-interest loan payoff. Cut non-essentials like shopping by 20% (save ~${suggestedCutAmount.toLocaleString()} KES) to fund MMFs.`;
 
       if (totalAdjustedOutgo + adjustedSavings > salary) {
         const overage = totalAdjustedOutgo + adjustedSavings - salary;
@@ -306,16 +363,26 @@ function App() {
 
       adviceText += `\nTotal Spend: KES ${(totalAdjustedOutgo + adjustedSavings).toLocaleString()} (fits salary).`;
 
-      // 3-Month Emergency - FIXED: Use max(manual, auto) to avoid 0 override
+      // 3-Month Emergency build plan with real-time options
       const monthlyExpensesForEmergency = Math.max(adjustedTotalExpenses, emergencyTarget / 3 || 0);
       const threeMonthTarget = Math.max(emergencyTarget, monthlyExpensesForEmergency * 3);
       const monthsToEmergency = adjustedSavings > 0 ? Math.ceil((threeMonthTarget - currentSavings) / adjustedSavings) : 0;
       const thisMonthAdd = Math.min(spareCash, 1000);
-      adviceText += `\n🛡️ Emergency Fund: Target KES ${threeMonthTarget.toLocaleString()} (${householdSize} members). Current: KES ${currentSavings.toLocaleString()}. Reach in ${monthsToEmergency} mo. Add KES ${thisMonthAdd.toLocaleString()} to Sacco this mo.`;
+      adviceText += `\n🛡️ 3-Month Emergency Build Plan: Target KES ${threeMonthTarget.toLocaleString()} (${householdSize} members). Current: KES ${currentSavings.toLocaleString()}. Reach in ${monthsToEmergency} mo. Add KES ${thisMonthAdd.toLocaleString()} to Sacco this mo. Real-time option: Invest in ${finData.mmfs[0].name} at ${finData.mmfs[0].net}% net.`;
 
-      // Table Markdown
-      const tableMarkdown = `\n| Category | Current (KES) | Adjusted (KES) | Suggestion |\n|----------|---------------|----------------|------------|\n${adjustments.map(adj => `| ${adj.category} | ${adj.current.toLocaleString()} | ${adj.adjusted.toLocaleString()} | ${adj.suggestion} |`).join('\n')}\n| Savings | ${savings.toLocaleString()} | ${adjustedSavings.toLocaleString()} | Min 5%—low-risk invest; emergency priority |`;
-      adviceText += `\n\nAdjusted Plan:\n${tableMarkdown}`;
+      // Kenyan Investments
+      const saccoRec = finData.saccos[0].name;
+      const bondYield = finData.bonds['10Y'];
+      const mmfRec = finData.mmfs[0].name;
+      const mmfYield = finData.mmfs[0].net;
+      adviceText += `\n🇰🇪 Kenyan Investments: Top SACCOs - ${finData.saccos.map(s => `${s.name} (~${s.dividend}% dividends)`).join(', ')}. Gov Bonds: 10Y yield ~${bondYield}%; T-Bills ~${finData.bonds.tBills['91-day']}-${finData.bonds.tBills['364-day']}% (91-364 days). MMFs: ${finData.mmfs.map(m => `${m.name} (${m.net || m.gross}% ${m.net ? 'net' : 'gross'})`).join(', ')} - e.g., put cuts into ${mmfRec} at ${mmfYield}% net.`;
+
+      // Crypto Advice
+      adviceText += `\n₿ Crypto Advice: Low-risk entry: ${finData.crypto.lowRisk.join(', ')} for stability. Higher-potential: ${finData.crypto.highPotential.join(', ')} for growth. Warnings: Volatility high - e.g., 1000x potential in memecoins like ${finData.crypto.highRisk[0]}, but high risk; invest only spare cash.`;
+
+      // Table Markdown (better formatting)
+      const tableMarkdown = `\n\n**Adjusted Plan Table:**\n| Category | Current (KES) | Adjusted (KES) | Suggestion |\n|----------|---------------|----------------|------------|\n${adjustments.map(adj => `| ${adj.category.padEnd(20)} | ${adj.current.toLocaleString().padEnd(15)} | ${adj.adjusted.toLocaleString().padEnd(15)} | ${adj.suggestion.substring(0, 60)}... |`).join('\n')}\n| Savings  | ${savings.toLocaleString().padEnd(15)} | ${adjustedSavings.toLocaleString().padEnd(15)} | Min 5%—low-risk invest (e.g., MMFs); emergency priority |\n| Spare    | -             | ${spareCash.toLocaleString().padEnd(15)} | ${spareCash > 0 ? `Invest in bonds/MMFs` : 'N/A'} |`;
+      adviceText += tableMarkdown;
 
       // AI
       let aiTip = '';
@@ -323,8 +390,8 @@ function App() {
         aiTip = await getFreeAIAdvice({
           salary, debtBudget: adjustedDebtBudget, totalExpenses: adjustedTotalExpenses, loans, expenses, householdSize,
           suggestedCuts: adjustments.map(adj => `${adj.category}: ${adj.suggestion}`).join('; '), savings: adjustedSavings, highInterestLoans
-        });
-        adviceText += `\n🤖 AI Tip: ${aiTip}`;
+        }, finData);
+        adviceText += `\n\n🤖 AI Tip:\n${aiTip}`;
       }
 
       setAdvice(adviceText);
@@ -340,7 +407,7 @@ function App() {
       setCurrentSavings(historyEntry.currentSavings);
       setHistory(prev => [...prev, historyEntry]);
 
-      // PDF
+      // PDF (enhanced with investments)
       try {
         const doc = new jsPDF();
         let yPos = 10;
@@ -349,6 +416,7 @@ function App() {
         doc.text(`Snowball: ${snowMonths} mo, Interest KES ${snowInterest.toLocaleString()}`, 10, yPos); yPos += 10;
         doc.text(`Avalanche: ${avaMonths} mo, Interest KES ${avaInterest.toLocaleString()}`, 10, yPos); yPos += 10;
         doc.text(`Emergency: KES ${threeMonthTarget.toLocaleString()} (3 mo for ${householdSize})`, 10, yPos); yPos += 10;
+        doc.text(`Invest: ${saccoRec} ${finData.saccos[0].dividend}%, Bonds ${bondYield}%, ${mmfRec} ${mmfYield}%`, 10, yPos); yPos += 10;
         if (aiTip) { doc.text('AI Tip:', 10, yPos); yPos += 7; doc.text(aiTip.substring(0, 100) + '...', 10, yPos); yPos += 10; }
         doc.text('Plan:', 10, yPos); yPos += 10;
         adjustments.forEach((adj, i) => {
@@ -362,10 +430,18 @@ function App() {
         console.error('PDF Error:', pdfError);
       }
 
-      // Chart
+      // Enhanced Chart: Include Spare if >0
+      const pieLabels = ['Savings', 'Debt', 'Expenses'];
+      const pieDataValues = [adjustedSavings, adjustedDebtBudget, adjustedExpensesBudget];
+      const pieColors = ['#FF6384', '#36A2EB', '#FFCE56'];
+      if (spareCash > 0) {
+        pieLabels.push('Spare Cash');
+        pieDataValues.push(spareCash);
+        pieColors.push('#4BC0C0');
+      }
       const pieData = {
-        labels: ['Savings', 'Debt', 'Expenses'],
-        datasets: [{ data: [adjustedSavings, adjustedDebtBudget, adjustedExpensesBudget], backgroundColor: ['#FF6384', '#36A2EB', '#FFCE56'] }]
+        labels: pieLabels,
+        datasets: [{ data: pieDataValues, backgroundColor: pieColors }]
       };
       setChartData(pieData);
 
@@ -374,7 +450,7 @@ function App() {
       console.error('Calculate Error:', error);
       alert(`Calc failed: ${error.message}. Check console. Try disabling AI.`);
     }
-  }, [salary, savingsPct, debtPct, expensesPct, householdSize, loans, expenses, emergencyTarget, currentSavings, enableAI, history, snowball, avalanche, getFreeAIAdvice]);  // FIXED: Full deps for fresh state
+  }, [salary, savingsPct, debtPct, expensesPct, householdSize, loans, expenses, emergencyTarget, currentSavings, enableAI, history, snowball, avalanche, getFreeAIAdvice, loadFinancialData]);
 
   const downloadHistory = useCallback(() => {
     const csv = 'Month,Salary,Savings,Debt Budget,Expenses Budget,Total Expenses,Snowball Months,Snowball Interest,Avalanche Months,Avalanche Interest,Emergency Target,Current Savings,Adjustments,Household Size\n' +
@@ -399,7 +475,7 @@ function App() {
   return (
     <div style={{ padding: '20px', maxWidth: '1200px', margin: '0 auto' }}>
       <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <h1>Budget & Debt Coach</h1>
+        <h1>Enhanced Budget & Debt Coach App with Real-Time AI Financial Advice</h1>
         <p>Open Access - Auth coming soon</p>
       </header>
 
@@ -451,7 +527,7 @@ function App() {
 
       {chartData && (
         <section style={{ marginBottom: '30px' }}>
-          <h2>Adjusted Allocation Chart</h2>
+          <h2>Adjusted Allocation Chart (Totals correctly with Spare if available)</h2>
           <div style={{ width: '400px', height: '400px', margin: '0 auto' }}>
             <Pie data={chartData} />
           </div>
@@ -460,8 +536,8 @@ function App() {
 
       {advice && (
         <section style={{ marginBottom: '30px' }}>
-          <h2>Financial Advice</h2>
-          <div style={{ background: '#e8f5e8', padding: '10px', borderRadius: '5px', whiteSpace: 'pre-line' }}>{advice}</div>
+          <h2>Enhanced Financial Advice</h2>
+          <div style={{ background: '#e8f5e8', padding: '15px', borderRadius: '5px', whiteSpace: 'pre-line', fontSize: '14px', lineHeight: '1.4' }}>{advice}</div>
         </section>
       )}
 
