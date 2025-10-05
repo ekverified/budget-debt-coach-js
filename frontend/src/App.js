@@ -2,7 +2,6 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { Chart as ChartJS, ArcElement, Tooltip, Legend, LineElement, PointElement, LinearScale, CategoryScale } from 'chart.js';
 import { Pie, Line } from 'react-chartjs-2';
 import jsPDF from 'jspdf';
-import autoTable from 'jspdf-autotable';
 
 // Chart.js registration
 ChartJS.register(ArcElement, Tooltip, Legend, LineElement, PointElement, LinearScale, CategoryScale);
@@ -479,76 +478,58 @@ function App() {
       setCurrentSavings(historyEntry.currentSavings);
       setHistory(prev => [...prev, historyEntry]);
 
-      // PDF (enhanced with investments and plan summary)
+      // PDF (concise text-based summary without tables or emojis)
       try {
         const doc = new jsPDF();
-        const title = `Budget Report - Salary KES ${salary.toLocaleString()} (Household: ${householdSize})`;
-        doc.text(title, 10, 10);
+        let yPos = 10;
+        doc.setFontSize(12);
+        doc.text(`Budget Report - Salary KES ${salary.toLocaleString()} (Household: ${householdSize})`, 10, yPos);
+        yPos += 10;
 
-        // Summary Table
-        const summaryTable = [
-          ['Metric', 'Value'],
-          ['Allocation', `${Math.round(adjustedSavings / salary * 100)}% Savings, ${Math.round(adjustedDebtBudget / salary * 100)}% Debt, ${Math.round(adjustedExpensesBudget / salary * 100)}% Expenses`],
-          ['Snowball Method', `${snowMonths} mo, Interest KES ${snowInterest.toLocaleString()}`],
-          ['Avalanche Method', `${avaMonths} mo, Interest KES ${avaInterest.toLocaleString()}`],
-          ['Emergency Fund', `KES ${threeMonthTarget.toLocaleString()} (3 mo for ${householdSize})`],
-          ['Investments', `${saccoRec} ${finData.saccos[0].dividend}%, Bonds ${bondYield}%, ${mmfRec} ${mmfYield}%`]
-        ];
+        // Summary Section (key metrics only)
+        doc.setFontSize(10);
+        doc.text(`Allocation: ${Math.round(adjustedSavings / salary * 100)}% Savings, ${Math.round(adjustedDebtBudget / salary * 100)}% Debt, ${Math.round(adjustedExpensesBudget / salary * 100)}% Expenses`, 10, yPos);
+        yPos += 7;
+        doc.text(`Snowball: ${snowMonths} mo, Interest KES ${snowInterest.toLocaleString()}`, 10, yPos);
+        yPos += 7;
+        doc.text(`Avalanche: ${avaMonths} mo, Interest KES ${avaInterest.toLocaleString()}`, 10, yPos);
+        yPos += 7;
+        doc.text(`Emergency: KES ${threeMonthTarget.toLocaleString()} (3 mo for ${householdSize})`, 10, yPos);
+        yPos += 7;
+        doc.text(`Invest: ${saccoRec} ${finData.saccos[0].dividend}%, Bonds ${bondYield}%, ${mmfRec} ${mmfYield}%`, 10, yPos);
+        yPos += 10;
+
+        // AI Tip (truncated)
         if (aiTip) {
-          summaryTable.push(['AI Tip', aiTip.split('\n').slice(0, 1).join(' ').substring(0, 80) + '...']);
+          doc.text(`AI Tip: ${aiTip.split('\n')[0].substring(0, 80)}...`, 10, yPos);
+          yPos += 7;
         }
-        autoTable(doc, {
-          head: [['Metric', 'Value']],
-          body: summaryTable.slice(1),
-          startY: 20,
-          theme: 'grid',
-          styles: { fontSize: 8, cellPadding: 3 },
-          headStyles: { fillColor: [76, 175, 80] }
+
+        // Monthly Plan Summary (first 8 items)
+        doc.text('Monthly Plan Summary:', 10, yPos);
+        yPos += 7;
+        plan.slice(0, 8).forEach((item) => {
+          if (yPos > 270) { doc.addPage(); yPos = 10; }
+          doc.text(`${item.subcategory}: KES ${item.budgeted.toLocaleString()} - ${item.notes.substring(0, 40)}`, 10, yPos);
+          yPos += 7;
         });
-
-        let finalY = doc.lastAutoTable.finalY + 10;
-
-        // Monthly Plan Summary Table (limited to first 8 items for conciseness)
-        doc.text('Monthly Plan Summary', 10, finalY);
-        finalY += 7;
-        const planTableBody = plan.slice(0, 8).map(item => [
-          item.subcategory,
-          `KES ${item.budgeted.toLocaleString()}`,
-          item.notes.substring(0, 40) + '...'
-        ]);
         if (deficit > 0) {
-          planTableBody.push(['Deficit Alert', `KES ${deficit.toLocaleString()}`, 'See advice above']);
+          doc.text(`Deficit Alert: KES ${deficit.toLocaleString()} - See advice above.`, 10, yPos);
+          yPos += 7;
         }
-        autoTable(doc, {
-          head: [['Item', 'Budgeted (KES)', 'Notes']],
-          body: planTableBody,
-          startY: finalY,
-          theme: 'grid',
-          styles: { fontSize: 7, cellPadding: 2 },
-          headStyles: { fillColor: [76, 175, 80] },
-          columnStyles: { 0: { cellWidth: 60 }, 1: { cellWidth: 30 }, 2: { cellWidth: 85 } }
-        });
-        finalY = doc.lastAutoTable.finalY + 10;
 
-        // Adjustments Table (limited)
-        if (adjustments.length > 0) {
-          doc.text('Adjustments', 10, finalY);
-          finalY += 7;
-          const adjTableBody = adjustments.slice(0, 6).map(adj => [
-            adj.category,
-            adj.current.toLocaleString(),
-            adj.adjusted.toLocaleString(),
-            adj.suggestion.substring(0, 30) + '...'
-          ]);
-          autoTable(doc, {
-            head: [['Category', 'Current (KES)', 'Adjusted (KES)', 'Suggestion']],
-            body: adjTableBody,
-            startY: finalY,
-            theme: 'grid',
-            styles: { fontSize: 7, cellPadding: 2 },
-            headStyles: { fillColor: [76, 175, 80] },
-            columnStyles: { 0: { cellWidth: 50 }, 1: { cellWidth: 25 }, 2: { cellWidth: 25 }, 3: { cellWidth: 60 } }
-          });
+        // Adjustments (first 6)
+        doc.text('Adjustments:', 10, yPos);
+        yPos += 7;
+        adjustments.slice(0, 6).forEach((adj) => {
+          if (yPos > 270) { doc.addPage(); yPos = 10; }
+          doc.text(`${adj.category}: ${adj.current.toLocaleString()} -> ${adj.adjusted.toLocaleString()} - ${adj.suggestion.substring(0, 40)}`, 10, yPos);
+          yPos += 7;
+        });
+
+        // Brief Advice Snippet
+        if (yPos < 250) {
+          doc.text('Key Advice: Prioritize high-interest debt. Cut non-essentials by 20%. Build emergency fund.', 10, yPos);
         }
 
         doc.save('budget_report.pdf');
