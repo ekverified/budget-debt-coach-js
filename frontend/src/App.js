@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { Chart as ChartJS, ArcElement, Tooltip, Legend, LineElement, PointElement, LinearScale, CategoryScale } from 'chart.js';
 import { Pie, Line } from 'react-chartjs-2';
 import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable';
 
 // Chart.js registration
 ChartJS.register(ArcElement, Tooltip, Legend, LineElement, PointElement, LinearScale, CategoryScale);
@@ -21,6 +22,7 @@ function App() {
   const [advice, setAdvice] = useState('');
   const [adjustedData, setAdjustedData] = useState(null);
   const [planData, setPlanData] = useState(null);
+  const [displaySalary, setDisplaySalary] = useState(0);
   const [enableAI, setEnableAI] = useState(true);
   const [financialData, setFinancialData] = useState(null);
 
@@ -377,11 +379,14 @@ function App() {
       const mmfYield = finData.mmfs[0].net;
       adviceText += `\n🇰🇪 Kenyan Investments: Top SACCOs - ${finData.saccos.map(s => `${s.name} (~${s.dividend}% dividends)`).join(', ')}. Gov Bonds: 10Y yield ~${bondYield}%; T-Bills ~${finData.bonds.tBills['91-day']}-${finData.bonds.tBills['364-day']}% (91-364 days). MMFs: ${finData.mmfs.map(m => `${m.name} (${m.net || m.gross}% ${m.net ? 'net' : 'gross'})`).join(', ')} - e.g., put cuts into ${mmfRec} at ${mmfYield}% net.`;
 
+      // NSE Top Performers
+      adviceText += `\n📈 NSE Top Performers (Oct 5, 2025): Stanbic Holdings at KSh 197.50<grok-card data-id="74231c" data-type="citation_card"></grok-card>, Centum Investment at KSh 15.60<grok-card data-id="ea9746" data-type="citation_card"></grok-card>, Kenya Reinsurance at KSh 3.19<grok-card data-id="1e39fc" data-type="citation_card"></grok-card>. Consider diversifying with these for growth.`;
+
       // Crypto Advice
       adviceText += `\n₿ Crypto Advice: Low-risk entry: ${finData.crypto.lowRisk.join(', ')} for stability. Higher-potential: ${finData.crypto.highPotential.join(', ')} for growth. Warnings: Volatility high - e.g., 1000x potential in memecoins like ${finData.crypto.highRisk[0]}, but high risk; invest only spare cash.`;
 
       // Table Markdown (better formatting)
-      const tableMarkdown = `\n\n**Adjusted Plan Table:**\n| Category | Current (KES) | Adjusted (KES) | Suggestion |\n|----------|---------------|----------------|------------|\n${adjustments.map(adj => `| ${adj.category.padEnd(20)} | ${adj.current.toLocaleString().padEnd(15)} | ${adj.adjusted.toLocaleString().padEnd(15)} | ${adj.suggestion.substring(0, 60)}... |`).join('\n')}\n| Savings  | ${savings.toLocaleString().padEnd(15)} | ${adjustedSavings.toLocaleString().padEnd(15)} | Min 5%—low-risk invest (e.g., MMFs); emergency priority |\n| Spare    | -             | ${spareCash.toLocaleString().padEnd(15)} | ${spareCash > 0 ? `Invest in bonds/MMFs` : 'N/A'} |`;
+      const tableMarkdown = `\n\nAdjusted Plan Table:\n| Category | Current (KES) | Adjusted (KES) | Suggestion |\n|----------|---------------|----------------|------------|\n${adjustments.map(adj => `| ${adj.category.padEnd(20)} | ${adj.current.toLocaleString().padEnd(15)} | ${adj.adjusted.toLocaleString().padEnd(15)} | ${adj.suggestion.substring(0, 60)}... |`).join('\n')}\n| Savings  | ${savings.toLocaleString().padEnd(15)} | ${adjustedSavings.toLocaleString().padEnd(15)} | Min 5%—low-risk invest (e.g., MMFs); emergency priority |\n| Spare    | -             | ${spareCash.toLocaleString().padEnd(15)} | ${spareCash > 0 ? `Invest in bonds/MMFs` : 'N/A'} |`;
       adviceText += tableMarkdown;
 
       // NEW: Generate Monthly Payment Plan
@@ -477,28 +482,75 @@ function App() {
       // PDF (enhanced with investments and plan summary)
       try {
         const doc = new jsPDF();
-        let yPos = 10;
-        doc.text(`Budget Report - Salary KES ${salary.toLocaleString()} (Household: ${householdSize})`, 10, yPos); yPos += 10;
-        doc.text(`Alloc: ${Math.round(adjustedSavings / salary * 100)}% Savings, ${Math.round(adjustedDebtBudget / salary * 100)}% Debt, ${Math.round(adjustedExpensesBudget / salary * 100)}% Expenses`, 10, yPos); yPos += 10;
-        doc.text(`Snowball: ${snowMonths} mo, Interest KES ${snowInterest.toLocaleString()}`, 10, yPos); yPos += 10;
-        doc.text(`Avalanche: ${avaMonths} mo, Interest KES ${avaInterest.toLocaleString()}`, 10, yPos); yPos += 10;
-        doc.text(`Emergency: KES ${threeMonthTarget.toLocaleString()} (3 mo for ${householdSize})`, 10, yPos); yPos += 10;
-        doc.text(`Invest: ${saccoRec} ${finData.saccos[0].dividend}%, Bonds ${bondYield}%, ${mmfRec} ${mmfYield}%`, 10, yPos); yPos += 10;
-        if (aiTip) { doc.text('AI Tip:', 10, yPos); yPos += 7; doc.text(aiTip.substring(0, 100) + '...', 10, yPos); yPos += 10; }
-        doc.text('Monthly Plan Summary:', 10, yPos); yPos += 10;
-        plan.slice(0, 10).forEach((item, i) => { // First 10 for PDF
-          if (yPos > 270) { doc.addPage(); yPos = 10; }
-          doc.text(`${item.subcategory}: KES ${item.budgeted.toLocaleString()} (${item.notes.substring(0, 50)}...)`, 10, yPos);
-          yPos += 7;
+        const title = `Budget Report - Salary KES ${salary.toLocaleString()} (Household: ${householdSize})`;
+        doc.text(title, 10, 10);
+
+        // Summary Table
+        const summaryTable = [
+          ['Metric', 'Value'],
+          ['Allocation', `${Math.round(adjustedSavings / salary * 100)}% Savings, ${Math.round(adjustedDebtBudget / salary * 100)}% Debt, ${Math.round(adjustedExpensesBudget / salary * 100)}% Expenses`],
+          ['Snowball Method', `${snowMonths} mo, Interest KES ${snowInterest.toLocaleString()}`],
+          ['Avalanche Method', `${avaMonths} mo, Interest KES ${avaInterest.toLocaleString()}`],
+          ['Emergency Fund', `KES ${threeMonthTarget.toLocaleString()} (3 mo for ${householdSize})`],
+          ['Investments', `${saccoRec} ${finData.saccos[0].dividend}%, Bonds ${bondYield}%, ${mmfRec} ${mmfYield}%`]
+        ];
+        if (aiTip) {
+          summaryTable.push(['AI Tip', aiTip.split('\n').slice(0, 1).join(' ').substring(0, 80) + '...']);
+        }
+        autoTable(doc, {
+          head: [['Metric', 'Value']],
+          body: summaryTable.slice(1),
+          startY: 20,
+          theme: 'grid',
+          styles: { fontSize: 8, cellPadding: 3 },
+          headStyles: { fillColor: [76, 175, 80] }
         });
-        if (deficit > 0) doc.text(`Deficit Alert: KES ${deficit.toLocaleString()} - See advice above.`, 10, yPos); yPos += 10;
-        doc.text('Adjustments:', 10, yPos); yPos += 10;
-        adjustments.forEach((adj, i) => {
-          if (yPos > 270) { doc.addPage(); yPos = 10; }
-          doc.text(`${adj.category}: ${adj.current.toLocaleString()} → ${adj.adjusted.toLocaleString()} (${adj.suggestion.substring(0, 50)}...)`, 10, yPos);
-          yPos += 7;
+
+        let finalY = doc.lastAutoTable.finalY + 10;
+
+        // Monthly Plan Summary Table (limited to first 8 items for conciseness)
+        doc.text('Monthly Plan Summary', 10, finalY);
+        finalY += 7;
+        const planTableBody = plan.slice(0, 8).map(item => [
+          item.subcategory,
+          `KES ${item.budgeted.toLocaleString()}`,
+          item.notes.substring(0, 40) + '...'
+        ]);
+        if (deficit > 0) {
+          planTableBody.push(['Deficit Alert', `KES ${deficit.toLocaleString()}`, 'See advice above']);
+        }
+        autoTable(doc, {
+          head: [['Item', 'Budgeted (KES)', 'Notes']],
+          body: planTableBody,
+          startY: finalY,
+          theme: 'grid',
+          styles: { fontSize: 7, cellPadding: 2 },
+          headStyles: { fillColor: [76, 175, 80] },
+          columnStyles: { 0: { cellWidth: 60 }, 1: { cellWidth: 30 }, 2: { cellWidth: 85 } }
         });
-        doc.text(adviceText.substring(0, 800), 10, yPos, { maxWidth: 180 });
+        finalY = doc.lastAutoTable.finalY + 10;
+
+        // Adjustments Table (limited)
+        if (adjustments.length > 0) {
+          doc.text('Adjustments', 10, finalY);
+          finalY += 7;
+          const adjTableBody = adjustments.slice(0, 6).map(adj => [
+            adj.category,
+            adj.current.toLocaleString(),
+            adj.adjusted.toLocaleString(),
+            adj.suggestion.substring(0, 30) + '...'
+          ]);
+          autoTable(doc, {
+            head: [['Category', 'Current (KES)', 'Adjusted (KES)', 'Suggestion']],
+            body: adjTableBody,
+            startY: finalY,
+            theme: 'grid',
+            styles: { fontSize: 7, cellPadding: 2 },
+            headStyles: { fillColor: [76, 175, 80] },
+            columnStyles: { 0: { cellWidth: 50 }, 1: { cellWidth: 25 }, 2: { cellWidth: 25 }, 3: { cellWidth: 60 } }
+          });
+        }
+
         doc.save('budget_report.pdf');
       } catch (pdfError) {
         console.error('PDF Error:', pdfError);
@@ -518,6 +570,9 @@ function App() {
         datasets: [{ data: pieDataValues, backgroundColor: pieColors }]
       };
       setChartData(pieData);
+
+      // Store salary for display before clearing
+      setDisplaySalary(salary);
 
       // Clear input fields after generating results
       setSalary(0);
@@ -662,7 +717,7 @@ function App() {
               </tr>
             ))}</tbody>
           </table>
-          <p style={{ color: '#388E3C', fontWeight: 'bold' }}><strong>Total Planned: KES {planData.reduce((sum, item) => sum + (item.budgeted || 0), 0).toLocaleString()}</strong> vs Salary KES {salary.toLocaleString()}</p>
+          <p style={{ color: '#388E3C', fontWeight: 'bold' }}><strong>Total Planned: KES {planData.reduce((sum, item) => sum + (item.budgeted || 0), 0).toLocaleString()}</strong> vs Salary KES {displaySalary.toLocaleString()}</p>
         </section>
       )}
 
@@ -687,7 +742,7 @@ function App() {
       </section>
 
       <footer style={{ textAlign: 'center', marginTop: '40px', padding: '20px', backgroundColor: '#4CAF50', color: 'white', borderRadius: '10px' }}>
-        <p style={{ margin: 0, fontSize: '16px' }}>For enquiries, WhatsApp e.k via <a href="https://wa.me/254705245123" target="_blank" rel="noopener noreferrer" style={{ color: 'white', textDecoration: 'underline', fontWeight: 'bold' }}>+254 705 245 123</a></p>
+        <p style={{ margin: 0, fontSize: '16px' }}>For enquiries: <span style={{ fontSize: '20px' }}>📲</span> WhatsApp e.k via <a href="https://wa.me/254705245123" target="_blank" rel="noopener noreferrer" style={{ color: 'white', textDecoration: 'underline', fontWeight: 'bold' }}>+254 705 245 123</a> | <span style={{ fontSize: '20px' }}>𝕏</span> Follow on X: <a href="https://x.com/010deux" target="_blank" rel="noopener noreferrer" style={{ color: 'white', textDecoration: 'underline', fontWeight: 'bold' }}>@010deux</a></p>
       </footer>
     </div>
   );
