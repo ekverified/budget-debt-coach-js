@@ -396,150 +396,95 @@ function App() {
     ]
   };
 
-  const SliderGroup = ({ min, max, value, onChange, label }) => (
-    <div className="slider-group">
-      <input type="range" min={min} max={max} value={value} onChange={onChange} />
-      <span>{label}: {value}%</span>
-    </div>
-  );
-
   return (
-    <div className="App">
-      <header className="App-header">
+    <div style={{ padding: '20px', maxWidth: '1200px', margin: '0 auto' }}>
+      <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <h1>Budget & Debt Coach</h1>
         <p>Open Access - Auth coming soon</p>
       </header>
 
-      <section>
+      <section style={{ marginBottom: '30px' }}>
         <h2>Budget Settings</h2>
-        <div className="form-row">
-          <label>Monthly Salary (KES):</label>
-          <input key="salary" type="number" value={salary || 0} onChange={(e) => setSalary(parseFloat(e.target.value) || 0)} onFocus={clearOnFocus} />
-        </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', margin: '10px 0' }}>
-          <div className="form-row">
-            <label>Household Size:</label>
-            <input key="household" type="number" min="1" value={householdSize} onChange={(e) => setHouseholdSize(parseInt(e.target.value) || 1)} />
-          </div>
-          <span>(Scales advice)</span>
-        </div>
-        <div className="form-row">
-          <label>Customization (%):</label>
-          <div className="sliders-container">
-            <SliderGroup min={0} max={50} value={savingsPct} onChange={(e) => setSavingsPct(parseInt(e.target.value))} label="Savings" />
-            <SliderGroup min={0} max={50} value={debtPct} onChange={(e) => setDebtPct(parseInt(e.target.value))} label="Debt" />
-            <SliderGroup min={0} max={100} value={expensesPct} onChange={(e) => setExpensesPct(parseInt(e.target.value))} label="Expenses" />
-          </div>
-        </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', margin: '10px 0' }}>
-          <div className="form-row">
-            <label>Emergency Target (KES):</label>
-            <input key="emergency" type="number" value={emergencyTarget || 0} onChange={(e) => setEmergencyTarget(parseFloat(e.target.value) || 0)} onFocus={clearOnFocus} />
-          </div>
-          <span>(Auto-updates below)</span>
-        </div>
+        <label>Monthly Salary (KES): <input key="salary" type="number" value={salary || 0} onChange={(e) => setSalary(parseFloat(e.target.value) || 0)} onFocus={clearOnFocus} style={{ margin: '5px', padding: '5px' }} /></label><br />
+        <label>Household Size: <input key="household" type="number" min="1" value={householdSize} onChange={(e) => setHouseholdSize(parseInt(e.target.value) || 1)} style={{ margin: '5px', padding: '5px', width: '50px' }} /> (Scales advice)</label><br />
+        <label>Customization (%): </label>
+        <input type="range" min="0" max="50" value={savingsPct} onChange={(e) => setSavingsPct(parseInt(e.target.value))} style={{ margin: '5px' }} /> Savings: {savingsPct}%
+        <input type="range" min="0" max="50" value={debtPct} onChange={(e) => setDebtPct(parseInt(e.target.value))} style={{ margin: '5px' }} /> Debt: {debtPct}%
+        <input type="range" min="0" max="100" value={expensesPct} onChange={(e) => setExpensesPct(parseInt(e.target.value))} style={{ margin: '5px' }} /> Expenses: {expensesPct}%<br />
+        <label>Emergency Target (KES): <input key="emergency" type="number" value={emergencyTarget || 0} onChange={(e) => setEmergencyTarget(parseFloat(e.target.value) || 0)} onFocus={clearOnFocus} style={{ margin: '5px', padding: '5px' }} /> (Auto-updates below)</label>
       </section>
 
-      <section>
+      <section style={{ marginBottom: '30px' }}>
         <h2>Loans</h2>
         {loans.map((loan, i) => (
-          <div key={`loan-${i}`} className="loan-card">
+          <div key={`loan-${i}`} style={{ border: '1px solid #ccc', margin: '10px 0', padding: '10px', borderRadius: '5px' }}>
             <h3>Loan {i+1}</h3>
-            <div className="form-row">
-              <label>Name:</label>
-              <input type="text" value={loan.name} onChange={(e) => updateLoan(i, 'name', e.target.value)} />
-            </div>
-            <div className="form-row">
-              <label>Balance (KES):</label>
-              <input type="number" value={loan.balance || 0} onChange={(e) => updateLoan(i, 'balance', e.target.value)} onFocus={clearOnFocus} />
-            </div>
-            <div className="form-row">
-              <label>Rate (%):</label>
-              <input type="number" step="0.1" value={loan.rate || 0} onChange={(e) => updateLoan(i, 'rate', e.target.value)} onFocus={clearOnFocus} />
-            </div>
-            <div className="form-row">
-              <label>Min Payment (KES):</label>
-              <input type="number" value={loan.minPayment || 0} onChange={(e) => updateLoan(i, 'minPayment', e.target.value)} onFocus={clearOnFocus} />
-            </div>
-            <div className="form-row">
-              <label>Essential?:</label>
-              <input type="checkbox" checked={loan.isEssential || false} onChange={() => toggleLoanEssential(i)} />
-            </div>
+            <label>Name: <input type="text" value={loan.name} onChange={(e) => updateLoan(i, 'name', e.target.value)} style={{ margin: '5px', padding: '5px' }} /></label><br />
+            <label>Balance (KES): <input type="number" value={loan.balance || 0} onChange={(e) => updateLoan(i, 'balance', e.target.value)} onFocus={clearOnFocus} style={{ margin: '5px', padding: '5px' }} /></label><br />
+            <label>Rate (%): <input type="number" step="0.1" value={loan.rate || 0} onChange={(e) => updateLoan(i, 'rate', e.target.value)} onFocus={clearOnFocus} style={{ margin: '5px', padding: '5px' }} /></label><br />
+            <label>Min Payment (KES): <input type="number" value={loan.minPayment || 0} onChange={(e) => updateLoan(i, 'minPayment', e.target.value)} onFocus={clearOnFocus} style={{ margin: '5px', padding: '5px' }} /></label><br />
+            <label>Essential?: <input type="checkbox" checked={loan.isEssential || false} onChange={() => toggleLoanEssential(i)} style={{ margin: '5px' }} /></label>
           </div>
         ))}
-        <button className="btn-success" onClick={addLoan}>Add Loan</button>
+        <button onClick={addLoan} style={{ padding: '10px', background: '#4CAF50', color: 'white', border: 'none', borderRadius: '5px' }}>Add Loan</button>
       </section>
 
-      <section>
+      <section style={{ marginBottom: '30px' }}>
         <h2>Expenses</h2>
         {expenses.map((exp, i) => (
-          <div key={`exp-${i}`} className="expense-card">
+          <div key={`exp-${i}`} style={{ border: '1px solid #ccc', margin: '10px 0', padding: '10px', borderRadius: '5px' }}>
             <h3>Expense {i+1}</h3>
-            <div className="form-row">
-              <label>Name:</label>
-              <input type="text" value={exp.name} onChange={(e) => updateExpense(i, 'name', e.target.value)} />
-            </div>
-            <div className="form-row">
-              <label>Amount (KES):</label>
-              <input type="number" value={exp.amount || 0} onChange={(e) => updateExpense(i, 'amount', e.target.value)} onFocus={clearOnFocus} />
-            </div>
-            <div className="form-row">
-              <label>Essential?:</label>
-              <input type="checkbox" checked={exp.isEssential || false} onChange={() => toggleExpenseEssential(i)} />
-            </div>
+            <label>Name: <input type="text" value={exp.name} onChange={(e) => updateExpense(i, 'name', e.target.value)} style={{ margin: '5px', padding: '5px' }} /></label><br />
+            <label>Amount (KES): <input type="number" value={exp.amount || 0} onChange={(e) => updateExpense(i, 'amount', e.target.value)} onFocus={clearOnFocus} style={{ margin: '5px', padding: '5px' }} /></label><br />
+            <label>Essential?: <input type="checkbox" checked={exp.isEssential || false} onChange={() => toggleExpenseEssential(i)} style={{ margin: '5px' }} /></label>
           </div>
         ))}
-        <button className="btn-success" onClick={addExpense}>Add Expense</button>
+        <button onClick={addExpense} style={{ padding: '10px', background: '#4CAF50', color: 'white', border: 'none', borderRadius: '5px' }}>Add Expense</button>
       </section>
 
-      <section>
+      <section style={{ marginBottom: '30px' }}>
         <h2>Actions</h2>
-        <div className="form-row">
-          <label>Enable Free AI Advice:</label>
-          <input type="checkbox" checked={enableAI} onChange={(e) => setEnableAI(e.target.checked)} />
-        </div>
-        <button className="btn-primary" onClick={handleCalculate}>Calculate & Generate Plan</button>
-        <button className="btn-secondary" onClick={downloadHistory}>Download History CSV</button>
+        <label style={{ display: 'block', marginBottom: '10px' }}>Enable Free AI Advice: <input type="checkbox" checked={enableAI} onChange={(e) => setEnableAI(e.target.checked)} /></label>
+        <button onClick={handleCalculate} style={{ padding: '10px 20px', background: '#2196F3', color: 'white', border: 'none', borderRadius: '5px', margin: '10px' }}>Calculate & Generate Plan</button>
+        <button onClick={downloadHistory} style={{ padding: '10px 20px', background: '#FF9800', color: 'white', border: 'none', borderRadius: '5px', margin: '10px' }}>Download History CSV</button>
       </section>
 
       {chartData && (
-        <section>
+        <section style={{ marginBottom: '30px' }}>
           <h2>Adjusted Allocation Chart</h2>
-          <div className="chart-container">
+          <div style={{ width: '400px', height: '400px', margin: '0 auto' }}>
             <Pie data={chartData} />
           </div>
         </section>
       )}
 
       {advice && (
-        <section className="advice-section">
+        <section style={{ marginBottom: '30px' }}>
           <h2>Financial Advice</h2>
-          <div>{advice}</div>
+          <div style={{ background: '#e8f5e8', padding: '10px', borderRadius: '5px', whiteSpace: 'pre-line' }}>{advice}</div>
         </section>
       )}
 
       {adjustedData && adjustedData.length > 0 && (
-        <section>
+        <section style={{ marginBottom: '30px' }}>
           <h2>Adjusted Spending Table</h2>
-          <div className="table-responsive">
-            <table>
-              <thead><tr><th>Category</th><th>Current (KES)</th><th>Adjusted (KES)</th><th>Suggestion</th></tr></thead>
-              <tbody>{adjustedData.map((adj, i) => (
-                <tr key={i}><td>{adj.category}</td><td>{adj.current.toLocaleString()}</td><td>{adj.adjusted.toLocaleString()}</td><td>{adj.suggestion}</td></tr>
-              ))}</tbody>
-            </table>
-          </div>
+          <table style={{ width: '100%', borderCollapse: 'collapse', border: '1px solid #ccc' }}>
+            <thead><tr><th style={{ border: '1px solid #ccc', padding: '8px' }}>Category</th><th style={{ border: '1px solid #ccc', padding: '8px' }}>Current (KES)</th><th style={{ border: '1px solid #ccc', padding: '8px' }}>Adjusted (KES)</th><th style={{ border: '1px solid #ccc', padding: '8px' }}>Suggestion</th></tr></thead>
+            <tbody>{adjustedData.map((adj, i) => (
+              <tr key={i}><td style={{ border: '1px solid #ccc', padding: '8px' }}>{adj.category}</td><td style={{ border: '1px solid #ccc', padding: '8px' }}>{adj.current.toLocaleString()}</td><td style={{ border: '1px solid #ccc', padding: '8px' }}>{adj.adjusted.toLocaleString()}</td><td style={{ border: '1px solid #ccc', padding: '8px' }}>{adj.suggestion}</td></tr>
+            ))}</tbody>
+          </table>
         </section>
       )}
 
-      <section>
+      <section style={{ marginBottom: '30px' }}>
         <h2>History</h2>
-        <div className="chart-container">
+        <div style={{ width: '800px', height: '400px', margin: '0 auto' }}>
           <Line data={historyData} />
         </div>
-        <ul className="history-list">
+        <ul style={{ listStyleType: 'none', padding: 0 }}>
           {history.map((entry, i) => (
-            <li key={i}>
+            <li key={i} style={{ margin: '5px 0', padding: '5px', borderBottom: '1px solid #eee' }}>
               <strong>{entry.month}:</strong> Salary KES {entry.salary.toLocaleString()}, Savings KES {entry.savings.toLocaleString()}, Debt KES {entry.debtBudget.toLocaleString()}, Expenses KES {entry.totalExpenses.toLocaleString()} {entry.adjustments ? `(Adjusts: ${entry.adjustments})` : ''} (Household: {entry.householdSize || 1})
             </li>
           ))}
@@ -549,7 +494,7 @@ function App() {
       <section>
         <h2>Emergency Fund Progress</h2>
         <p>Current Savings: KES {currentSavings.toLocaleString()} / {emergencyTarget.toLocaleString()}</p>
-        <progress value={currentSavings} max={emergencyTarget || 1} />
+        <progress value={currentSavings} max={emergencyTarget || 1} style={{ width: '100%', height: '20px' }} />
       </section>
     </div>
   );
