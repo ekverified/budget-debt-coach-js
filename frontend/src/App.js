@@ -507,17 +507,24 @@ function App() {
       // Enhanced Chart: Include Spare if >0
       const pieLabels = ['Savings', 'Debt', 'Expenses'];
       const pieDataValues = [adjustedSavings, adjustedDebtBudget, adjustedExpensesBudget];
-      const pieColors = ['#4CAF50', '#81C784', '#A5D6A7']; // Green theme for growth
+      const pieColors = ['#4CAF50', '#FF5722', '#2196F3']; // Distinctive: Green (Savings), Orange (Debt), Blue (Expenses)
       if (spareCash > 0) {
         pieLabels.push('Spare Cash');
         pieDataValues.push(spareCash);
-        pieColors.push('#66BB6A');
+        pieColors.push('#FFC107'); // Yellow for Spare
       }
       const pieData = {
         labels: pieLabels,
         datasets: [{ data: pieDataValues, backgroundColor: pieColors }]
       };
       setChartData(pieData);
+
+      // Clear input fields after generating results
+      setSalary(0);
+      setLoans([]);
+      setExpenses([]);
+      setEmergencyTarget(0);
+      setCurrentSavings(0);
 
       console.log('Calculate finished');
     } catch (error) {
@@ -538,11 +545,16 @@ function App() {
     window.URL.revokeObjectURL(url);
   }, [history]);
 
+  const clearHistory = useCallback(() => {
+    setHistory([]);
+    localStorage.removeItem('budgetHistory');
+  }, []);
+
   const historyData = {
     labels: history.map(entry => entry.month).reverse(),
     datasets: [
-      { label: 'Debt Budget', data: history.map(entry => entry.debtBudget).reverse(), borderColor: 'rgb(76, 175, 80)', backgroundColor: 'rgba(76, 175, 80, 0.2)', tension: 0.1 },
-      { label: 'Expenses', data: history.map(entry => entry.totalExpenses).reverse(), borderColor: 'rgb(129, 199, 132)', backgroundColor: 'rgba(129, 199, 132, 0.2)', tension: 0.1 }
+      { label: 'Debt Budget', data: history.map(entry => entry.debtBudget).reverse(), borderColor: 'rgb(244, 67, 54)', backgroundColor: 'rgba(244, 67, 54, 0.2)', tension: 0.1 },
+      { label: 'Expenses', data: history.map(entry => entry.totalExpenses).reverse(), borderColor: 'rgb(76, 175, 80)', backgroundColor: 'rgba(76, 175, 80, 0.2)', tension: 0.1 }
     ]
   };
 
@@ -597,6 +609,7 @@ function App() {
         <label style={{ display: 'block', marginBottom: '10px', color: '#2E7D32' }}>Enable Free AI Advice: <input type="checkbox" checked={enableAI} onChange={(e) => setEnableAI(e.target.checked)} /></label>
         <button onClick={handleCalculate} style={{ padding: '12px 24px', background: '#4CAF50', color: 'white', border: 'none', borderRadius: '8px', margin: '10px', cursor: 'pointer', fontWeight: 'bold' }}>Calculate & Generate Plan</button>
         <button onClick={downloadHistory} style={{ padding: '12px 24px', background: '#66BB6A', color: 'white', border: 'none', borderRadius: '8px', margin: '10px', cursor: 'pointer', fontWeight: 'bold' }}>Download History CSV</button>
+        <button onClick={clearHistory} style={{ padding: '12px 24px', background: '#FF5722', color: 'white', border: 'none', borderRadius: '8px', margin: '10px', cursor: 'pointer', fontWeight: 'bold' }}>Clear History</button>
       </section>
 
       {chartData && (
