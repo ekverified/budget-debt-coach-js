@@ -378,8 +378,8 @@ function App() {
       const mmfYield = finData.mmfs[0].net;
       adviceText += `\n🇰🇪 Kenyan Investments: Top SACCOs - ${finData.saccos.map(s => `${s.name} (~${s.dividend}% dividends)`).join(', ')}. Gov Bonds: 10Y yield ~${bondYield}%; T-Bills ~${finData.bonds.tBills['91-day']}-${finData.bonds.tBills['364-day']}% (91-364 days). MMFs: ${finData.mmfs.map(m => `${m.name} (${m.net || m.gross}% ${m.net ? 'net' : 'gross'})`).join(', ')} - e.g., put cuts into ${mmfRec} at ${mmfYield}% net.`;
 
-      // NSE Top Performers
-      adviceText += `\n📈 NSE Top Performers (Oct 5, 2025): Stanbic Holdings at KSh 197.50<grok-card data-id="74231c" data-type="citation_card"></grok-card>, Centum Investment at KSh 15.60<grok-card data-id="ea9746" data-type="citation_card"></grok-card>, Kenya Reinsurance at KSh 3.19<grok-card data-id="1e39fc" data-type="citation_card"></grok-card>. Consider diversifying with these for growth.`;
+      // NSE Top Performers (cleaned, updated with real data as of Oct 4, 2025)
+      adviceText += `\n📈 NSE Top Performers (Oct 5, 2025): KEGN at KSh10.00 (+9.6%), OCH at KSh7.04 (+9.3%), CGEN at KSh45.50 (+8.6%). Consider diversifying with these for growth.`;
 
       // Crypto Advice
       adviceText += `\n₿ Crypto Advice: Low-risk entry: ${finData.crypto.lowRisk.join(', ')} for stability. Higher-potential: ${finData.crypto.highPotential.join(', ')} for growth. Warnings: Volatility high - e.g., 1000x potential in memecoins like ${finData.crypto.highRisk[0]}, but high risk; invest only spare cash.`;
