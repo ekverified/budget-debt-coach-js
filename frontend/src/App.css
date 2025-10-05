@@ -91,16 +91,19 @@ section h2 {
   min-width: 150px; /* Consistent label width for alignment */
 }
 
-.budget-settings {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); /* Stacks on small screens */
-  gap: 15px;
+/* Sliders container and group for customization row */
+.sliders-container {
+  display: flex;
   align-items: center;
-  margin: 20px 0;
+  gap: 30px;
+  flex-wrap: wrap;
 }
 
-.budget-settings .form-row {
-  grid-column: 1 / -1; /* Full width for sliders */
+.slider-group {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 200px;
 }
 
 /* Form elements (inputs, labels, buttons) */
@@ -148,6 +151,8 @@ input[type="range"] {
 }
 
 input[type="checkbox"] {
+  width: auto;
+  max-width: none;
   margin-right: 8px;
   transform: scale(1.2); /* Slightly larger for touch */
   min-height: 20px;
@@ -163,7 +168,8 @@ input[type="checkbox"] {
   padding: 15px;
   border-radius: 6px;
   background: #fafbfc;
-  display: grid;
+  display: flex;
+  flex-direction: column;
   gap: 10px; /* Aligns internal fields */
 }
 
@@ -172,7 +178,6 @@ input[type="checkbox"] {
   margin: 0 0 10px;
   color: #34495e;
   font-size: 1.1rem;
-  grid-column: 1 / -1; /* Full width for titles */
 }
 
 /* Buttons */
@@ -327,10 +332,6 @@ progress::-webkit-progress-value {
     padding: 15px;
   }
 
-  .budget-settings {
-    grid-template-columns: 1fr; /* Stack everything */
-  }
-
   .form-row {
     grid-template-columns: 1fr; /* Stack label/input on mobile */
     text-align: left;
@@ -340,6 +341,15 @@ progress::-webkit-progress-value {
     min-width: auto;
     padding-right: 0;
     text-align: left;
+  }
+
+  .sliders-container {
+    gap: 20px;
+    justify-content: center;
+  }
+
+  .slider-group {
+    min-width: auto;
   }
 
   input[type="number"],
@@ -400,6 +410,12 @@ progress::-webkit-progress-value {
   .table-responsive {
     font-size: 10px; /* Extreme mobile */
   }
+
+  .sliders-container {
+    flex-direction: column;
+    gap: 10px;
+    align-items: flex-start;
+  }
 }
 
 @media (min-width: 1920px) {
@@ -425,5 +441,9 @@ progress::-webkit-progress-value {
 
   .form-row {
     grid-template-columns: 1fr; /* Stack more aggressively */
+  }
+
+  .sliders-container {
+    flex-direction: column;
   }
 }
