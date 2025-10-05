@@ -20,6 +20,7 @@ function App() {
   const [chartData, setChartData] = useState(null);
   const [advice, setAdvice] = useState('');
   const [adjustedData, setAdjustedData] = useState(null);
+  const [planData, setPlanData] = useState(null);
   const [enableAI, setEnableAI] = useState(true);
   const [financialData, setFinancialData] = useState(null);
 
@@ -44,27 +45,26 @@ function App() {
 
   // Fetch or load financial data
   const loadFinancialData = useCallback(async () => {
-    // Static data as of Oct 5, 2025 (fallback; in production, fetch real-time via APIs like Trading Economics, Cytonn site, etc.)
-    // Example real-time fetch for bonds: await fetch('https://tradingeconomics.com/kenya/government-bond-yield').then(res => res.text()).then(parseYield);
+    // Static data as of Oct 5, 2025 (updated from real-time sources; in production, fetch real-time via APIs)
     const data = {
       saccos: [
-        { name: 'Stima SACCO', dividend: 15, members: '200k+' },
-        { name: 'Kenya Police SACCO', dividend: 13, note: 'low loans, high dividends' },
-        { name: 'Safaricom SACCO', dividend: 13, note: 'open to public' }
+        { name: 'Kenya Police SACCO', dividend: 17, members: 'Large membership', note: '17% for 2025' },
+        { name: 'Stima SACCO', dividend: 15, members: '200k+', note: 'Consistent high dividends' },
+        { name: 'Safaricom SACCO', dividend: 13, note: 'Open to public' }
       ],
       bonds: {
         '10Y': 13.46,
-        tBills: { '91-day': 7.92, '182-day': 8.5, '364-day': 9.54 }
+        tBills: { '91-day': 7.98, '182-day': 8.5, '364-day': 9.54 }
       },
       mmfs: [
-        { name: 'Cytonn MMF', net: 12.76 },
+        { name: 'Cytonn MMF', net: 13.2 },
         { name: 'GulfCap MMF', gross: 13 },
         { name: 'Orient Kasha MMF', net: 10.0 }
       ],
       crypto: {
-        lowRisk: ['Bitcoin (stable, ETF potential)', 'Ethereum (DeFi growth)'],
+        lowRisk: ['Bitcoin (stable at ~$124k, up 1.23%, ETF potential)', 'Ethereum (DeFi growth at ~$4,470)'],
         highPotential: ['Solana (scalability, 2025 boom candidate)'],
-        highRisk: ['Dogecoin (meme volatility, 1000x potential but high risk, 80% ETF odds)']
+        highRisk: ['Dogecoin (meme volatility at current trends, 1000x potential but high risk, 80% ETF odds)']
       }
     };
     setFinancialData(data);
@@ -316,7 +316,7 @@ function App() {
       let totalAdjustedOutgo = adjustedTotalMinPayments + adjustedTotalExpenses;
       let overageAfterCuts = Math.max(0, totalAdjustedOutgo + adjustedSavings - salary);
       if (overageAfterCuts > 0) {
-        const extraCutNeeded = overageAfterCuts;
+        let extraCutNeeded = overageAfterCuts;
         const remainingNonEssentials = expenses.filter(exp => !exp.isEssential && exp.amount > (500 * householdSize));
         remainingNonEssentials.forEach(exp => {
           const extraCut = Math.min(exp.amount * 0.2, extraCutNeeded);
@@ -384,6 +384,73 @@ function App() {
       const tableMarkdown = `\n\n**Adjusted Plan Table:**\n| Category | Current (KES) | Adjusted (KES) | Suggestion |\n|----------|---------------|----------------|------------|\n${adjustments.map(adj => `| ${adj.category.padEnd(20)} | ${adj.current.toLocaleString().padEnd(15)} | ${adj.adjusted.toLocaleString().padEnd(15)} | ${adj.suggestion.substring(0, 60)}... |`).join('\n')}\n| Savings  | ${savings.toLocaleString().padEnd(15)} | ${adjustedSavings.toLocaleString().padEnd(15)} | Min 5%—low-risk invest (e.g., MMFs); emergency priority |\n| Spare    | -             | ${spareCash.toLocaleString().padEnd(15)} | ${spareCash > 0 ? `Invest in bonds/MMFs` : 'N/A'} |`;
       adviceText += tableMarkdown;
 
+      // NEW: Generate Monthly Payment Plan
+      const plan = [];
+      let totalPlan = 0;
+
+      // Loans: Prioritize by rate (avalanche), assign min + extra to highest
+      const sortedLoans = [...loans].sort((a, b) => b.rate - a.rate).filter(l => l.minPayment > 0);
+      const extraForDebt = Math.max(0, adjustedDebtBudget - totalMinPayments);
+      sortedLoans.forEach((loan, idx) => {
+        const minPay = loan.minPayment;
+        const extraPay = idx === 0 ? extraForDebt : 0; // All extra to highest rate
+        const totalPay = minPay + extraPay;
+        plan.push({
+          category: 'Loan',
+          subcategory: loan.name || `Loan ${idx + 1}`,
+          priority: idx + 1,
+          budgeted: totalPay,
+          notes: `Priority ${idx + 1} (rate ${loan.rate}%). Min: ${minPay.toLocaleString()}, Extra: ${extraPay.toLocaleString()}`
+        });
+        totalPlan += totalPay;
+      });
+
+      // Expenses: Assign adjusted from cuts, or full if not cut
+      const expenseAdjustMap = new Map(adjustments.filter(adj => adj.category !== 'Total Expenses' && adj.category !== 'Total Debt Min Payments' && !adj.category.startsWith('Savings') && !adj.category.startsWith('Balance Cut')).map(adj => [adj.category, adj.adjusted]));
+      expenses.forEach(exp => {
+        const adjAmount = expenseAdjustMap.get(exp.name || 'Unnamed') || exp.amount;
+        plan.push({
+          category: 'Expense',
+          subcategory: exp.name || `Expense`,
+          priority: exp.isEssential ? 'Essential' : 'Non-Essential',
+          budgeted: adjAmount,
+          notes: exp.isEssential ? 'Full allocation' : `Adjusted if over budget`
+        });
+        totalPlan += adjAmount;
+      });
+
+      // Savings
+      plan.push({
+        category: 'Savings',
+        subcategory: 'Emergency/Investments',
+        priority: 'N/A',
+        budgeted: adjustedSavings,
+        notes: `Min 5% enforced; invest in MMFs/SACCOs`
+      });
+      totalPlan += adjustedSavings;
+
+      // Total and Deficit
+      const deficit = totalPlan - salary;
+      if (deficit > 0) {
+        plan.push({
+          category: 'Deficit',
+          subcategory: 'Overall Shortfall',
+          priority: 'Alert',
+          budgeted: deficit,
+          notes: `KES ${deficit.toLocaleString()} over. Advice: Negotiate loan rates, start side hustle (e.g., tutoring for ${householdSize} members, target +${Math.ceil(deficit / householdSize).toLocaleString()} KES/person/mo), sell non-essentials for quick cash, or seek low-interest bridge loan. Review in 1 mo.`
+        });
+      } else {
+        plan.push({
+          category: 'Surplus',
+          subcategory: 'Spare Cash',
+          priority: 'Opportunity',
+          budgeted: Math.max(0, salary - (totalPlan - (deficit > 0 ? deficit : 0))),
+          notes: `KES ${(salary - totalPlan).toLocaleString()} extra - boost savings or invest in bonds/MMFs.`
+        });
+      }
+
+      setPlanData(plan);
+
       // AI
       let aiTip = '';
       if (enableAI) {
@@ -407,7 +474,7 @@ function App() {
       setCurrentSavings(historyEntry.currentSavings);
       setHistory(prev => [...prev, historyEntry]);
 
-      // PDF (enhanced with investments)
+      // PDF (enhanced with investments and plan summary)
       try {
         const doc = new jsPDF();
         let yPos = 10;
@@ -418,13 +485,20 @@ function App() {
         doc.text(`Emergency: KES ${threeMonthTarget.toLocaleString()} (3 mo for ${householdSize})`, 10, yPos); yPos += 10;
         doc.text(`Invest: ${saccoRec} ${finData.saccos[0].dividend}%, Bonds ${bondYield}%, ${mmfRec} ${mmfYield}%`, 10, yPos); yPos += 10;
         if (aiTip) { doc.text('AI Tip:', 10, yPos); yPos += 7; doc.text(aiTip.substring(0, 100) + '...', 10, yPos); yPos += 10; }
-        doc.text('Plan:', 10, yPos); yPos += 10;
+        doc.text('Monthly Plan Summary:', 10, yPos); yPos += 10;
+        plan.slice(0, 10).forEach((item, i) => { // First 10 for PDF
+          if (yPos > 270) { doc.addPage(); yPos = 10; }
+          doc.text(`${item.subcategory}: KES ${item.budgeted.toLocaleString()} (${item.notes.substring(0, 50)}...)`, 10, yPos);
+          yPos += 7;
+        });
+        if (deficit > 0) doc.text(`Deficit Alert: KES ${deficit.toLocaleString()} - See advice above.`, 10, yPos); yPos += 10;
+        doc.text('Adjustments:', 10, yPos); yPos += 10;
         adjustments.forEach((adj, i) => {
           if (yPos > 270) { doc.addPage(); yPos = 10; }
           doc.text(`${adj.category}: ${adj.current.toLocaleString()} → ${adj.adjusted.toLocaleString()} (${adj.suggestion.substring(0, 50)}...)`, 10, yPos);
           yPos += 7;
         });
-        doc.text(adviceText.substring(0, 1200), 10, yPos, { maxWidth: 180 });
+        doc.text(adviceText.substring(0, 800), 10, yPos, { maxWidth: 180 });
         doc.save('budget_report.pdf');
       } catch (pdfError) {
         console.error('PDF Error:', pdfError);
@@ -550,6 +624,32 @@ function App() {
               <tr key={i}><td style={{ border: '1px solid #ccc', padding: '8px' }}>{adj.category}</td><td style={{ border: '1px solid #ccc', padding: '8px' }}>{adj.current.toLocaleString()}</td><td style={{ border: '1px solid #ccc', padding: '8px' }}>{adj.adjusted.toLocaleString()}</td><td style={{ border: '1px solid #ccc', padding: '8px' }}>{adj.suggestion}</td></tr>
             ))}</tbody>
           </table>
+        </section>
+      )}
+
+      {planData && planData.length > 0 && (
+        <section style={{ marginBottom: '30px' }}>
+          <h2>Monthly Payment Plan (Prioritized for Loans/Expenses/Savings)</h2>
+          <p>Even after adjustments, here's your detailed monthly plan. Loans prioritized by interest rate (highest first). Expenses budgeted per item. Deficit advice if over salary.</p>
+          <table style={{ width: '100%', borderCollapse: 'collapse', border: '1px solid #ccc' }}>
+            <thead><tr>
+              <th style={{ border: '1px solid #ccc', padding: '8px' }}>Category</th>
+              <th style={{ border: '1px solid #ccc', padding: '8px' }}>Item</th>
+              <th style={{ border: '1px solid #ccc', padding: '8px' }}>Priority</th>
+              <th style={{ border: '1px solid #ccc', padding: '8px' }}>Budgeted (KES)</th>
+              <th style={{ border: '1px solid #ccc', padding: '8px' }}>Notes</th>
+            </tr></thead>
+            <tbody>{planData.map((item, i) => (
+              <tr key={i} style={{ backgroundColor: item.category === 'Deficit' ? '#ffebee' : item.category === 'Surplus' ? '#e8f5e8' : 'white' }}>
+                <td style={{ border: '1px solid #ccc', padding: '8px' }}>{item.category}</td>
+                <td style={{ border: '1px solid #ccc', padding: '8px' }}>{item.subcategory}</td>
+                <td style={{ border: '1px solid #ccc', padding: '8px' }}>{item.priority}</td>
+                <td style={{ border: '1px solid #ccc', padding: '8px' }}>{item.budgeted.toLocaleString()}</td>
+                <td style={{ border: '1px solid #ccc', padding: '8px' }}>{item.notes}</td>
+              </tr>
+            ))}</tbody>
+          </table>
+          <p><strong>Total Planned: KES {planData.reduce((sum, item) => sum + (item.budgeted || 0), 0).toLocaleString()}</strong> vs Salary KES {salary.toLocaleString()}</p>
         </section>
       )}
 
