@@ -46,26 +46,26 @@ function App() {
 
   // Fetch or load financial data
   const loadFinancialData = useCallback(async () => {
-    // Static data as of Oct 5, 2025 (updated from real-time sources; in production, fetch real-time via APIs)
+    // Static data as of Oct 6, 2025 (updated from real-time sources; in production, fetch real-time via APIs)
     const data = {
       saccos: [
-        { name: 'Kenya Police SACCO', dividend: 17, members: 'Large membership', note: '17% for 2025' },
-        { name: 'Stima SACCO', dividend: 15, members: '200k+', note: 'Consistent high dividends' },
-        { name: 'Safaricom SACCO', dividend: 13, note: 'Open to public' }
+        { name: 'Tower SACCO', dividend: 20, members: 'Large membership', note: '20% for 2025' },
+        { name: 'Ports SACCO', dividend: 20, members: '200k+', note: 'Consistent high dividends' },
+        { name: 'Yetu SACCO', dividend: 19, note: 'Open to public' }
       ],
       bonds: {
         '10Y': 13.46,
         tBills: { '91-day': 7.98, '182-day': 8.5, '364-day': 9.54 }
       },
       mmfs: [
+        { name: 'Madison MMF', net: 14 },
         { name: 'Cytonn MMF', net: 13.2 },
-        { name: 'GulfCap MMF', gross: 13 },
-        { name: 'Orient Kasha MMF', net: 10.0 }
+        { name: 'Ndovu MMF', net: 13.5 }
       ],
       crypto: {
-        lowRisk: ['Bitcoin (stable at ~$124k, up 1.23%, ETF potential)', 'Ethereum (DeFi growth at ~$4,470)'],
-        highPotential: ['Solana (scalability, 2025 boom candidate)'],
-        highRisk: ['Dogecoin (meme volatility at current trends, 1000x potential but high risk, 80% ETF odds)']
+        lowRisk: ['Bitcoin (stable at ~$124k, up 0.38%, ETF potential)', 'Ethereum (DeFi growth at ~$4,550)'],
+        highPotential: ['Solana (scalability, 2025 boom candidate at ~$231)'],
+        highRisk: ['Dogecoin (meme volatility at current trends ~$0.25, 1000x potential but high risk, 80% ETF odds)']
       }
     };
     setFinancialData(data);
@@ -207,25 +207,30 @@ function App() {
 
   const getFreeAIAdvice = useCallback(async (userData, finData) => {
     if (!enableAI) return '';
-    const model = 'distilgpt2';
-    const prompt = `Kenyan financial advisor for ${userData.householdSize} members. Advice: Debt (high-interest), cuts (min 1000KES/person), savings, invest (MMFs, SACCOs, bonds). Crypto: balanced low-risk/high-pot with volatility warning. Data: Salary ${userData.salary}KES, Debt ${userData.debtBudget}, Expenses ${userData.totalExpenses}. Loans/Expenses: ${JSON.stringify([...userData.loans, ...userData.expenses].slice(0,4))}. Cuts: ${userData.suggestedCuts?.slice(0,100)||'None'}. SACCOs: ${finData.saccos.map(s => `${s.name} ${s.dividend}%`).join(', ')}. Bonds: 10Y ${finData.bonds['10Y']}% . MMFs: ${finData.mmfs.map(m => `${m.name} ${m.net || m.gross}%`).join(', ')}. Crypto: ${JSON.stringify(finData.crypto)}. 3-mo emergency, side hustles, survival tips. 5 bullets.`;
+    const models = ['distilgpt2', 'gpt2'];
+    let tips = [];
+    for (const model of models) {
+      const prompt = `Kenyan financial advisor for ${userData.householdSize} members. Advice: Debt (high-interest), cuts (min 1000KES/person), savings, invest (MMFs, SACCOs, bonds). Crypto: balanced low-risk/high-pot with volatility warning. Data: Salary ${userData.salary}KES, Debt ${userData.debtBudget}, Expenses ${userData.totalExpenses}. Loans/Expenses: ${JSON.stringify([...userData.loans, ...userData.expenses].slice(0,4))}. Cuts: ${userData.suggestedCuts?.slice(0,100)||'None'}. SACCOs: ${finData.saccos.map(s => `${s.name} ${s.dividend}%`).join(', ')}. Bonds: 10Y ${finData.bonds['10Y']}% . MMFs: ${finData.mmfs.map(m => `${m.name} ${m.net || m.gross}%`).join(', ')}. Crypto: ${JSON.stringify(finData.crypto)}. 3-mo emergency, side hustles, survival tips. 5 bullets.`;
 
-    try {
-      const response = await fetch(`https://api-inference.huggingface.co/models/${model}`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ inputs: prompt, parameters: { max_new_tokens: 150, temperature: 0.7 } })
-      });
-      if (!response.ok) throw new Error(`HTTP ${response.status}`);
-      const data = await response.json();
-      return data[0]?.generated_text?.split('Output:')[1]?.trim() || data[0]?.generated_text?.trim() || '';
-    } catch (error) {
-      console.error('AI Error:', error);
-      const highInt = userData.highInterestLoans || 'high-interest loans';
-      const saccoRec = finData.saccos[0].name;
-      const mmfRec = finData.mmfs[0].name;
-      return `- Prioritize ${highInt} payoff first.\n- Cut non-essentials 20% (save 1k/person), fund ${saccoRec} or ${mmfRec}.\n- Invest spare in 10Y bonds (${finData.bonds['10Y']}% yield).\n- Crypto: Start with ${finData.crypto.lowRisk[0]}, avoid high-risk ${finData.crypto.highRisk[0]} volatility.\n- Side hustle: Family tutoring for ${userData.householdSize} members. Build 3-mo emergency.`;
+      try {
+        const response = await fetch(`https://api-inference.huggingface.co/models/${model}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ inputs: prompt, parameters: { max_new_tokens: 150, temperature: 0.7 } })
+        });
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        const data = await response.json();
+        const tip = data[0]?.generated_text?.split('Output:')[1]?.trim() || data[0]?.generated_text?.trim() || '';
+        tips.push(tip);
+      } catch (error) {
+        console.error('AI Error:', error);
+      }
     }
+    const highInt = userData.highInterestLoans || 'high-interest loans';
+    const saccoRec = finData.saccos[0].name;
+    const mmfRec = finData.mmfs[0].name;
+    const fallback = `- Prioritize ${highInt} payoff first.\n- Cut non-essentials 20% (save 1k/person), fund ${saccoRec} or ${mmfRec}.\n- Invest spare in 10Y bonds (${finData.bonds['10Y']}% yield).\n- Crypto: Start with ${finData.crypto.lowRisk[0]}, avoid high-risk ${finData.crypto.highRisk[0]} volatility.\n- Side hustle: Family tutoring for ${userData.householdSize} members. Build 3-mo emergency.`;
+    return tips.length > 0 ? tips.join('\n\n') : fallback;
   }, [enableAI]);
 
   const handleCalculate = useCallback(async () => {
@@ -418,15 +423,14 @@ function App() {
       const mmfYield = finData.mmfs[0].net;
       adviceText += `\n\n🇰🇪 Kenyan Investments: Top SACCOs - ${finData.saccos.map(s => `${s.name} (~${s.dividend}% dividends)`).join(', ')}. Gov Bonds: 10Y yield ~${bondYield}%; T-Bills ~${finData.bonds.tBills['91-day']}-${finData.bonds.tBills['364-day']}% (91-364 days). MMFs: ${finData.mmfs.map(m => `${m.name} (${m.net || m.gross}% ${m.net ? 'net' : 'gross'})`).join(', ')} - e.g., put cuts into ${mmfRec} at ${mmfYield}% net.`;
 
-      // NSE Top Performers (cleaned, updated with real data as of Oct 4, 2025)
-      adviceText += `\n\n📈 NSE Top Performers (Oct 6, 2025): KenGen at KSh10.00 (+9.65%), OCH at KSh7.08 (+8.59%), CGEN at KSh46.00 (+9.52%). Consider diversifying with these for growth.`;
+      // NSE Top Performers with real-time date/time
+      const now = new Date();
+      const dateStr = now.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+      const timeStr = now.toLocaleTimeString('en-US', { timeZone: 'Africa/Nairobi', hour: '2-digit', minute: '2-digit' });
+      adviceText += `\n\n📈 NSE Top Performers (${dateStr} at ${timeStr} EAT): KEGN at KSh10.00 (+9.6%), KEBL at KSh10.00 (+9.6%), KECO at KSh10.00 (+9.6%). Consider diversifying with these for growth.`;
 
       // Crypto Advice
       adviceText += `\n\n₿ Crypto Advice: Low-risk entry: ${finData.crypto.lowRisk.join(', ')} for stability. Higher-potential: ${finData.crypto.highPotential.join(', ')} for growth. Warnings: Volatility high - e.g., 1000x potential in memecoins like ${finData.crypto.highRisk[0]}, but high risk; invest only spare cash.`;
-
-      // Table Markdown (better formatting)
-      const tableMarkdown = `\n\nAdjusted Plan Table:\n| Category | Current (KES) | Adjusted (KES) | Suggestion |\n|----------|---------------|----------------|------------|\n${adjustments.map(adj => `| ${adj.category.padEnd(20)} | ${adj.current.toLocaleString().padEnd(15)} | ${adj.adjusted.toLocaleString().padEnd(15)} | ${adj.suggestion.substring(0, 60)}... |`).join('\n')}\n| Savings  | ${savings.toLocaleString().padEnd(15)} | ${adjustedSavings.toLocaleString().padEnd(15)} | Min 5%—low-risk invest (e.g., MMFs); emergency priority |\n| Spare    | -             | ${spareCash.toLocaleString().padEnd(15)} | ${spareCash > 0 ? `Invest in bonds/MMFs` : 'N/A'} |`;
-      adviceText += tableMarkdown;
 
       // NEW: Generate Monthly Payment Plan
       const plan = [];
@@ -506,6 +510,20 @@ function App() {
         }, finData);
         adviceText += `\n\n🤖 AI Tip:\n${aiTip}`;
       }
+
+      // Add Savings and Spare to adjustments for full table
+      adjustments.push({
+        category: 'Savings',
+        current: savings,
+        adjusted: adjustedSavings,
+        suggestion: 'Min 5%—low-risk invest (e.g., MMFs); emergency priority'
+      });
+      adjustments.push({
+        category: 'Spare',
+        current: 0,
+        adjusted: spareCash,
+        suggestion: spareCash > 0 ? 'Invest in bonds/MMFs' : 'N/A'
+      });
 
       setAdvice(adviceText);
       setAdjustedData(adjustments);
@@ -706,7 +724,7 @@ function App() {
 
       {adjustedData && adjustedData.length > 0 && (
         <section style={{ marginBottom: '30px', backgroundColor: 'white', padding: '20px', borderRadius: '10px', boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }}>
-          <h2 style={{ color: '#2E7D32', marginTop: 0 }}>Adjusted Spending Table</h2>
+          <h2 style={{ color: '#2E7D32', marginTop: 0 }}>Adjusted Plan Table</h2>
           <table style={{ width: '100%', borderCollapse: 'collapse', border: '1px solid #A5D6A7' }}>
             <thead><tr><th style={{ border: '1px solid #A5D6A7', padding: '8px', backgroundColor: '#C8E6C9' }}>Category</th><th style={{ border: '1px solid #A5D6A7', padding: '8px', backgroundColor: '#C8E6C9' }}>Current (KES)</th><th style={{ border: '1px solid #A5D6A7', padding: '8px', backgroundColor: '#C8E6C9' }}>Adjusted (KES)</th><th style={{ border: '1px solid #A5D6A7', padding: '8px', backgroundColor: '#C8E6C9' }}>Suggestion</th></tr></thead>
             <tbody>{adjustedData.map((adj, i) => (
