@@ -379,7 +379,9 @@ function App() {
       if (totalAdjustedOutgo > salary * 0.95) {
         const forcedSavings = salary * 0.05;
         adjustedSavings = Math.max(adjustedSavings, forcedSavings);
-        overageAdvice += `Enforced 5% savings (KES ${adjustedSavings.toLocaleString()}). Side hustle idea for ${hs} members: family tutoring or goods resale. `;
+        const sideHustleIdeas = ['tutoring', 'goods resale', 'freelance writing', 'delivery services', 'online surveys'];
+        const randomIdea = sideHustleIdeas[Math.floor(Math.random() * sideHustleIdeas.length)];
+        overageAdvice += `Enforced 5% savings (KES ${adjustedSavings.toLocaleString()}). Side hustle idea${hs > 1 ? ` for ${hs} members` : ''}: ${randomIdea}. `;
       }
 
       const { months: snowMonths, totalInterest: snowInterest } = snowball(loans, adjustedDebtBudget);
@@ -391,36 +393,36 @@ function App() {
 
       // Enhanced personalized advice
       const suggestedCutAmount = totalExpenses * 0.2;
-      adviceText += `\nFor your ${hs}-member household on ${salary.toLocaleString()} KES salary, prioritize high-interest loan payoff. Cut non-essentials like shopping by 20% (save ~${suggestedCutAmount.toLocaleString()} KES) to fund MMFs.`;
+      adviceText += `\n\nFor your ${hs}-member household on ${salary.toLocaleString()} KES salary, prioritize high-interest loan payoff. Cut non-essentials like shopping by 20% (save ~${suggestedCutAmount.toLocaleString()} KES) to fund MMFs.`;
 
       if (totalAdjustedOutgo + adjustedSavings > salary) {
         const overage = totalAdjustedOutgo + adjustedSavings - salary;
-        adviceText += `\n🚨 Survival: Over by KES ${overage.toLocaleString()}. Short-term: Borrow at 5% over 6 mo (~KES ${(overage / 6 + overage * 0.05 / 2).toFixed(0)}/mo). Long-term: Negotiate rates, sell items for 2k cash. Track spends; 1 no-spend day/week/family. ${overageAdvice}`;
+        adviceText += `\n\n🚨 Survival: Over by KES ${overage.toLocaleString()}. Short-term: Borrow at 5% over 6 mo (~KES ${(overage / 6 + overage * 0.05 / 2).toFixed(0)}/mo). Long-term: Negotiate rates, sell items for 2k cash. Track spends; 1 no-spend day/week/family. ${overageAdvice}`;
       } else if (spareCash > 0) {
-        adviceText += `\n💡 Spare KES ${spareCash.toLocaleString()}—boost to 15% savings, treasury bonds (8% yield). Automate.`;
+        adviceText += `\n\n💡 Spare KES ${spareCash.toLocaleString()}—boost to 15% savings, treasury bonds (8% yield). Automate.`;
       }
 
-      adviceText += `\nTotal Spend: KES ${(totalAdjustedOutgo + adjustedSavings).toLocaleString()} (fits salary).`;
+      adviceText += `\n\nTotal Spend: KES ${(totalAdjustedOutgo + adjustedSavings).toLocaleString()} (fits salary).`;
 
       // 3-Month Emergency build plan with real-time options
       const monthlyExpensesForEmergency = Math.max(adjustedTotalExpenses, emergencyTarget / 3 || 0);
       const threeMonthTarget = Math.max(emergencyTarget, monthlyExpensesForEmergency * 3);
       const monthsToEmergency = adjustedSavings > 0 ? Math.ceil((threeMonthTarget - currentSavings) / adjustedSavings) : 0;
       const thisMonthAdd = Math.min(spareCash, 1000);
-      adviceText += `\n🛡️ 3-Month Emergency Build Plan: Target KES ${threeMonthTarget.toLocaleString()} (${hs} members). Current: KES ${currentSavings.toLocaleString()}. Reach in ${monthsToEmergency} mo. Add KES ${thisMonthAdd.toLocaleString()} to Sacco this mo. Real-time option: Invest in ${finData.mmfs[0].name} at ${finData.mmfs[0].net}% net.`;
+      adviceText += `\n\n🛡️ 3-Month Emergency Build Plan: Target KES ${threeMonthTarget.toLocaleString()} (${hs} members). Current: KES ${currentSavings.toLocaleString()}. Reach in ${monthsToEmergency} mo. Add KES ${thisMonthAdd.toLocaleString()} to Sacco this mo. Real-time option: Invest in ${finData.mmfs[0].name} at ${finData.mmfs[0].net}% net.`;
 
       // Kenyan Investments
       const saccoRec = finData.saccos[0].name;
       const bondYield = finData.bonds['10Y'];
       const mmfRec = finData.mmfs[0].name;
       const mmfYield = finData.mmfs[0].net;
-      adviceText += `\n🇰🇪 Kenyan Investments: Top SACCOs - ${finData.saccos.map(s => `${s.name} (~${s.dividend}% dividends)`).join(', ')}. Gov Bonds: 10Y yield ~${bondYield}%; T-Bills ~${finData.bonds.tBills['91-day']}-${finData.bonds.tBills['364-day']}% (91-364 days). MMFs: ${finData.mmfs.map(m => `${m.name} (${m.net || m.gross}% ${m.net ? 'net' : 'gross'})`).join(', ')} - e.g., put cuts into ${mmfRec} at ${mmfYield}% net.`;
+      adviceText += `\n\n🇰🇪 Kenyan Investments: Top SACCOs - ${finData.saccos.map(s => `${s.name} (~${s.dividend}% dividends)`).join(', ')}. Gov Bonds: 10Y yield ~${bondYield}%; T-Bills ~${finData.bonds.tBills['91-day']}-${finData.bonds.tBills['364-day']}% (91-364 days). MMFs: ${finData.mmfs.map(m => `${m.name} (${m.net || m.gross}% ${m.net ? 'net' : 'gross'})`).join(', ')} - e.g., put cuts into ${mmfRec} at ${mmfYield}% net.`;
 
       // NSE Top Performers (cleaned, updated with real data as of Oct 4, 2025)
-      adviceText += `\n📈 NSE Top Performers (Oct 5, 2025): KEGN at KSh10.00 (+9.6%), OCH at KSh7.04 (+9.3%), CGEN at KSh45.50 (+8.6%). Consider diversifying with these for growth.`;
+      adviceText += `\n\n📈 NSE Top Performers (Oct 6, 2025): KenGen at KSh10.00 (+9.65%), OCH at KSh7.08 (+8.59%), CGEN at KSh46.00 (+9.52%). Consider diversifying with these for growth.`;
 
       // Crypto Advice
-      adviceText += `\n₿ Crypto Advice: Low-risk entry: ${finData.crypto.lowRisk.join(', ')} for stability. Higher-potential: ${finData.crypto.highPotential.join(', ')} for growth. Warnings: Volatility high - e.g., 1000x potential in memecoins like ${finData.crypto.highRisk[0]}, but high risk; invest only spare cash.`;
+      adviceText += `\n\n₿ Crypto Advice: Low-risk entry: ${finData.crypto.lowRisk.join(', ')} for stability. Higher-potential: ${finData.crypto.highPotential.join(', ')} for growth. Warnings: Volatility high - e.g., 1000x potential in memecoins like ${finData.crypto.highRisk[0]}, but high risk; invest only spare cash.`;
 
       // Table Markdown (better formatting)
       const tableMarkdown = `\n\nAdjusted Plan Table:\n| Category | Current (KES) | Adjusted (KES) | Suggestion |\n|----------|---------------|----------------|------------|\n${adjustments.map(adj => `| ${adj.category.padEnd(20)} | ${adj.current.toLocaleString().padEnd(15)} | ${adj.adjusted.toLocaleString().padEnd(15)} | ${adj.suggestion.substring(0, 60)}... |`).join('\n')}\n| Savings  | ${savings.toLocaleString().padEnd(15)} | ${adjustedSavings.toLocaleString().padEnd(15)} | Min 5%—low-risk invest (e.g., MMFs); emergency priority |\n| Spare    | -             | ${spareCash.toLocaleString().padEnd(15)} | ${spareCash > 0 ? `Invest in bonds/MMFs` : 'N/A'} |`;
@@ -473,13 +475,15 @@ function App() {
 
       // Total and Deficit
       const deficit = totalPlan - salary;
+      const sideHustleIdeas = ['tutoring', 'goods resale', 'freelance writing', 'delivery services', 'online surveys'];
+      const randomIdea = sideHustleIdeas[Math.floor(Math.random() * sideHustleIdeas.length)];
       if (deficit > 0) {
         plan.push({
           category: 'Deficit',
           subcategory: 'Overall Shortfall',
           priority: 'Alert',
           budgeted: deficit,
-          notes: `KES ${deficit.toLocaleString()} over. Advice: Negotiate loan rates, start side hustle (e.g., tutoring for ${hs} members, target +${Math.ceil(deficit / hs).toLocaleString()} KES/person/mo), sell non-essentials for quick cash, or seek low-interest bridge loan. Review in 1 mo.`
+          notes: `KES ${deficit.toLocaleString()} over. Advice: Negotiate loan rates, start side hustle (e.g., ${randomIdea}${hs > 1 ? ` for ${hs} members` : ''}, target +${Math.ceil(deficit / hs).toLocaleString()} KES/person/mo), sell non-essentials for quick cash, or seek low-interest bridge loan. Review in 1 mo.`
         });
       } else {
         plan.push({
@@ -695,7 +699,7 @@ function App() {
 
       {advice && (
         <section style={{ marginBottom: '30px', backgroundColor: 'white', padding: '20px', borderRadius: '10px', boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }}>
-          <h2 style={{ color: '#2E7D32', marginTop: 0 }}>Enhanced Financial Advice</h2>
+          <h2 style={{ color: '#2E7D32', marginTop: 0 }}>Financial Advice</h2>
           <div style={{ background: '#e8f5e8', padding: '15px', borderRadius: '8px', whiteSpace: 'pre-line', fontSize: '14px', lineHeight: '1.4', borderLeft: '4px solid #4CAF50' }}>{advice}</div>
         </section>
       )}
