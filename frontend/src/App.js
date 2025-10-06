@@ -74,6 +74,42 @@ function App() {
 
   const clearOnFocus = (e) => e.target.select();
 
+  const updateSavingsPct = useCallback((newVal) => {
+    const val = parseInt(newVal);
+    setSavingsPct(val);
+    const remaining = 100 - val;
+    const otherSum = debtPct + expensesPct;
+    if (otherSum > 0) {
+      const debtNew = Math.round((debtPct / otherSum) * remaining);
+      setDebtPct(debtNew);
+      setExpensesPct(100 - val - debtNew);
+    }
+  }, [debtPct, expensesPct]);
+
+  const updateDebtPct = useCallback((newVal) => {
+    const val = parseInt(newVal);
+    setDebtPct(val);
+    const remaining = 100 - val;
+    const otherSum = savingsPct + expensesPct;
+    if (otherSum > 0) {
+      const savingsNew = Math.round((savingsPct / otherSum) * remaining);
+      setSavingsPct(savingsNew);
+      setExpensesPct(100 - val - savingsNew);
+    }
+  }, [savingsPct, expensesPct]);
+
+  const updateExpensesPct = useCallback((newVal) => {
+    const val = parseInt(newVal);
+    setExpensesPct(val);
+    const remaining = 100 - val;
+    const otherSum = savingsPct + debtPct;
+    if (otherSum > 0) {
+      const savingsNew = Math.round((savingsPct / otherSum) * remaining);
+      setSavingsPct(savingsNew);
+      setDebtPct(100 - val - savingsNew);
+    }
+  }, [savingsPct, debtPct]);
+
   const addLoan = useCallback(() => {
     setLoans(prev => [...prev, { name: '', balance: 0, rate: 0, minPayment: 0, isEssential: false }]);
   }, []);
@@ -595,7 +631,7 @@ function App() {
   };
 
   return (
-    <div style={{ padding: '20px', maxWidth: '1200px', margin: '0 auto', backgroundColor: '#f1f8e9', minHeight: '100vh', fontFamily: 'Arial, sans-serif' }}>
+    <div style={{ padding: '20px', maxWidth: '1200px', margin: '0 auto', backgroundColor: '#f1f8e9', minHeight: '100vh', fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif' }}>
       <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', backgroundColor: '#4CAF50', color: 'white', padding: '15px', borderRadius: '10px', marginBottom: '20px' }}>
         <h1 style={{ margin: 0, fontSize: '24px', color: 'white' }}>Budget & Debt Coach App</h1>
         <p style={{ margin: 0, fontSize: '14px', opacity: 0.9 }}>Open Access - Auth coming soon</p>
@@ -606,9 +642,9 @@ function App() {
         <label>Monthly Salary (KES): <input key="salary" type="number" value={salary || 0} onChange={(e) => setSalary(parseFloat(e.target.value) || 0)} onFocus={clearOnFocus} style={{ margin: '5px', padding: '8px', border: '1px solid #81C784', borderRadius: '5px' }} /></label><br />
         <label>Household Size: <input key="household" type="number" min="1" value={householdSize || ''} onChange={(e) => setHouseholdSize(e.target.value)} style={{ margin: '5px', padding: '8px', width: '50px', border: '1px solid #81C784', borderRadius: '5px' }} /> (Scales advice)</label><br />
         <label style={{ color: '#2E7D32' }}>Customization (%): </label>
-        <input type="range" min="0" max="50" value={savingsPct} onChange={(e) => setSavingsPct(parseInt(e.target.value))} style={{ margin: '5px' }} /> Savings: {savingsPct}%
-        <input type="range" min="0" max="50" value={debtPct} onChange={(e) => setDebtPct(parseInt(e.target.value))} style={{ margin: '5px' }} /> Debt: {debtPct}%
-        <input type="range" min="0" max="100" value={expensesPct} onChange={(e) => setExpensesPct(parseInt(e.target.value))} style={{ margin: '5px' }} /> Expenses: {expensesPct}%<br />
+        <input type="range" min="0" max="50" value={savingsPct} onChange={(e) => updateSavingsPct(e.target.value)} style={{ margin: '5px' }} /> Savings: {savingsPct}%
+        <input type="range" min="0" max="50" value={debtPct} onChange={(e) => updateDebtPct(e.target.value)} style={{ margin: '5px' }} /> Debt: {debtPct}%
+        <input type="range" min="0" max="100" value={expensesPct} onChange={(e) => updateExpensesPct(e.target.value)} style={{ margin: '5px' }} /> Expenses: {expensesPct}%<br />
         <label>Emergency Target (KES): <input key="emergency" type="number" value={emergencyTarget || 0} onChange={(e) => setEmergencyTarget(parseFloat(e.target.value) || 0)} onFocus={clearOnFocus} style={{ margin: '5px', padding: '8px', border: '1px solid #81C784', borderRadius: '5px' }} /> (Auto-updates below)</label>
       </section>
 
