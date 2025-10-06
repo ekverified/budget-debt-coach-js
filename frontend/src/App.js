@@ -11,7 +11,7 @@ function App() {
   const [savingsPct, setSavingsPct] = useState(10);
   const [debtPct, setDebtPct] = useState(20);
   const [expensesPct, setExpensesPct] = useState(70);
-  const [householdSize, setHouseholdSize] = useState(1);
+  const [householdSize, setHouseholdSize] = useState('');
   const [loans, setLoans] = useState([]);
   const [expenses, setExpenses] = useState([]);
   const [emergencyTarget, setEmergencyTarget] = useState(0);
@@ -212,6 +212,8 @@ function App() {
       const totalExpenses = expenses.reduce((sum, exp) => sum + exp.amount, 0);
       console.log('Calc debug - totalMinPayments:', totalMinPayments, 'totalExpenses:', totalExpenses);
 
+      const hs = parseInt(householdSize) || 1;
+
       const highInterestLoans = loans
         .filter(l => l.rate > 0)
         .sort((a, b) => b.rate - a.rate)
@@ -236,7 +238,7 @@ function App() {
         let coveredFromExpenses = 0;
         const nonEssentialExpenses = expenses.filter(exp => !exp.isEssential);
         nonEssentialExpenses.forEach(exp => {
-          const maxCut = Math.max(0, exp.amount - (1000 * householdSize));
+          const maxCut = Math.max(0, exp.amount - (1000 * hs));
           const cut = Math.min(maxCut, debtOverage - coveredFromExpenses);
           if (cut > 0) {
             coveredFromExpenses += cut;
@@ -244,7 +246,7 @@ function App() {
               category: exp.name || 'Unnamed Expense',
               current: exp.amount,
               adjusted: exp.amount - cut,
-              suggestion: `Cut KES ${cut.toLocaleString()} to cover debt (non-essential; min preserved for ${householdSize} members)`
+              suggestion: `Cut KES ${cut.toLocaleString()} to cover debt (non-essential; min preserved for ${hs} members)`
             });
           }
         });
@@ -287,7 +289,7 @@ function App() {
         const nonEssentialExpenses = expenses.filter(exp => !exp.isEssential).sort((a, b) => b.amount - a.amount);
         nonEssentialExpenses.forEach(exp => {
           const minPerPerson = exp.name.toLowerCase().includes('shopping') || exp.name.toLowerCase().includes('food') ? 1500 : 500;
-          const maxCut = Math.max(0, exp.amount - (minPerPerson * householdSize));
+          const maxCut = Math.max(0, exp.amount - (minPerPerson * hs));
           const cut = Math.min(maxCut * 0.3, expOverage - cutAmount);
           if (cut > 0) {
             cutAmount += cut;
@@ -295,7 +297,7 @@ function App() {
               category: exp.name || 'Unnamed',
               current: exp.amount,
               adjusted: exp.amount - cut,
-              suggestion: `Cut 30% (KES ${cut.toLocaleString()})—sustainable for ${householdSize} members; to emergency fund`
+              suggestion: `Cut 30% (KES ${cut.toLocaleString()})—sustainable for ${hs} members; to emergency fund`
             });
           }
         });
@@ -318,7 +320,7 @@ function App() {
       let overageAfterCuts = Math.max(0, totalAdjustedOutgo + adjustedSavings - salary);
       if (overageAfterCuts > 0) {
         let extraCutNeeded = overageAfterCuts;
-        const remainingNonEssentials = expenses.filter(exp => !exp.isEssential && exp.amount > (500 * householdSize));
+        const remainingNonEssentials = expenses.filter(exp => !exp.isEssential && exp.amount > (500 * hs));
         remainingNonEssentials.forEach(exp => {
           const extraCut = Math.min(exp.amount * 0.2, extraCutNeeded);
           if (extraCut > 0) {
@@ -341,7 +343,7 @@ function App() {
       if (totalAdjustedOutgo > salary * 0.95) {
         const forcedSavings = salary * 0.05;
         adjustedSavings = Math.max(adjustedSavings, forcedSavings);
-        overageAdvice += `Enforced 5% savings (KES ${adjustedSavings.toLocaleString()}). Side hustle idea for ${householdSize} members: family tutoring or goods resale. `;
+        overageAdvice += `Enforced 5% savings (KES ${adjustedSavings.toLocaleString()}). Side hustle idea for ${hs} members: family tutoring or goods resale. `;
       }
 
       const { months: snowMonths, totalInterest: snowInterest } = snowball(loans, adjustedDebtBudget);
@@ -353,7 +355,7 @@ function App() {
 
       // Enhanced personalized advice
       const suggestedCutAmount = totalExpenses * 0.2;
-      adviceText += `\nFor your ${householdSize}-member household on ${salary.toLocaleString()} KES salary, prioritize high-interest loan payoff. Cut non-essentials like shopping by 20% (save ~${suggestedCutAmount.toLocaleString()} KES) to fund MMFs.`;
+      adviceText += `\nFor your ${hs}-member household on ${salary.toLocaleString()} KES salary, prioritize high-interest loan payoff. Cut non-essentials like shopping by 20% (save ~${suggestedCutAmount.toLocaleString()} KES) to fund MMFs.`;
 
       if (totalAdjustedOutgo + adjustedSavings > salary) {
         const overage = totalAdjustedOutgo + adjustedSavings - salary;
@@ -369,7 +371,7 @@ function App() {
       const threeMonthTarget = Math.max(emergencyTarget, monthlyExpensesForEmergency * 3);
       const monthsToEmergency = adjustedSavings > 0 ? Math.ceil((threeMonthTarget - currentSavings) / adjustedSavings) : 0;
       const thisMonthAdd = Math.min(spareCash, 1000);
-      adviceText += `\n🛡️ 3-Month Emergency Build Plan: Target KES ${threeMonthTarget.toLocaleString()} (${householdSize} members). Current: KES ${currentSavings.toLocaleString()}. Reach in ${monthsToEmergency} mo. Add KES ${thisMonthAdd.toLocaleString()} to Sacco this mo. Real-time option: Invest in ${finData.mmfs[0].name} at ${finData.mmfs[0].net}% net.`;
+      adviceText += `\n🛡️ 3-Month Emergency Build Plan: Target KES ${threeMonthTarget.toLocaleString()} (${hs} members). Current: KES ${currentSavings.toLocaleString()}. Reach in ${monthsToEmergency} mo. Add KES ${thisMonthAdd.toLocaleString()} to Sacco this mo. Real-time option: Invest in ${finData.mmfs[0].name} at ${finData.mmfs[0].net}% net.`;
 
       // Kenyan Investments
       const saccoRec = finData.saccos[0].name;
@@ -441,7 +443,7 @@ function App() {
           subcategory: 'Overall Shortfall',
           priority: 'Alert',
           budgeted: deficit,
-          notes: `KES ${deficit.toLocaleString()} over. Advice: Negotiate loan rates, start side hustle (e.g., tutoring for ${householdSize} members, target +${Math.ceil(deficit / householdSize).toLocaleString()} KES/person/mo), sell non-essentials for quick cash, or seek low-interest bridge loan. Review in 1 mo.`
+          notes: `KES ${deficit.toLocaleString()} over. Advice: Negotiate loan rates, start side hustle (e.g., tutoring for ${hs} members, target +${Math.ceil(deficit / hs).toLocaleString()} KES/person/mo), sell non-essentials for quick cash, or seek low-interest bridge loan. Review in 1 mo.`
         });
       } else {
         plan.push({
@@ -459,7 +461,7 @@ function App() {
       let aiTip = '';
       if (enableAI) {
         aiTip = await getFreeAIAdvice({
-          salary, debtBudget: adjustedDebtBudget, totalExpenses: adjustedTotalExpenses, loans, expenses, householdSize,
+          salary, debtBudget: adjustedDebtBudget, totalExpenses: adjustedTotalExpenses, loans, expenses, householdSize: hs,
           suggestedCuts: adjustments.map(adj => `${adj.category}: ${adj.suggestion}`).join('; '), savings: adjustedSavings, highInterestLoans
         }, finData);
         adviceText += `\n\n🤖 AI Tip:\n${aiTip}`;
@@ -473,7 +475,7 @@ function App() {
         month: new Date().toISOString().slice(0, 7),
         salary, savings: adjustedSavings, debtBudget: adjustedDebtBudget, expensesBudget: adjustedExpensesBudget,
         totalExpenses: adjustedTotalExpenses, snowMonths, snowInterest, avaMonths, avaInterest,
-        emergencyTarget: threeMonthTarget, currentSavings: currentSavings + adjustedSavings, adjustments: overageAdvice, householdSize
+        emergencyTarget: threeMonthTarget, currentSavings: currentSavings + adjustedSavings, adjustments: overageAdvice, householdSize: hs
       };
       setCurrentSavings(historyEntry.currentSavings);
       setHistory(prev => [...prev, historyEntry]);
@@ -483,7 +485,7 @@ function App() {
         const doc = new jsPDF();
         let yPos = 10;
         doc.setFontSize(12);
-        doc.text(`Budget Report - Salary KES ${salary.toLocaleString()} (Household: ${householdSize})`, 10, yPos);
+        doc.text(`Budget Report - Salary KES ${salary.toLocaleString()} (Household: ${hs})`, 10, yPos);
         yPos += 10;
 
         // Summary Section (key metrics only)
@@ -494,7 +496,7 @@ function App() {
         yPos += 7;
         doc.text(`Avalanche: ${avaMonths} mo, Interest KES ${avaInterest.toLocaleString()}`, 10, yPos);
         yPos += 7;
-        doc.text(`Emergency: KES ${threeMonthTarget.toLocaleString()} (3 mo for ${householdSize})`, 10, yPos);
+        doc.text(`Emergency: KES ${threeMonthTarget.toLocaleString()} (3 mo for ${hs})`, 10, yPos);
         yPos += 7;
         doc.text(`Invest: ${saccoRec} ${finData.saccos[0].dividend}%, Bonds ${bondYield}%, ${mmfRec} ${mmfYield}%`, 10, yPos);
         yPos += 10;
@@ -559,8 +561,6 @@ function App() {
       setSalary(0);
       setLoans([]);
       setExpenses([]);
-      setEmergencyTarget(0);
-      setCurrentSavings(0);
 
       console.log('Calculate finished');
     } catch (error) {
@@ -604,7 +604,7 @@ function App() {
       <section style={{ marginBottom: '30px', backgroundColor: 'white', padding: '20px', borderRadius: '10px', boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }}>
         <h2 style={{ color: '#2E7D32', marginTop: 0 }}>Budget Settings</h2>
         <label>Monthly Salary (KES): <input key="salary" type="number" value={salary || 0} onChange={(e) => setSalary(parseFloat(e.target.value) || 0)} onFocus={clearOnFocus} style={{ margin: '5px', padding: '8px', border: '1px solid #81C784', borderRadius: '5px' }} /></label><br />
-        <label>Household Size: <input key="household" type="number" min="1" value={householdSize} onChange={(e) => setHouseholdSize(parseInt(e.target.value) || 1)} style={{ margin: '5px', padding: '8px', width: '50px', border: '1px solid #81C784', borderRadius: '5px' }} /> (Scales advice)</label><br />
+        <label>Household Size: <input key="household" type="number" min="1" value={householdSize || ''} onChange={(e) => setHouseholdSize(e.target.value)} style={{ margin: '5px', padding: '8px', width: '50px', border: '1px solid #81C784', borderRadius: '5px' }} /> (Scales advice)</label><br />
         <label style={{ color: '#2E7D32' }}>Customization (%): </label>
         <input type="range" min="0" max="50" value={savingsPct} onChange={(e) => setSavingsPct(parseInt(e.target.value))} style={{ margin: '5px' }} /> Savings: {savingsPct}%
         <input type="range" min="0" max="50" value={debtPct} onChange={(e) => setDebtPct(parseInt(e.target.value))} style={{ margin: '5px' }} /> Debt: {debtPct}%
@@ -723,7 +723,15 @@ function App() {
       </section>
 
       <footer style={{ textAlign: 'center', marginTop: '40px', padding: '20px', backgroundColor: '#4CAF50', color: 'white', borderRadius: '10px' }}>
-        <p style={{ margin: 0, fontSize: '16px' }}>For enquiries: <span style={{ fontSize: '20px' }}>📲</span> WhatsApp e.k via <a href="https://wa.me/254705245123" target="_blank" rel="noopener noreferrer" style={{ color: 'white', textDecoration: 'underline', fontWeight: 'bold' }}>+254 705 245 123</a> | <span style={{ fontSize: '20px' }}>𝕏</span> Follow on X: <a href="https://x.com/010deux" target="_blank" rel="noopener noreferrer" style={{ color: 'white', textDecoration: 'underline', fontWeight: 'bold' }}>@010deux</a></p>
+        <p style={{ margin: 0, fontSize: '16px' }}>For enquiries: <a href="https://wa.me/254705245123" target="_blank" rel="noopener noreferrer" style={{ marginRight: '20px', textDecoration: 'none' }}>
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="#25D366" style={{ verticalAlign: 'middle' }}>
+            <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893A11.821 11.821 0 0020.885 3.488"/>
+          </svg>
+        </a> | <a href="https://x.com/010deux" target="_blank" rel="noopener noreferrer" style={{ marginLeft: '20px', textDecoration: 'none' }}>
+          <svg viewBox="0 0 24 24" style={{ width: '24px', height: '24px', fill: 'white', verticalAlign: 'middle' }}>
+            <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 8.242H11.258v-6.265H2V9.332h9.258V3.066z"></path>
+          </svg>
+        </a></p>
       </footer>
     </div>
   );
