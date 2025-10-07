@@ -48,13 +48,13 @@ function App() {
   // Weekly quotes setup
   useEffect(() => {
     const quotes = [
-      { text: '"The poor and the middle class work for money. The rich have money work for them." - Rich Dad Poor Dad (Sunday)', book: 'Rich Dad Poor Dad' },
-      { text: '"A part of all you earn is yours to keep." - The Richest Man in Babylon (Monday)', book: 'The Richest Man in Babylon' },
-      { text: '"It\'s not how much money you make. It\'s how much you keep." - Rich Dad Poor Dad (Tuesday)', book: 'Rich Dad Poor Dad' },
-      { text: '"Pay yourself first." - The Richest Man in Babylon (Wednesday)', book: 'The Richest Man in Babylon' },
-      { text: '"Rich people acquire assets. The poor and middle class acquire liabilities." - Rich Dad Poor Dad (Thursday)', book: 'Rich Dad Poor Dad' },
-      { text: '"Where the determination is, the way can be found." - The Richest Man in Babylon (Friday)', book: 'The Richest Man in Babylon' },
-      { text: '"The single most powerful asset we all have is our mind." - Rich Dad Poor Dad (Saturday)', book: 'Rich Dad Poor Dad' }
+      { text: '"The poor and the middle class work for money. The rich have money work for them."', book: 'Rich Dad Poor Dad' },
+      { text: '"A part of all you earn is yours to keep."', book: 'The Richest Man in Babylon' },
+      { text: '"It\'s not how much money you make. It\'s how much you keep."', book: 'Rich Dad Poor Dad' },
+      { text: '"Pay yourself first."', book: 'The Richest Man in Babylon' },
+      { text: '"Rich people acquire assets. The poor and middle class acquire liabilities."', book: 'Rich Dad Poor Dad' },
+      { text: '"Where the determination is, the way can be found."', book: 'The Richest Man in Babylon' },
+      { text: '"The single most powerful asset we all have is our mind."', book: 'Rich Dad Poor Dad' }
     ];
     const today = new Date();
     const dayIndex = today.getDay(); // 0 = Sunday, 6 = Saturday
@@ -689,7 +689,7 @@ function App() {
           animation: 'blink 2s infinite',
           border: '2px solid #FF9800'
         }}>
-          <strong>{currentQuote.text}</strong><br />
+          <strong>{currentQuote.text} - {currentQuote.book}</strong><br />
           <small style={{ fontSize: '14px' }}>From: {currentQuote.book}</small>
         </div>
       )}
@@ -741,22 +741,6 @@ function App() {
         <button onClick={clearHistory} style={{ padding: '12px 24px', background: '#FF5722', color: 'white', border: 'none', borderRadius: '8px', margin: '10px', cursor: 'pointer', fontWeight: 'bold' }}>Clear History</button>
       </section>
 
-      {chartData && (
-        <section style={{ marginBottom: '30px', backgroundColor: 'white', padding: '20px', borderRadius: '10px', boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }}>
-          <h2 style={{ color: '#2E7D32', marginTop: 0 }}>Adjusted Allocation Chart (Totals correctly with Spare if available)</h2>
-          <div style={{ width: '400px', height: '400px', margin: '0 auto' }}>
-            <Pie data={chartData} />
-          </div>
-        </section>
-      )}
-
-      {advice && (
-        <section style={{ marginBottom: '30px', backgroundColor: 'white', padding: '20px', borderRadius: '10px', boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }}>
-          <h2 style={{ color: '#2E7D32', marginTop: 0 }}>Financial Advice</h2>
-          <div style={{ background: '#e8f5e8', padding: '15px', borderRadius: '8px', whiteSpace: 'pre-line', fontSize: '14px', lineHeight: '1.4', borderLeft: '4px solid #4CAF50' }}>{advice}</div>
-        </section>
-      )}
-
       {adjustedData && adjustedData.length > 0 && (
         <section style={{ marginBottom: '30px', backgroundColor: 'white', padding: '20px', borderRadius: '10px', boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }}>
           <h2 style={{ color: '#2E7D32', marginTop: 0 }}>Adjusted Plan Table</h2>
@@ -792,6 +776,22 @@ function App() {
             ))}</tbody>
           </table>
           <p style={{ color: '#388E3C', fontWeight: 'bold' }}><strong>Total Planned: KES {planData.reduce((sum, item) => sum + (item.budgeted || 0), 0).toLocaleString()}</strong> vs Salary KES {displaySalary.toLocaleString()}</p>
+        </section>
+      )}
+
+      {chartData && (
+        <section style={{ marginBottom: '30px', backgroundColor: 'white', padding: '20px', borderRadius: '10px', boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }}>
+          <h2 style={{ color: '#2E7D32', marginTop: 0 }}>Adjusted Allocation Chart (Totals correctly with Spare if available)</h2>
+          <div style={{ width: '400px', height: '400px', margin: '0 auto' }}>
+            <Pie data={chartData} />
+          </div>
+        </section>
+      )}
+
+      {advice && (
+        <section style={{ marginBottom: '30px', backgroundColor: 'white', padding: '20px', borderRadius: '10px', boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }}>
+          <h2 style={{ color: '#2E7D32', marginTop: 0 }}>Financial Advice</h2>
+          <div style={{ background: '#e8f5e8', padding: '15px', borderRadius: '8px', whiteSpace: 'pre-line', fontSize: '14px', lineHeight: '1.4', borderLeft: '4px solid #4CAF50' }}>{advice}</div>
         </section>
       )}
 
@@ -832,8 +832,14 @@ function App() {
             <path d="M12.6.75h2.454l-5.36 6.142L16 15.25h-4.937l-3.867-5.07-4.425 5.07H.316l5.733-6.57L0 .75h5.063l3.495 4.633L12.601.75Zm-.86 13.028h1.36L4.323 2.145H2.865z"/>
           </svg>
         </a> | <a href="https://www.tiktok.com/@budget_and_debt_coach" target="_blank" rel="noopener noreferrer" style={{ marginLeft: '20px', textDecoration: 'none' }}>
-          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="white" viewBox="0 0 24 24" style={{ verticalAlign: 'middle' }}>
-            <path d="M19.54 12.51c0-3.15-2.53-5.7-5.65-5.7-.25 0-.5.03-.75.09v5.81c0 3.12-2.53 5.65-5.65 5.65-.25 0-.5-.03-.75-.09V17c.25.08.5.12.75.12 2.12 0 3.85-1.73 3.85-3.85v-5.8c-.25-.05-.5-.09-.75-.09-3.12 0-5.65 2.55-5.65 5.7 0 3.12 2.53 5.65 5.65 5.65.25 0 .5-.03.75-.09v-5.8c0-2.12 1.73-3.85 3.85-3.85.25 0 .5.04.75.09v5.81c0 3.12-2.53 5.65-3.85 5.65-.25 0-.5-.04-.75-.12v3.6c.25.08.5.12.75.12 3.12 0 5.65-2.53 5.65-5.65z"/>
+          <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" width="24" height="24" viewBox="0 0 256 256" xml:space="preserve" style={{ verticalAlign: 'middle' }}>
+            <g style={{ stroke: 'none', strokeWidth: 0, strokeDasharray: 'none', strokeLinecap: 'butt', strokeLinejoin: 'miter', strokeMiterlimit: 10, fill: 'none', fillRule: 'nonzero', opacity: 1 }} transform="translate(1.4065934065934016 1.4065934065934016) scale(0.0935 0.0935)">
+              <path d="M 36.203 35.438 v -3.51 c -1.218 -0.173 -2.447 -0.262 -3.677 -0.268 c -15.047 0 -27.289 12.244 -27.289 27.291 c 0 9.23 4.613 17.401 11.65 22.342 c -4.712 -5.039 -7.332 -11.681 -7.328 -18.58 C 9.559 47.88 21.453 35.784 36.203 35.438" style={{ stroke: 'none', strokeWidth: 1, strokeDasharray: 'none', strokeLinecap: 'butt', strokeLinejoin: 'miter', strokeMiterlimit: 10, fill: 'rgb(0,242,234)', fillRule: 'nonzero', opacity: 1 }} transform=" matrix(1 0 0 1 0 0) " strokeLinecap="round"/>
+              <path d="M 36.847 75.175 c 6.714 0 12.19 -5.341 12.44 -11.997 l 0.023 -59.417 h 10.855 c -0.232 -1.241 -0.349 -2.5 -0.35 -3.762 H 44.989 l -0.025 59.419 c -0.247 6.654 -5.726 11.993 -12.438 11.993 c -2.015 0.001 -4 -0.49 -5.782 -1.431 C 29.079 73.238 32.839 75.171 36.847 75.175 M 80.441 23.93 v -3.302 c -3.989 0.004 -7.893 -1.157 -11.232 -3.339 c 2.928 3.371 6.869 5.701 11.234 6.641" style={{ stroke: 'none', strokeWidth: 1, strokeDasharray: 'none', strokeLinecap: 'butt', strokeLinejoin: 'miter', strokeMiterlimit: 10, fill: 'rgb(0,242,234)', fillRule: 'nonzero', opacity: 1 }} transform=" matrix(1 0 0 1 0 0) " strokeLinecap="round"/>
+              <path d="M 69.209 17.286 c -3.272 -3.744 -5.075 -8.549 -5.073 -13.522 h -3.972 C 61.203 9.318 64.472 14.205 69.209 17.286 M 32.526 46.486 c -6.88 0.008 -12.455 5.583 -12.463 12.463 c 0.004 4.632 2.576 8.88 6.679 11.032 c -1.533 -2.114 -2.358 -4.657 -2.358 -7.268 c 0.007 -6.88 5.582 -12.457 12.463 -12.465 c 1.284 0 2.515 0.212 3.677 0.577 V 35.689 c -1.218 -0.173 -2.447 -0.262 -3.677 -0.268 c -0.216 0 -0.429 0.012 -0.643 0.016 v 11.626 C 35.014 46.685 33.774 46.49 32.526 46.486" style={{ stroke: 'none', strokeWidth: 1, strokeDasharray: 'none', strokeLinecap: 'butt', strokeLinejoin: 'miter', strokeMiterlimit: 10, fill: 'rgb(255,0,79)', fillRule: 'nonzero', opacity: 1 }} transform=" matrix(1 0 0 1 0 0) " strokeLinecap="round"/>
+              <path d="M 80.441 23.93 v 11.523 c -7.689 0 -14.81 -2.459 -20.627 -6.633 v 30.13 c 0 15.047 -12.24 27.289 -27.287 27.289 c -5.815 0 -11.207 -1.835 -15.639 -4.947 c 5.151 5.555 12.384 8.711 19.959 8.709 c 15.047 0 27.289 -12.242 27.289 -27.287 v -30.13 c 6.009 4.321 13.226 6.642 20.627 6.633 V 24.387 c -1.484 0 -2.927 -0.161 -4.323 -0.46" style={{ stroke: 'none', strokeWidth: 1, strokeDasharray: 'none', strokeLinecap: 'butt', strokeLinejoin: 'miter', strokeMiterlimit: 10, fill: 'rgb(255,0,79)', fillRule: 'nonzero', opacity: 1 }} transform=" matrix(1 0 0 1 0 0) " strokeLinecap="round"/>
+              <path d="M 59.813 58.949 v -30.13 c 6.009 4.322 13.226 6.642 20.627 6.633 V 23.93 c -4.364 -0.941 -8.305 -3.272 -11.232 -6.644 c -4.737 -3.081 -8.006 -7.968 -9.045 -13.522 H 49.309 l -0.023 59.417 c -0.249 6.654 -5.726 11.995 -12.44 11.995 c -4.007 -0.004 -7.768 -1.938 -10.102 -5.194 c -4.103 -2.151 -6.676 -6.399 -6.681 -11.032 c 0.008 -6.88 5.583 -12.455 12.463 -12.463 c 1.282 0 2.513 0.21 3.677 0.577 V 35.438 C 21.453 35.784 9.559 47.88 9.559 62.713 c 0 7.173 2.787 13.703 7.328 18.58 c 4.578 3.223 10.041 4.95 15.639 4.945 C 47.574 86.238 59.813 73.996 59.813 58.949" style={{ stroke: 'none', strokeWidth: 1, strokeDasharray: 'none', strokeLinecap: 'butt', strokeLinejoin: 'miter', strokeMiterlimit: 10, fill: 'rgb(0,0,0)', fillRule: 'nonzero', opacity: 1 }} transform=" matrix(1 0 0 1 0 0) " strokeLinecap="round"/>
+            </g>
           </svg>
         </a></p>
       </footer>
