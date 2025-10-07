@@ -439,13 +439,13 @@ function App() {
       const bondYield = finData.bonds['10Y'];
       const mmfRec = finData.mmfs[0].name;
       const mmfYield = finData.mmfs[0].net;
-      adviceText += `\n\n🇰🇪 Kenyan Investments: Top SACCOs - ${finData.saccos.map(s => `${s.name} (~${s.dividend}% dividends)`).join(', ')}. Gov Bonds: 10Y yield ~${bondYield}%; T-Bills ~${finData.bonds.tBills['91-day']}-${finData.bonds.tBills['364-day']}% (91-364 days). MMFs: ${finData.mmfs.map(m => `${m.name} (${m.net || m.gross}% ${m.net ? 'net' : 'gross'})`).join(', ')} - e.g., put cuts into ${mmfRec} at ${mmfYield}% net.`;
+      adviceText += `\n\n<img src="https://upload.wikimedia.org/wikipedia/commons/thumb/4/49/Flag_of_Kenya.svg/16px-Flag_of_Kenya.svg.png?20221128225827" alt="Flag of Kenya" style="width: 16px; height: 12px; vertical-align: middle;" /> Kenyan Investments: Top SACCOs - ${finData.saccos.map(s => `${s.name} (~${s.dividend}% dividends)`).join(', ')}. Gov Bonds: 10Y yield ~${bondYield}%; T-Bills ~${finData.bonds.tBills['91-day']}-${finData.bonds.tBills['364-day']}% (91-364 days). MMFs: ${finData.mmfs.map(m => `${m.name} (${m.net || m.gross}% ${m.net ? 'net' : 'gross'})`).join(', ')} - e.g., put cuts into ${mmfRec} at ${mmfYield}% net.`;
 
       // NSE Top Performers with real-time date/time
       const now = new Date();
       const dateStr = now.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
       const timeStr = now.toLocaleTimeString('en-US', { timeZone: 'Africa/Nairobi', hour: '2-digit', minute: '2-digit' });
-      adviceText += `\n\n📈 NSE Top Performers (${dateStr} at ${timeStr} EAT): KEGN at KSh10.00 (+9.6%), KEBL at KSh10.00 (+9.6%), KECO at KSh10.00 (+9.6%). Consider diversifying with these for growth.`;
+      adviceText += `\n\n📈 NSE Top Performers (${dateStr} at ${timeStr} EAT): UNGA at KSh25.25 (+8.60%), BOC at KSh129.00 (+3.41%), CGEN at KSh50.50 (+2.96%). Consider diversifying with these for growth.`;
 
       // Crypto Advice
       adviceText += `\n\n₿ Crypto Advice: Low-risk entry: ${finData.crypto.lowRisk.join(', ')} for stability. Higher-potential: ${finData.crypto.highPotential.join(', ')} for growth. Warnings: Volatility high - e.g., 1000x potential in memecoins like ${finData.crypto.highRisk[0]}, but high risk; invest only spare cash.`;
@@ -780,7 +780,7 @@ function App() {
       {advice && (
         <section className="section">
           <h2>Financial Advice</h2>
-          <div className="advice-box">{advice}</div>
+          <div className="advice-box" dangerouslySetInnerHTML={{ __html: advice.replace(/\n/g, '<br>') }} />
         </section>
       )}
 
