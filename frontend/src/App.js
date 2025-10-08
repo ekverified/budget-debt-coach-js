@@ -84,21 +84,21 @@ function App() {
       setNseData({ gainers, losers });
     } catch (error) {
       console.error('NSE Fetch Error:', error);
-      // Updated fallback with real recent data
+      // Updated fallback with real recent data as of October 08, 2025
       setNseData({
         gainers: [
-          { ticker: 'UNGA', price: '25.25', change: '+8.60%' },
-          { ticker: 'BOC', price: '129.00', change: '+3.41%' },
-          { ticker: 'KUKZ', price: '430.00', change: '+3.18%' },
-          { ticker: 'CGEN', price: '50.50', change: '+2.96%' },
-          { ticker: 'CARB', price: '27.65', change: '+2.79%' },
+          { ticker: 'SGL', price: '5.88', change: '+4.26%' },
+          { ticker: 'NBV', price: '1.69', change: '+3.68%' },
+          { ticker: 'UNGA', price: '25.70', change: '+1.78%' },
+          { ticker: 'BAT', price: '433.00', change: '+1.52%' },
+          { ticker: 'PORT', price: '56.75', change: '+1.34%' },
         ],
         losers: [
-          { ticker: 'FTGH', price: '1.57', change: '-5.99%' },
-          { ticker: 'KPLC', price: '14.25', change: '-5.94%' },
-          { ticker: 'PORT', price: '56.00', change: '-5.88%' },
-          { ticker: 'KAPC', price: '391.50', change: '-5.32%' },
-          { ticker: 'KEGN', price: '9.28', change: '-3.13%' },
+          { ticker: 'EGAD', price: '20.05', change: '-7.39%' },
+          { ticker: 'CRWN', price: '56.50', change: '-7.38%' },
+          { ticker: 'WTK', price: '308.00', change: '-6.31%' },
+          { ticker: 'UCHM', price: '0.36', change: '-5.26%' },
+          { ticker: 'UMME', price: '8.18', change: '-5.10%' },
         ],
       });
     }
@@ -106,7 +106,7 @@ function App() {
 
   useEffect(() => {
     fetchNSE();
-    const interval = setInterval(fetchNSE, 1000);
+    const interval = setInterval(fetchNSE, 30000); // Updated to 30 seconds for reliability and to avoid rate limiting
     return () => clearInterval(interval);
   }, [fetchNSE]);
 
@@ -856,12 +856,14 @@ function App() {
       {adjustedData && adjustedData.length > 0 && (
         <section className="section">
           <h2>Adjusted Plan Table</h2>
-          <table className="table">
-            <thead><tr><th>Category</th><th>Current (KES)</th><th>Adjusted (KES)</th><th>Suggestion</th></tr></thead>
-            <tbody>{adjustedData.map((adj, i) => (
-              <tr key={i}><td>{adj.category}</td><td>{adj.current.toLocaleString()}</td><td>{adj.adjusted.toLocaleString()}</td><td>{adj.suggestion}</td></tr>
-            ))}</tbody>
-          </table>
+          <div className="table-container">
+            <table className="table">
+              <thead><tr><th>Category</th><th>Current (KES)</th><th>Adjusted (KES)</th><th>Suggestion</th></tr></thead>
+              <tbody>{adjustedData.map((adj, i) => (
+                <tr key={i}><td>{adj.category}</td><td>{adj.current.toLocaleString()}</td><td>{adj.adjusted.toLocaleString()}</td><td>{adj.suggestion}</td></tr>
+              ))}</tbody>
+            </table>
+          </div>
         </section>
       )}
 
@@ -869,24 +871,26 @@ function App() {
         <section className="section">
           <h2>Monthly Payment Plan (Prioritized for Loans/Expenses/Savings)</h2>
           <p style={{ color: '#388E3C' }}>Even after adjustments, here's your detailed monthly plan. Loans prioritized by interest rate (highest first). Expenses budgeted per item. Deficit advice if over salary.</p>
-          <table className="table">
-            <thead><tr>
-              <th>Category</th>
-              <th>Item</th>
-              <th>Priority</th>
-              <th>Budgeted (KES)</th>
-              <th>Notes</th>
-            </tr></thead>
-            <tbody>{planData.map((item, i) => (
-              <tr key={i} style={{ backgroundColor: item.category === 'Deficit' ? '#ffebee' : item.category === 'Surplus' ? '#e8f5e8' : '#f1f8e9' }}>
-                <td>{item.category}</td>
-                <td>{item.subcategory}</td>
-                <td>{item.priority}</td>
-                <td>{item.budgeted.toLocaleString()}</td>
-                <td>{item.notes}</td>
-              </tr>
-            ))}</tbody>
-          </table>
+          <div className="table-container">
+            <table className="table">
+              <thead><tr>
+                <th>Category</th>
+                <th>Item</th>
+                <th>Priority</th>
+                <th>Budgeted (KES)</th>
+                <th>Notes</th>
+              </tr></thead>
+              <tbody>{planData.map((item, i) => (
+                <tr key={i} style={{ backgroundColor: item.category === 'Deficit' ? '#ffebee' : item.category === 'Surplus' ? '#e8f5e8' : '#f1f8e9' }}>
+                  <td>{item.category}</td>
+                  <td>{item.subcategory}</td>
+                  <td>{item.priority}</td>
+                  <td>{item.budgeted.toLocaleString()}</td>
+                  <td>{item.notes}</td>
+                </tr>
+              ))}</tbody>
+            </table>
+          </div>
           <p style={{ color: '#388E3C', fontWeight: 'bold' }}><strong>Total Planned: KES {planData.reduce((sum, item) => sum + (item.budgeted || 0), 0).toLocaleString()}</strong> vs Salary KES {displaySalary.toLocaleString()}</p>
         </section>
       )}
@@ -894,7 +898,7 @@ function App() {
       {chartData && (
         <section className="section">
           <h2>Adjusted Allocation Chart (Totals correctly with Spare if available)</h2>
-          <div style={{ width: '400px', height: '400px', margin: '0 auto' }}>
+          <div className="chart-container">
             <Pie data={chartData} />
           </div>
         </section>
@@ -909,10 +913,10 @@ function App() {
 
       <section className="section">
         <h2>History</h2>
-        <div style={{ width: '800px', height: '400px', margin: '0 auto' }}>
+        <div className="chart-container">
           <Line data={historyData} />
         </div>
-        <ul style={{ listStyleType: 'none', padding: 0 }}>
+        <ul className="history-list">
           {budgetHistory.map((entry, i) => (  // Updated reference
             <li key={i} className="history-item">
               <strong>{entry.month}:</strong> Salary KES {entry.salary.toLocaleString()}, Savings KES {entry.savings.toLocaleString()}, Debt KES {entry.debtBudget.toLocaleString()}, Expenses KES {entry.totalExpenses.toLocaleString()} {entry.adjustments ? `(Adjusts: ${entry.adjustments})` : ''} (Household: {entry.householdSize || 1})
@@ -924,12 +928,202 @@ function App() {
       <section className="section progress-section">
         <h2>Emergency Fund Progress</h2>
         <p>Current Savings: KES {currentSavings.toLocaleString()} / {emergencyTarget.toLocaleString()}</p>
-        <progress value={currentSavings} max={emergencyTarget || 1} style={{ width: '100%', height: '20px', borderRadius: '10px', backgroundColor: '#A5D6A7' }} />
+        <progress value={currentSavings} max={emergencyTarget || 1} className="progress-bar" />
       </section>
 
       <style>{`
+        .app-container {
+          display: flex;
+          flex-direction: column;
+          min-height: 100vh;
+          padding: 10px;
+          box-sizing: border-box;
+          max-width: 100%;
+          overflow-x: hidden;
+        }
+        .header h1 {
+          font-size: 1.5em;
+          margin: 0.5em 0;
+        }
+        .header p {
+          margin: 0.25em 0;
+          font-size: 0.9em;
+        }
+        .quote-box {
+          text-align: center;
+          padding: 10px;
+          background: #f5f5f5;
+          border-radius: 5px;
+          margin: 10px 0;
+          font-size: 0.9em;
+        }
+        .section {
+          margin-bottom: 20px;
+          padding: 15px;
+          background: #fff;
+          border-radius: 8px;
+          box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .section h2 {
+          font-size: 1.2em;
+          margin-top: 0;
+          margin-bottom: 15px;
+        }
+        label {
+          display: block;
+          margin-bottom: 10px;
+          font-size: 0.9em;
+        }
+        .input-field {
+          width: 100%;
+          padding: 8px;
+          border: 1px solid #ccc;
+          border-radius: 4px;
+          box-sizing: border-box;
+          font-size: 1em;
+        }
+        input[type="range"] {
+          width: 100%;
+        }
+        .loan-card, .expense-card {
+          border: 1px solid #ddd;
+          padding: 10px;
+          margin-bottom: 10px;
+          border-radius: 5px;
+          background: #f9f9f9;
+        }
+        .loan-card h3, .expense-card h3 {
+          font-size: 1em;
+          margin: 0 0 10px 0;
+        }
+        .action-button {
+          width: 100%;
+          padding: 12px;
+          background: #4CAF50;
+          color: white;
+          border: none;
+          border-radius: 5px;
+          font-size: 1em;
+          margin-bottom: 5px;
+          cursor: pointer;
+        }
+        .action-button:hover {
+          background: #45a049;
+        }
+        .download-button {
+          background: #2196F3;
+        }
+        .download-button:hover {
+          background: #1976D2;
+        }
+        .clear-button {
+          background: #f44336;
+        }
+        .clear-button:hover {
+          background: #d32f2f;
+        }
+        .table-container {
+          overflow-x: auto;
+          margin-bottom: 10px;
+        }
+        .table {
+          width: 100%;
+          border-collapse: collapse;
+          font-size: 0.85em;
+        }
+        .table th, .table td {
+          padding: 8px;
+          text-align: left;
+          border-bottom: 1px solid #ddd;
+          white-space: nowrap;
+        }
+        .table th {
+          background-color: #f2f2f2;
+        }
+        .chart-container {
+          position: relative;
+          height: 300px;
+          width: 100%;
+        }
+        .advice-box {
+          white-space: pre-wrap;
+          font-size: 0.9em;
+          line-height: 1.4;
+        }
+        .history-list {
+          list-style-type: none;
+          padding: 0;
+          font-size: 0.85em;
+        }
+        .history-item {
+          padding: 5px;
+          border-bottom: 1px solid #eee;
+        }
+        .progress-bar {
+          width: 100%;
+          height: 20px;
+          border-radius: 10px;
+          background-color: #A5D6A7;
+        }
+        .footer {
+          margin-top: auto;
+          text-align: center;
+          padding: 10px;
+          font-size: 0.8em;
+        }
+        .footer-link {
+          color: #2196F3;
+          text-decoration: none;
+        }
         @keyframes blink { 0%, 50% { opacity: 1; text-shadow: 0 0 5px #FF9800; } 51%, 100% { opacity: 0.7; text-shadow: none; } }
         @media (max-width: 768px) {
+          .app-container {
+            padding: 5px;
+          }
+          .header h1 {
+            font-size: 1.2em;
+          }
+          .header p {
+            font-size: 0.8em;
+          }
+          .section {
+            padding: 10px;
+            margin-bottom: 15px;
+          }
+          .section h2 {
+            font-size: 1.1em;
+          }
+          .input-field {
+            font-size: 16px; /* Prevent zoom on iOS */
+          }
+          .loan-card, .expense-card {
+            padding: 8px;
+          }
+          .loan-card h3, .expense-card h3 {
+            font-size: 0.95em;
+          }
+          .action-button {
+            padding: 15px;
+            font-size: 16px;
+          }
+          .table {
+            font-size: 0.75em;
+          }
+          .table th, .table td {
+            padding: 4px;
+          }
+          .chart-container {
+            height: 250px;
+          }
+          .advice-box {
+            font-size: 0.85em;
+          }
+          .history-list {
+            font-size: 0.8em;
+          }
+          .history-item {
+            padding: 3px;
+          }
           .nse-widget {
             position: fixed !important;
             bottom: 10px !important;
@@ -939,13 +1133,42 @@ function App() {
             top: auto !important;
             max-width: 90vw !important;
             font-size: 10px !important;
+            padding: 5px !important;
           }
           .nse-widget h3 {
             font-size: 12px !important;
+            margin: 5px 0 !important;
+          }
+          .nse-widget table {
+            font-size: 9px !important;
           }
           .nse-widget table th, .nse-widget table td {
             padding: 1px 2px !important;
-            font-size: 9px !important;
+          }
+          .quote-box {
+            font-size: 0.8em;
+            padding: 8px;
+          }
+          label {
+            font-size: 0.85em;
+          }
+        }
+        @media (max-width: 480px) {
+          .table {
+            font-size: 0.7em;
+          }
+          .chart-container {
+            height: 200px;
+          }
+          .nse-widget {
+            max-width: 95vw !important;
+            font-size: 8px !important;
+          }
+          .nse-widget h3 {
+            font-size: 10px !important;
+          }
+          .nse-widget table th, .nse-widget table td {
+            padding: 0.5px 1px !important;
           }
         }
       `}</style>
