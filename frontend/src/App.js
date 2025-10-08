@@ -829,7 +829,7 @@ function App() {
             <label>Essential?: <input type="checkbox" checked={loan.isEssential || false} onChange={() => toggleLoanEssential(i)} style={{ margin: '5px' }} /></label>
           </div>
         ))}
-        <button onClick={addLoan} className="action-button">Add Loan</button>
+        <button onClick={addLoan} className="action-button small-button">Add Loan</button>
       </section>
 
       <section className="section">
@@ -842,15 +842,17 @@ function App() {
             <label>Essential?: <input type="checkbox" checked={exp.isEssential || false} onChange={() => toggleExpenseEssential(i)} style={{ margin: '5px' }} /></label>
           </div>
         ))}
-        <button onClick={addExpense} className="action-button">Add Expense</button>
+        <button onClick={addExpense} className="action-button small-button">Add Expense</button>
       </section>
 
       <section className="section">
         <h2>Actions</h2>
         <label style={{ display: 'block', marginBottom: '10px', color: '#2E7D32' }}>Enable Free AI Advice: <input type="checkbox" checked={enableAI} onChange={(e) => setEnableAI(e.target.checked)} /></label>
-        <button onClick={handleCalculate} className="action-button">Calculate & Generate Plan</button>
-        <button onClick={downloadHistory} className="action-button download-button">Download History CSV</button>
-        <button onClick={clearHistory} className="action-button clear-button">Clear History</button>
+        <div className="button-group">
+          <button onClick={handleCalculate} className="action-button">Calculate & Generate Plan</button>
+          <button onClick={downloadHistory} className="action-button download-button">Download History CSV</button>
+          <button onClick={clearHistory} className="action-button clear-button">Clear History</button>
+        </div>
       </section>
 
       {adjustedData && adjustedData.length > 0 && (
@@ -930,248 +932,6 @@ function App() {
         <p>Current Savings: KES {currentSavings.toLocaleString()} / {emergencyTarget.toLocaleString()}</p>
         <progress value={currentSavings} max={emergencyTarget || 1} className="progress-bar" />
       </section>
-
-      <style>{`
-        .app-container {
-          display: flex;
-          flex-direction: column;
-          min-height: 100vh;
-          padding: 10px;
-          box-sizing: border-box;
-          max-width: 100%;
-          overflow-x: hidden;
-        }
-        .header h1 {
-          font-size: 1.5em;
-          margin: 0.5em 0;
-        }
-        .header p {
-          margin: 0.25em 0;
-          font-size: 0.9em;
-        }
-        .quote-box {
-          text-align: center;
-          padding: 10px;
-          background: #f5f5f5;
-          border-radius: 5px;
-          margin: 10px 0;
-          font-size: 0.9em;
-        }
-        .section {
-          margin-bottom: 20px;
-          padding: 15px;
-          background: #fff;
-          border-radius: 8px;
-          box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-        }
-        .section h2 {
-          font-size: 1.2em;
-          margin-top: 0;
-          margin-bottom: 15px;
-        }
-        label {
-          display: block;
-          margin-bottom: 10px;
-          font-size: 0.9em;
-        }
-        .input-field {
-          width: 100%;
-          padding: 8px;
-          border: 1px solid #ccc;
-          border-radius: 4px;
-          box-sizing: border-box;
-          font-size: 1em;
-        }
-        input[type="range"] {
-          width: 100%;
-        }
-        .loan-card, .expense-card {
-          border: 1px solid #ddd;
-          padding: 10px;
-          margin-bottom: 10px;
-          border-radius: 5px;
-          background: #f9f9f9;
-        }
-        .loan-card h3, .expense-card h3 {
-          font-size: 1em;
-          margin: 0 0 10px 0;
-        }
-        .action-button {
-          width: 100%;
-          padding: 12px;
-          background: #4CAF50;
-          color: white;
-          border: none;
-          border-radius: 5px;
-          font-size: 1em;
-          margin-bottom: 5px;
-          cursor: pointer;
-        }
-        .action-button:hover {
-          background: #45a049;
-        }
-        .download-button {
-          background: #2196F3;
-        }
-        .download-button:hover {
-          background: #1976D2;
-        }
-        .clear-button {
-          background: #f44336;
-        }
-        .clear-button:hover {
-          background: #d32f2f;
-        }
-        .table-container {
-          overflow-x: auto;
-          margin-bottom: 10px;
-        }
-        .table {
-          width: 100%;
-          border-collapse: collapse;
-          font-size: 0.85em;
-        }
-        .table th, .table td {
-          padding: 8px;
-          text-align: left;
-          border-bottom: 1px solid #ddd;
-          white-space: nowrap;
-        }
-        .table th {
-          background-color: #f2f2f2;
-        }
-        .chart-container {
-          position: relative;
-          height: 300px;
-          width: 100%;
-        }
-        .advice-box {
-          white-space: pre-wrap;
-          font-size: 0.9em;
-          line-height: 1.4;
-        }
-        .history-list {
-          list-style-type: none;
-          padding: 0;
-          font-size: 0.85em;
-        }
-        .history-item {
-          padding: 5px;
-          border-bottom: 1px solid #eee;
-        }
-        .progress-bar {
-          width: 100%;
-          height: 20px;
-          border-radius: 10px;
-          background-color: #A5D6A7;
-        }
-        .footer {
-          margin-top: auto;
-          text-align: center;
-          padding: 10px;
-          font-size: 0.8em;
-        }
-        .footer-link {
-          color: #2196F3;
-          text-decoration: none;
-        }
-        @keyframes blink { 0%, 50% { opacity: 1; text-shadow: 0 0 5px #FF9800; } 51%, 100% { opacity: 0.7; text-shadow: none; } }
-        @media (max-width: 768px) {
-          .app-container {
-            padding: 5px;
-          }
-          .header h1 {
-            font-size: 1.2em;
-          }
-          .header p {
-            font-size: 0.8em;
-          }
-          .section {
-            padding: 10px;
-            margin-bottom: 15px;
-          }
-          .section h2 {
-            font-size: 1.1em;
-          }
-          .input-field {
-            font-size: 16px; /* Prevent zoom on iOS */
-          }
-          .loan-card, .expense-card {
-            padding: 8px;
-          }
-          .loan-card h3, .expense-card h3 {
-            font-size: 0.95em;
-          }
-          .action-button {
-            padding: 15px;
-            font-size: 16px;
-          }
-          .table {
-            font-size: 0.75em;
-          }
-          .table th, .table td {
-            padding: 4px;
-          }
-          .chart-container {
-            height: 250px;
-          }
-          .advice-box {
-            font-size: 0.85em;
-          }
-          .history-list {
-            font-size: 0.8em;
-          }
-          .history-item {
-            padding: 3px;
-          }
-          .nse-widget {
-            position: fixed !important;
-            bottom: 10px !important;
-            left: 50% !important;
-            transform: translateX(-50%) !important;
-            right: auto !important;
-            top: auto !important;
-            max-width: 90vw !important;
-            font-size: 10px !important;
-            padding: 5px !important;
-          }
-          .nse-widget h3 {
-            font-size: 12px !important;
-            margin: 5px 0 !important;
-          }
-          .nse-widget table {
-            font-size: 9px !important;
-          }
-          .nse-widget table th, .nse-widget table td {
-            padding: 1px 2px !important;
-          }
-          .quote-box {
-            font-size: 0.8em;
-            padding: 8px;
-          }
-          label {
-            font-size: 0.85em;
-          }
-        }
-        @media (max-width: 480px) {
-          .table {
-            font-size: 0.7em;
-          }
-          .chart-container {
-            height: 200px;
-          }
-          .nse-widget {
-            max-width: 95vw !important;
-            font-size: 8px !important;
-          }
-          .nse-widget h3 {
-            font-size: 10px !important;
-          }
-          .nse-widget table th, .nse-widget table td {
-            padding: 0.5px 1px !important;
-          }
-        }
-      `}</style>
 
       <footer className="footer">
         <p>For enquiries: <a href="https://wa.me/254705245123" target="_blank" rel="noopener noreferrer" className="footer-link">
