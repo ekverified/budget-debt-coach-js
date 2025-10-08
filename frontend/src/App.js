@@ -84,21 +84,21 @@ function App() {
       setNseData({ gainers, losers });
     } catch (error) {
       console.error('NSE Fetch Error:', error);
-      // Fallback static data
+      // Updated fallback with real recent data
       setNseData({
         gainers: [
           { ticker: 'UNGA', price: '25.25', change: '+8.60%' },
           { ticker: 'BOC', price: '129.00', change: '+3.41%' },
+          { ticker: 'KUKZ', price: '430.00', change: '+3.18%' },
           { ticker: 'CGEN', price: '50.50', change: '+2.96%' },
-          { ticker: 'FAKE1', price: '100.00', change: '+2.50%' },
-          { ticker: 'FAKE2', price: '200.00', change: '+2.00%' },
+          { ticker: 'CARB', price: '27.65', change: '+2.79%' },
         ],
         losers: [
-          { ticker: 'TCL', price: '1.12', change: '-7.44%' },
           { ticker: 'FTGH', price: '1.57', change: '-5.99%' },
           { ticker: 'KPLC', price: '14.25', change: '-5.94%' },
           { ticker: 'PORT', price: '56.00', change: '-5.88%' },
           { ticker: 'KAPC', price: '391.50', change: '-5.32%' },
+          { ticker: 'KEGN', price: '9.28', change: '-3.13%' },
         ],
       });
     }
@@ -728,10 +728,21 @@ function App() {
     ]
   };
 
+  const getChangeDisplay = (change) => {
+    const isGain = change.startsWith('+');
+    const color = isGain ? '#4CAF50' : '#F44336';
+    const arrow = isGain ? '▲' : '▼';
+    return (
+      <span style={{ color }}>
+        {change} {arrow}
+      </span>
+    );
+  };
+
   return (
     <div className="app-container">
       {/* NSE Widget - Fixed top-right corner */}
-      <div style={{
+      <div className="nse-widget" style={{
         position: 'fixed',
         top: '10px',
         right: '10px',
@@ -744,7 +755,7 @@ function App() {
         maxWidth: '300px',
         fontSize: '12px'
       }}>
-        <h3 style={{ margin: '0 0 10px 0', fontSize: '14px' }}>GAINERS</h3>
+        <h3 className="gainers-header" style={{ margin: '0 0 10px 0', fontSize: '14px', color: '#4CAF50' }}>GAINERS</h3>
         <table style={{ width: '100%', borderCollapse: 'collapse' }}>
           <thead>
             <tr style={{ backgroundColor: '#f0f0f0' }}>
@@ -758,12 +769,12 @@ function App() {
               <tr key={i}>
                 <td style={{ padding: '2px 4px' }}>{g.ticker}</td>
                 <td style={{ padding: '2px 4px', textAlign: 'right' }}>{g.price}</td>
-                <td style={{ padding: '2px 4px', textAlign: 'right' }}>{g.change}</td>
+                <td style={{ padding: '2px 4px', textAlign: 'right' }}>{getChangeDisplay(g.change)}</td>
               </tr>
             ))}
           </tbody>
         </table>
-        <h3 style={{ margin: '10px 0 0 0', fontSize: '14px' }}>LOSERS</h3>
+        <h3 className="losers-header" style={{ margin: '10px 0 0 0', fontSize: '14px', color: '#F44336' }}>LOSERS</h3>
         <table style={{ width: '100%', borderCollapse: 'collapse', marginTop: '5px' }}>
           <thead>
             <tr style={{ backgroundColor: '#f0f0f0' }}>
@@ -777,7 +788,7 @@ function App() {
               <tr key={i}>
                 <td style={{ padding: '2px 4px' }}>{l.ticker}</td>
                 <td style={{ padding: '2px 4px', textAlign: 'right' }}>{l.price}</td>
-                <td style={{ padding: '2px 4px', textAlign: 'right' }}>{l.change}</td>
+                <td style={{ padding: '2px 4px', textAlign: 'right' }}>{getChangeDisplay(l.change)}</td>
               </tr>
             ))}
           </tbody>
@@ -916,7 +927,28 @@ function App() {
         <progress value={currentSavings} max={emergencyTarget || 1} style={{ width: '100%', height: '20px', borderRadius: '10px', backgroundColor: '#A5D6A7' }} />
       </section>
 
-      <style>{`@keyframes blink { 0%, 50% { opacity: 1; text-shadow: 0 0 5px #FF9800; } 51%, 100% { opacity: 0.7; text-shadow: none; } }`}</style>
+      <style>{`
+        @keyframes blink { 0%, 50% { opacity: 1; text-shadow: 0 0 5px #FF9800; } 51%, 100% { opacity: 0.7; text-shadow: none; } }
+        @media (max-width: 768px) {
+          .nse-widget {
+            position: fixed !important;
+            bottom: 10px !important;
+            left: 50% !important;
+            transform: translateX(-50%) !important;
+            right: auto !important;
+            top: auto !important;
+            max-width: 90vw !important;
+            font-size: 10px !important;
+          }
+          .nse-widget h3 {
+            font-size: 12px !important;
+          }
+          .nse-widget table th, .nse-widget table td {
+            padding: 1px 2px !important;
+            font-size: 9px !important;
+          }
+        }
+      `}</style>
 
       <footer className="footer">
         <p>For enquiries: <a href="https://wa.me/254705245123" target="_blank" rel="noopener noreferrer" className="footer-link">
