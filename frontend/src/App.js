@@ -26,6 +26,7 @@ function App() {
   const [enableAI, setEnableAI] = useState(true);
   const [financialData, setFinancialData] = useState(null);
   const [currentQuote, setCurrentQuote] = useState('');
+  const [nseData, setNseData] = useState({ gainers: [], losers: [] });
 
   useEffect(() => {
     const savedHistory = localStorage.getItem('budgetHistory');
@@ -45,6 +46,69 @@ function App() {
   useEffect(() => {
     localStorage.setItem('budgetHistory', JSON.stringify(budgetHistory));
   }, [budgetHistory]);
+
+  // Fetch NSE data
+  const fetchNSE = useCallback(async () => {
+    try {
+      const response = await fetch('https://afx.kwayisi.org/nse/');
+      const html = await response.text();
+      const parser = new DOMParser();
+      const doc = parser.parseFromString(html, 'text/html');
+      const tables = doc.querySelectorAll('table');
+      let gainers = [];
+      let losers = [];
+      tables.forEach((table) => {
+        const th = table.querySelector('thead th');
+        if (th && th.textContent.includes('Gainers')) {
+          const rows = table.querySelectorAll('tbody tr');
+          gainers = Array.from(rows).slice(0, 5).map((row) => {
+            const tds = row.querySelectorAll('td');
+            return {
+              ticker: tds[0].textContent.trim(),
+              price: tds[1].textContent.trim(),
+              change: tds[2].textContent.trim(),
+            };
+          });
+        } else if (th && th.textContent.includes('Losers')) {
+          const rows = table.querySelectorAll('tbody tr');
+          losers = Array.from(rows).slice(0, 5).map((row) => {
+            const tds = row.querySelectorAll('td');
+            return {
+              ticker: tds[0].textContent.trim(),
+              price: tds[1].textContent.trim(),
+              change: tds[2].textContent.trim(),
+            };
+          });
+        }
+      });
+      setNseData({ gainers, losers });
+    } catch (error) {
+      console.error('NSE Fetch Error:', error);
+      // Fallback static data
+      setNseData({
+        gainers: [
+          { ticker: 'UNGA', price: '25.25', change: '+8.60%' },
+          { ticker: 'BOC', price: '129.00', change: '+3.41%' },
+          { ticker: 'CGEN', price: '50.50', change: '+2.96%' },
+          { ticker: 'FAKE1', price: '100.00', change: '+2.50%' },
+          { ticker: 'FAKE2', price: '200.00', change: '+2.00%' },
+        ],
+        losers: [
+          { ticker: 'TCL', price: '1.12', change: '-7.44%' },
+          { ticker: 'FTGH', price: '1.57', change: '-5.99%' },
+          { ticker: 'KPLC', price: '14.25', change: '-5.94%' },
+          { ticker: 'PORT', price: '56.00', change: '-5.88%' },
+          { ticker: 'KAPC', price: '391.50', change: '-5.32%' },
+        ],
+      });
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchNSE();
+    const interval = setInterval(fetchNSE, 1000);
+    return () => clearInterval(interval);
+  }, [fetchNSE]);
 
   // Weekly quotes setup
   useEffect(() => {
@@ -441,12 +505,6 @@ function App() {
       const mmfYield = finData.mmfs[0].net;
       adviceText += `\n\n<img src="https://upload.wikimedia.org/wikipedia/commons/thumb/4/49/Flag_of_Kenya.svg/16px-Flag_of_Kenya.svg.png?20221128225827" alt="Flag of Kenya" style="width: 16px; height: 12px; vertical-align: middle;" /> Kenyan Investments: Top SACCOs - ${finData.saccos.map(s => `${s.name} (~${s.dividend}% dividends)`).join(', ')}. Gov Bonds: 10Y yield ~${bondYield}%; T-Bills ~${finData.bonds.tBills['91-day']}-${finData.bonds.tBills['364-day']}% (91-364 days). MMFs: ${finData.mmfs.map(m => `${m.name} (${m.net || m.gross}% ${m.net ? 'net' : 'gross'})`).join(', ')} - e.g., put cuts into ${mmfRec} at ${mmfYield}% net.`;
 
-      // NSE Top Performers with real-time date/time
-      const now = new Date();
-      const dateStr = now.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
-      const timeStr = now.toLocaleTimeString('en-US', { timeZone: 'Africa/Nairobi', hour: '2-digit', minute: '2-digit' });
-      adviceText += `\n\n📈 NSE Top Performers (${dateStr} at ${timeStr} EAT): UNGA at KSh25.25 (+8.60%), BOC at KSh129.00 (+3.41%), CGEN at KSh50.50 (+2.96%). Consider diversifying with these for growth.`;
-
       // Crypto Advice
       adviceText += `\n\n₿ Crypto Advice: Low-risk entry: ${finData.crypto.lowRisk.join(', ')} for stability. Higher-potential: ${finData.crypto.highPotential.join(', ')} for growth. Warnings: Volatility high - e.g., 1000x potential in memecoins like ${finData.crypto.highRisk[0]}, but high risk; invest only spare cash.`;
 
@@ -672,6 +730,60 @@ function App() {
 
   return (
     <div className="app-container">
+      {/* NSE Widget - Fixed top-right corner */}
+      <div style={{
+        position: 'fixed',
+        top: '10px',
+        right: '10px',
+        backgroundColor: 'white',
+        border: '1px solid #ccc',
+        padding: '10px',
+        borderRadius: '5px',
+        boxShadow: '0 2px 5px rgba(0,0,0,0.1)',
+        zIndex: 1000,
+        maxWidth: '300px',
+        fontSize: '12px'
+      }}>
+        <h3 style={{ margin: '0 0 10px 0', fontSize: '14px' }}>GAINERS</h3>
+        <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+          <thead>
+            <tr style={{ backgroundColor: '#f0f0f0' }}>
+              <th style={{ padding: '2px 4px', textAlign: 'left' }}>Ticker</th>
+              <th style={{ padding: '2px 4px', textAlign: 'right' }}>Price (KES)</th>
+              <th style={{ padding: '2px 4px', textAlign: 'right' }}>Change</th>
+            </tr>
+          </thead>
+          <tbody>
+            {nseData.gainers.map((g, i) => (
+              <tr key={i}>
+                <td style={{ padding: '2px 4px' }}>{g.ticker}</td>
+                <td style={{ padding: '2px 4px', textAlign: 'right' }}>{g.price}</td>
+                <td style={{ padding: '2px 4px', textAlign: 'right' }}>{g.change}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+        <h3 style={{ margin: '10px 0 0 0', fontSize: '14px' }}>LOSERS</h3>
+        <table style={{ width: '100%', borderCollapse: 'collapse', marginTop: '5px' }}>
+          <thead>
+            <tr style={{ backgroundColor: '#f0f0f0' }}>
+              <th style={{ padding: '2px 4px', textAlign: 'left' }}>Ticker</th>
+              <th style={{ padding: '2px 4px', textAlign: 'right' }}>Price (KES)</th>
+              <th style={{ padding: '2px 4px', textAlign: 'right' }}>Change</th>
+            </tr>
+          </thead>
+          <tbody>
+            {nseData.losers.map((l, i) => (
+              <tr key={i}>
+                <td style={{ padding: '2px 4px' }}>{l.ticker}</td>
+                <td style={{ padding: '2px 4px', textAlign: 'right' }}>{l.price}</td>
+                <td style={{ padding: '2px 4px', textAlign: 'right' }}>{l.change}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+
       <header className="header">
         <h1>Budget & Debt Coach App</h1>
         <p>Open Access - Auth coming soon</p>
