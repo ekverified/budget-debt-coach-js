@@ -110,44 +110,44 @@ function App() {
     return () => clearInterval(interval);
   }, [fetchNSE]);
 
-  // Weekly quotes setup
+  // Weekly quotes setup - Updated to focus exclusively on quotes from "The Richest Man in Babylon" by George S. Clason
   useEffect(() => {
     const quotes = [
-      { text: '"The poor and the middle class work for money. The rich have money work for them."', book: 'Rich Dad Poor Dad' },
-      { text: '"A part of all you earn is yours to keep."', book: 'The Richest Man in Babylon' },
-      { text: '"It\'s not how much money you make. It\'s how much you keep."', book: 'Rich Dad Poor Dad' },
-      { text: '"Pay yourself first."', book: 'The Richest Man in Babylon' },
-      { text: '"Rich people acquire assets. The poor and middle class acquire liabilities."', book: 'Rich Dad Poor Dad' },
-      { text: '"Where the determination is, the way can be found."', book: 'The Richest Man in Babylon' },
-      { text: '"The single most powerful asset we all have is our mind."', book: 'Rich Dad Poor Dad' }
+      { text: '"A part of all you earn is yours to keep. It should be not less than a tenth no matter how little you earn. It can be as much more as you can afford."', book: 'The Richest Man in Babylon' },
+      { text: '"Our desires for goods and pleasures are like the beasts of the field; they must be controlled or they will devour us."', book: 'The Richest Man in Babylon' },
+      { text: '"A part of all I earn is mine to keep. Say it in the morning when you first arise. Say it at noon. Say it at night. Say it each hour of every day, at every spend."', book: 'The Richest Man in Babylon' },
+      { text: '"If you would become wealthy, then what you save must earn, and its children must earn, that all may help to give to you the abundance you crave."', book: 'The Richest Man in Babylon' },
+      { text: '"A man\'s wealth is not in the coins he carries in his purse; it is the income he buildeth, the golden stream that continually floweth into his purse."', book: 'The Richest Man in Babylon' },
+      { text: '"Opportunity is a haughty goddess who wastes no time with those who are unprepared."', book: 'The Richest Man in Babylon' },
+      { text: '"Advice is one thing that is freely given away, but watch that you only take what is worth having."', book: 'The Richest Man in Babylon' }
     ];
     const today = new Date();
     const dayIndex = today.getDay(); // 0 = Sunday, 6 = Saturday
     setCurrentQuote(quotes[dayIndex]);
   }, []);
 
-  // Fetch or load financial data
+  // Fetch or load financial data - Enhanced with notes tying to book principles (e.g., "Make thy gold multiply", "Guard against loss")
   const loadFinancialData = useCallback(async () => {
     // Static data as of Oct 7, 2025 (updated from real-time sources; in production, fetch real-time via APIs)
     const data = {
       saccos: [
-        { name: 'Tower SACCO', dividend: 20, members: 'Large membership', note: '20% for 2025' },
-        { name: 'Ports SACCO', dividend: 20, members: '200k+', note: 'Consistent high dividends' },
-        { name: 'Yetu SACCO', dividend: 19, note: 'Open to public' }
+        { name: 'Tower SACCO', dividend: 20, members: 'Large membership', note: '20% for 2025 - Make thy gold multiply through consistent dividends' },
+        { name: 'Ports SACCO', dividend: 20, members: '200k+', note: 'Consistent high dividends - Guard thy treasures from loss with community-backed security' },
+        { name: 'Yetu SACCO', dividend: 19, note: 'Open to public - Start thy purse to fattening with accessible shares' }
       ],
       bonds: {
         '10Y': 13.46,
         tBills: { '91-day': 10.45, '182-day': 10.8, '364-day': 11.5 }
       },
       mmfs: [
-        { name: 'Madison MMF', net: 10.5 },
-        { name: 'Cytonn MMF', net: 16.2 },
-        { name: 'Ndovu MMF', net: 16.5 }
+        { name: 'Madison MMF', net: 10.5, note: 'Safe, liquid - Ensure future income with steady yields' },
+        { name: 'Cytonn MMF', net: 16.2, note: 'Higher yield for growth - Invest where thy principal is protected' },
+        { name: 'Ndovu MMF', net: 16.5, note: 'Top performer - Increase thy ability to earn through compounded returns' }
       ],
       crypto: {
-        lowRisk: ['Bitcoin (stable at ~$124,725, up 0.5%, ETF potential)', 'Ethereum (DeFi growth at ~$4,686)'],
-        highPotential: ['Solana (scalability, 2025 boom candidate at ~$232)'],
-        highRisk: ['Dogecoin (meme volatility at current trends ~$0.266, 1000x potential but high risk, 80% ETF odds)']
+        lowRisk: ['Bitcoin (stable at ~$124,725, up 0.5%, ETF potential) - Guard against loss: Treat as digital gold', 'Ethereum (DeFi growth at ~$4,686) - Make thy gold multiply via staking'],
+        highPotential: ['Solana (scalability, 2025 boom candidate at ~$232) - Opportunity for the prepared'],
+        highRisk: ['Dogecoin (meme volatility at current trends ~$0.266, 1000x potential but high risk, 80% ETF odds) - Beware: Only spare cash, as desires can devour unprepared purses']
       }
     };
     setFinancialData(data);
@@ -292,7 +292,7 @@ function App() {
     const models = ['distilgpt2', 'gpt2'];
     let tips = [];
     for (const model of models) {
-      const prompt = `Kenyan financial advisor for ${userData.householdSize} members. Advice: Debt (high-interest), cuts (min 1000KES/person), savings, invest (MMFs, SACCOs, bonds). Crypto: balanced low-risk/high-pot with volatility warning. Data: Salary ${userData.salary}KES, Debt ${userData.debtBudget}, Expenses ${userData.totalExpenses}. Loans/Expenses: ${JSON.stringify([...userData.loans, ...userData.expenses].slice(0,4))}. Cuts: ${userData.suggestedCuts?.slice(0,100)||'None'}. SACCOs: ${finData.saccos.map(s => `${s.name} ${s.dividend}%`).join(', ')}. Bonds: 10Y ${finData.bonds['10Y']}% . MMFs: ${finData.mmfs.map(m => `${m.name} ${m.net || m.gross}%`).join(', ')}. Crypto: ${JSON.stringify(finData.crypto)}. 3-mo emergency, side hustles, survival tips. 5 bullets.`;
+      const prompt = `Kenyan financial advisor inspired by "The Richest Man in Babylon". Employ all seven cures: Start purse fattening (10% save), control expenditures, make gold multiply (invest wisely), guard against loss (safe options), own home, ensure future income (retirement), increase earning ability (skills/side hustles). For ${userData.householdSize} members. Advice: Debt (high-interest payoff like avalanche), cuts (min 1000KES/person on non-essentials), savings (emergency 3-mo), invest (MMFs, SACCOs, bonds - tie to cures). Crypto: balanced, warn volatility. Data: Salary ${userData.salary}KES, Debt ${userData.debtBudget}, Expenses ${userData.totalExpenses}. Loans/Expenses: ${JSON.stringify([...userData.loans, ...userData.expenses].slice(0,4))}. Cuts: ${userData.suggestedCuts?.slice(0,100)||'None'}. SACCOs: ${finData.saccos.map(s => `${s.name} ${s.dividend}%`).join(', ')}. Bonds: 10Y ${finData.bonds['10Y']}% . MMFs: ${finData.mmfs.map(m => `${m.name} ${m.net || m.gross}%`).join(', ')}. Crypto: ${JSON.stringify(finData.crypto)}. Include side hustles, home ownership tips, compound interest example. 5 bullets tying to book cures.`;
 
       try {
         const response = await fetch(`https://api-inference.huggingface.co/models/${model}`, {
@@ -311,7 +311,7 @@ function App() {
     const highInt = userData.highInterestLoans || 'high-interest loans';
     const saccoRec = finData.saccos[0].name;
     const mmfRec = finData.mmfs[0].name;
-    const fallback = `- Prioritize ${highInt} payoff first.\n- Cut non-essentials 20% (save 1k/person), fund ${saccoRec} or ${mmfRec}.\n- Invest spare in 10Y bonds (${finData.bonds['10Y']}% yield).\n- Crypto: Start with ${finData.crypto.lowRisk[0]}, avoid high-risk ${finData.crypto.highRisk[0]} volatility.\n- Side hustle: Family tutoring for ${userData.householdSize} members. Build 3-mo emergency.`;
+    const fallback = `- First Cure: Start thy purse to fattening - Save 10% in ${saccoRec} (${finData.saccos[0].dividend}%).\n- Second: Control expenditures - Cut non-essentials 20%, live on 90%.\n- Third: Make gold multiply - Invest cuts in ${mmfRec} at ${finData.mmfs[0].net}% net.\n- Fourth: Guard against loss - Bonds at ${finData.bonds['10Y']}% yield, avoid high-risk crypto.\n- Fifth-Seventh: Own home via SACCO loans, plan retirement income, increase earning via family side hustles for ${userData.householdSize} members. Build 3-mo emergency.`;
     return tips.length > 0 ? tips.join('\n\n') : fallback;
   }, [enableAI]);
 
@@ -466,7 +466,7 @@ function App() {
       if (totalAdjustedOutgo > salary * 0.95) {
         const forcedSavings = salary * 0.05;
         adjustedSavings = Math.max(adjustedSavings, forcedSavings);
-        const sideHustleIdeas = ['tutoring', 'goods resale', 'freelance writing', 'delivery services', 'online surveys'];
+        const sideHustleIdeas = ['tutoring (increase thy ability to earn)', 'goods resale (control expenditures on desires)', 'freelance writing (build future income streams)', 'delivery services (opportunity for the prepared)', 'online surveys (start small to fatten purse)'];
         const randomIdea = sideHustleIdeas[Math.floor(Math.random() * sideHustleIdeas.length)];
         overageAdvice += `Enforced 5% savings (KES ${adjustedSavings.toLocaleString()}). Side hustle idea${hs > 1 ? ` for ${hs} members` : ''}: ${randomIdea}. `;
       }
@@ -475,38 +475,38 @@ function App() {
       const { months: avaMonths, totalInterest: avaInterest } = avalanche(loans, adjustedDebtBudget);
 
       let adviceText = loans.length === 0
-        ? 'No loans? Focus on 20% savings in MMFs (10%+ return). 50/30/20 rule: needs/wants/savings. Build 3-6 mo emergency.'
-        : `${avaInterest < snowInterest ? 'Avalanche saves interest—use if disciplined.' : 'Snowball for motivation.'} Prioritize ${highInterestLoans}.`;
+        ? 'No loans? Focus on 20% savings in MMFs (10%+ return). 50/30/20 rule: needs/wants/savings. Build 3-6 mo emergency - As Arkad taught, start thy purse to fattening.'
+        : `${avaInterest < snowInterest ? 'Avalanche saves interest—use if disciplined.' : 'Snowball for motivation.'} Prioritize ${highInterestLoans} - Pay thy debts swiftly, as the slaves of the lender are forever bound.`;
 
-      // Enhanced personalized advice
+      // Enhanced personalized advice with book integration
       const suggestedCutAmount = totalExpenses * 0.2;
-      adviceText += `\n\nFor your ${hs}-member household on ${salary.toLocaleString()} KES salary, prioritize high-interest loan payoff. Cut non-essentials like shopping by 20% (save ~${suggestedCutAmount.toLocaleString()} KES) to fund MMFs.`;
+      adviceText += `\n\nFor your ${hs}-member household on ${salary.toLocaleString()} KES salary, prioritize high-interest loan payoff as the first step to freedom. Cut non-essentials like shopping by 20% (save ~${suggestedCutAmount.toLocaleString()} KES) to fund MMFs - Control thy expenditures, live on less than thou earneth.`;
 
       if (totalAdjustedOutgo + adjustedSavings > salary) {
         const overage = totalAdjustedOutgo + adjustedSavings - salary;
-        adviceText += `\n\n🚨 Survival: Over by KES ${overage.toLocaleString()}. Short-term: Borrow at 5% over 6 mo (~KES ${(overage / 6 + overage * 0.05 / 2).toFixed(0)}/mo). Long-term: Negotiate rates, sell items for 2k cash. Track spends; 1 no-spend day/week/family. ${overageAdvice}`;
+        adviceText += `\n\n🚨 Survival: Over by KES ${overage.toLocaleString()}. Short-term: Borrow at 5% over 6 mo (~KES ${(overage / 6 + overage * 0.05 / 2).toFixed(0)}/mo) - But heed: Avoid becoming slave to lender. Long-term: Negotiate rates, sell items for 2k cash. Track spends; 1 no-spend day/week/family - As the camel traders learned, opportunity favors the prepared. ${overageAdvice}`;
       } else if (spareCash > 0) {
-        adviceText += `\n\n💡 Spare KES ${spareCash.toLocaleString()}—boost to 15% savings, treasury bonds (8% yield). Automate.`;
+        adviceText += `\n\n💡 Spare KES ${spareCash.toLocaleString()}—boost to 15% savings, treasury bonds (8% yield). Automate - Let thy gold multiply through wise investments.`;
       }
 
       adviceText += `\n\nTotal Spend: KES ${(totalAdjustedOutgo + adjustedSavings).toLocaleString()} (fits salary).`;
 
-      // 3-Month Emergency build plan with real-time options
+      // 3-Month Emergency build plan with real-time options - Tied to ensuring future income
       const monthlyExpensesForEmergency = Math.max(adjustedTotalExpenses, emergencyTarget / 3 || 0);
       const threeMonthTarget = Math.max(emergencyTarget, monthlyExpensesForEmergency * 3);
       const monthsToEmergency = adjustedSavings > 0 ? Math.ceil((threeMonthTarget - currentSavings) / adjustedSavings) : 0;
       const thisMonthAdd = Math.min(spareCash, 1000);
-      adviceText += `\n\n🛡️ 3-Month Emergency Build Plan: Target KES ${threeMonthTarget.toLocaleString()} (${hs} members). Current: KES ${currentSavings.toLocaleString()}. Reach in ${monthsToEmergency} mo. Add KES ${thisMonthAdd.toLocaleString()} to Sacco this mo. Real-time option: Invest in ${finData.mmfs[0].name} at ${finData.mmfs[0].net}% net.`;
+      adviceText += `\n\n🛡️ 3-Month Emergency Build Plan: Target KES ${threeMonthTarget.toLocaleString()} (${hs} members) - Ensure future income as the Sixth Cure commands. Current: KES ${currentSavings.toLocaleString()}. Reach in ${monthsToEmergency} mo. Add KES ${thisMonthAdd.toLocaleString()} to Sacco this mo. Real-time option: Invest in ${finData.mmfs[0].name} at ${finData.mmfs[0].net}% net - Guard against loss with insured funds.`;
 
-      // Kenyan Investments
+      // Kenyan Investments - Enhanced with book ties
       const saccoRec = finData.saccos[0].name;
       const bondYield = finData.bonds['10Y'];
       const mmfRec = finData.mmfs[0].name;
       const mmfYield = finData.mmfs[0].net;
-      adviceText += `\n\n<img src="https://upload.wikimedia.org/wikipedia/commons/thumb/4/49/Flag_of_Kenya.svg/16px-Flag_of_Kenya.svg.png?20221128225827" alt="Flag of Kenya" style="width: 16px; height: 12px; vertical-align: middle;" /> Kenyan Investments: Top SACCOs - ${finData.saccos.map(s => `${s.name} (~${s.dividend}% dividends)`).join(', ')}. Gov Bonds: 10Y yield ~${bondYield}%; T-Bills ~${finData.bonds.tBills['91-day']}-${finData.bonds.tBills['364-day']}% (91-364 days). MMFs: ${finData.mmfs.map(m => `${m.name} (${m.net || m.gross}% ${m.net ? 'net' : 'gross'})`).join(', ')} - e.g., put cuts into ${mmfRec} at ${mmfYield}% net.`;
+      adviceText += `\n\n<img src="https://upload.wikimedia.org/wikipedia/commons/thumb/4/49/Flag_of_Kenya.svg/16px-Flag_of_Kenya.svg.png?20221128225827" alt="Flag of Kenya" style="width: 16px; height: 12px; vertical-align: middle;" /> Kenyan Investments (Make Thy Gold Multiply - Third Cure): Top SACCOs - ${finData.saccos.map(s => `${s.name} (~${s.dividend}% dividends - ${s.note})`).join(', ')}. Gov Bonds: 10Y yield ~${bondYield}%; T-Bills ~${finData.bonds.tBills['91-day']}-${finData.bonds.tBills['364-day']}% (91-364 days - Safe principal protection). MMFs: ${finData.mmfs.map(m => `${m.name} (${m.net || m.gross}% ${m.net ? 'net' : 'gross'} - ${m.note})`).join(', ')} - e.g., put cuts into ${mmfRec} at ${mmfYield}% net to let thy savings earn.`;
 
-      // Crypto Advice
-      adviceText += `\n\n₿ Crypto Advice: Low-risk entry: ${finData.crypto.lowRisk.join(', ')} for stability. Higher-potential: ${finData.crypto.highPotential.join(', ')} for growth. Warnings: Volatility high - e.g., 1000x potential in memecoins like ${finData.crypto.highRisk[0]}, but high risk; invest only spare cash.`;
+      // Crypto Advice - With guard against loss warning
+      adviceText += `\n\n₿ Crypto Advice (Guard Against Loss - Fourth Cure): Low-risk entry: ${finData.crypto.lowRisk.join(', ')} for stability like digital gold. Higher-potential: ${finData.crypto.highPotential.join(', ')} for growth. Warnings: Volatility high - e.g., 1000x potential in memecoins like ${finData.crypto.highRisk[0]}, but high risk; invest only spare cash, as uncontrolled desires devour the unprepared.`;
 
       // NEW: Generate Monthly Payment Plan
       const plan = [];
@@ -524,7 +524,7 @@ function App() {
           subcategory: loan.name || `Loan ${idx + 1}`,
           priority: idx + 1,
           budgeted: totalPay,
-          notes: `Priority ${idx + 1} (rate ${loan.rate}%). Min: ${minPay.toLocaleString()}, Extra: ${extraPay.toLocaleString()}`
+          notes: `Priority ${idx + 1} (rate ${loan.rate}%). Min: ${minPay.toLocaleString()}, Extra: ${extraPay.toLocaleString()} - Pay debts first to break chains`
         });
         totalPlan += totalPay;
       });
@@ -538,7 +538,7 @@ function App() {
           subcategory: exp.name || `Expense`,
           priority: exp.isEssential ? 'Essential' : 'Non-Essential',
           budgeted: adjAmount,
-          notes: exp.isEssential ? 'Full allocation' : `Adjusted if over budget`
+          notes: exp.isEssential ? 'Full allocation - Needs only' : `Adjusted if over budget - Control desires`
         });
         totalPlan += adjAmount;
       });
@@ -549,13 +549,13 @@ function App() {
         subcategory: 'Emergency/Investments',
         priority: 'N/A',
         budgeted: adjustedSavings,
-        notes: `Min 5% enforced; invest in MMFs/SACCOs`
+        notes: `Min 5% enforced; invest in MMFs/SACCOs - Fatten thy purse (First Cure)`
       });
       totalPlan += adjustedSavings;
 
       // Total and Deficit
       const deficit = totalPlan - salary;
-      const sideHustleIdeas = ['tutoring', 'goods resale', 'freelance writing', 'delivery services', 'online surveys'];
+      const sideHustleIdeas = ['tutoring (Seventh Cure: Increase ability)', 'goods resale (Control expenditures)', 'freelance writing (Build income stream)', 'delivery services (Seize opportunities)', 'online surveys (Start small)'];
       const randomIdea = sideHustleIdeas[Math.floor(Math.random() * sideHustleIdeas.length)];
       if (deficit > 0) {
         plan.push({
@@ -563,7 +563,7 @@ function App() {
           subcategory: 'Overall Shortfall',
           priority: 'Alert',
           budgeted: deficit,
-          notes: `KES ${deficit.toLocaleString()} over. Advice: Negotiate loan rates, start side hustle (e.g., ${randomIdea}${hs > 1 ? ` for ${hs} members` : ''}, target +${Math.ceil(deficit / hs).toLocaleString()} KES/person/mo), sell non-essentials for quick cash, or seek low-interest bridge loan. Review in 1 mo.`
+          notes: `KES ${deficit.toLocaleString()} over. Advice: Negotiate loan rates, start side hustle (e.g., ${randomIdea}${hs > 1 ? ` for ${hs} members` : ''}, target +${Math.ceil(deficit / hs).toLocaleString()} KES/person/mo - Increase thy earning), sell non-essentials for quick cash, or seek low-interest bridge loan. Review in 1 mo.`
         });
       } else {
         plan.push({
@@ -571,7 +571,7 @@ function App() {
           subcategory: 'Spare Cash',
           priority: 'Opportunity',
           budgeted: Math.max(0, salary - totalPlan),
-          notes: `KES ${(salary - totalPlan).toLocaleString()} extra - boost savings or invest in bonds/MMFs.`
+          notes: `KES ${(salary - totalPlan).toLocaleString()} extra - boost savings or invest in bonds/MMFs - Let gold multiply.`
         });
       }
 
@@ -584,21 +584,43 @@ function App() {
           salary, debtBudget: adjustedDebtBudget, totalExpenses: adjustedTotalExpenses, loans, expenses, householdSize: hs,
           suggestedCuts: adjustments.map(adj => `${adj.category}: ${adj.suggestion}`).join('; '), savings: adjustedSavings, highInterestLoans
         }, finData);
-        adviceText += `\n\n🤖 AI Tip:\n${aiTip}`;
+        adviceText += `\n\n🤖 AI Tip (Inspired by Babylonian Wisdom):\n${aiTip}`;
       }
+
+      // NEW: Compound Interest Example - "Make thy gold multiply" with simple calculation
+      const annualRate = finData.mmfs[0].net / 100; // Use top MMF rate
+      const monthlyRate = annualRate / 12;
+      const years = 5;
+      const futureValue = adjustedSavings * ((Math.pow(1 + monthlyRate, 12 * years) - 1) / monthlyRate);
+      adviceText += `\n\n💰 Gold Multiplier Example (Third Cure): Saving KES ${adjustedSavings.toLocaleString()}/mo at ${finData.mmfs[0].net}% in ${mmfRec} yields ~KES ${futureValue.toLocaleString()} in 5 years through compounding - Thy savings' children shall earn for thee!`;
+
+      // NEW: Seven Cures Checklist - Dynamic progress based on user data, tying all tactics
+      const curesProgress = [
+        `1. Start thy purse to fattening: ${savingsPct >= 10 ? '✅ Saving ${savingsPct}% (at least a tenth)' : '⚠️ Aim for 10% - Currently ${savingsPct}%'}`,
+        `2. Control thy expenditures: ${cutAmount > 0 || adjustedTotalExpenses <= expensesBudget ? '✅ Budget fits - Live on 90%' : '⚠️ Review non-essentials (cut KES ${cutAmount.toLocaleString()})'}`,
+        `3. Make thy gold multiply: ${spareCash > 0 ? '✅ Invest spare in MMFs/SACCOs' : '⚠️ Automate savings to earn interest'}`,
+        `4. Guard thy treasures from loss: '✅ Prioritize bonds/MMFs over high-risk crypto'`,
+        `5. Make thy home a worthwhile investment: '💡 Consider SACCO home loans at low rates - Own, do not rent'`,
+        `6. Ensure a future income: ${monthsToEmergency < 12 ? '✅ Emergency building on track' : '⚠️ Plan retirement via bonds/SACCOs'}`,
+        `7. Increase thy ability to earn: '💡 Side hustles like ${randomIdea} - Improve skills for higher gold flow'`
+      ];
+      adviceText += `\n\n--- The Seven Cures for a Lean Purse (George S. Clason) ---\n${curesProgress.join('\n')}`;
+
+      // Home Ownership Tip (Fifth Cure)
+      adviceText += `\n\n🏠 Fifth Cure - Home Ownership: With ${savingsPct}% saved, explore low-interest SACCO mortgages (e.g., ${saccoRec} at ~10%). Renting wastes gold; owning builds wealth.`;
 
       // Add Savings and Spare to adjustments for full table
       adjustments.push({
         category: 'Savings',
         current: savings,
         adjusted: adjustedSavings,
-        suggestion: 'Min 5%—low-risk invest (e.g., MMFs); emergency priority'
+        suggestion: 'Min 5%—low-risk invest (e.g., MMFs); emergency priority - Fatten thy purse'
       });
       adjustments.push({
         category: 'Spare',
         current: 0,
         adjusted: spareCash,
-        suggestion: spareCash > 0 ? 'Invest in bonds/MMFs' : 'N/A'
+        suggestion: spareCash > 0 ? 'Invest in bonds/MMFs - Let it multiply' : 'N/A'
       });
 
       setAdvice(adviceText);
@@ -614,12 +636,12 @@ function App() {
       setCurrentSavings(historyEntry.currentSavings);
       setBudgetHistory(prev => [...prev, historyEntry]);  // Updated reference
 
-      // PDF (concise text-based summary without tables or emojis)
+      // PDF (concise text-based summary without tables or emojis) - Enhanced with book reference
       try {
         const doc = new jsPDF();
         let yPos = 10;
         doc.setFontSize(12);
-        doc.text(`Budget Report - Salary KES ${salary.toLocaleString()} (Household: ${hs})`, 10, yPos);
+        doc.text(`Budget Report - Salary KES ${salary.toLocaleString()} (Household: ${hs}) - Inspired by The Richest Man in Babylon`, 10, yPos);
         yPos += 10;
 
         // Summary Section (key metrics only)
@@ -634,6 +656,10 @@ function App() {
         yPos += 7;
         doc.text(`Invest: ${saccoRec} ${finData.saccos[0].dividend}%, Bonds ${bondYield}%, ${mmfRec} ${mmfYield}%`, 10, yPos);
         yPos += 10;
+
+        // Compound Example
+        doc.text(`5-Yr Projection: KES ${futureValue.toLocaleString()} from monthly savings - Gold multiplies!`, 10, yPos);
+        yPos += 7;
 
         // AI Tip (truncated)
         if (aiTip) {
@@ -663,9 +689,9 @@ function App() {
           yPos += 7;
         });
 
-        // Brief Advice Snippet
+        // Brief Advice Snippet with Book Tie
         if (yPos < 250) {
-          doc.text('Key Advice: Prioritize high-interest debt. Cut non-essentials by 20%. Build emergency fund.', 10, yPos);
+          doc.text('Key Advice: Pay thyself first. Cut desires. Invest wisely. Build streams of gold. - G.S. Clason', 10, yPos);
         }
 
         doc.save('budget_report.pdf');
@@ -796,8 +822,8 @@ function App() {
       </div>
 
       <header className="header">
-        <h1>Budget & Debt Coach App</h1>
-        <p>Open Access - Auth coming soon</p>
+        <h1>Budget & Debt Coach App - Inspired by The Richest Man in Babylon</h1>
+        <p>Open Access - Employ the Seven Cures: Save, Budget, Invest Wisely, and Thrive | Auth coming soon</p>
       </header>
 
       {currentQuote && (
@@ -807,18 +833,18 @@ function App() {
       )}
 
       <section className="section">
-        <h2>Budget Settings</h2>
+        <h2>Budget Settings (Pay Thyself First - First Cure)</h2>
         <label>Monthly Salary (KES): <input key="salary" type="number" value={salary || 0} onChange={(e) => setSalary(parseFloat(e.target.value) || 0)} onFocus={clearOnFocus} className="input-field" /></label><br />
-        <label>Household Size: <input key="household" type="number" min="1" value={householdSize || ''} onChange={(e) => setHouseholdSize(e.target.value)} className="input-field" style={{ width: '50px' }} /> (Scales advice)</label><br />
+        <label>Household Size: <input key="household" type="number" min="1" value={householdSize || ''} onChange={(e) => setHouseholdSize(e.target.value)} className="input-field" style={{ width: '50px' }} /> (Scales advice - Control for family)</label><br />
         <label style={{ color: '#2E7D32' }}>Customization (%): </label>
-        <input type="range" min="0" max="50" value={savingsPct} onChange={(e) => updateSavingsPct(e.target.value)} style={{ margin: '5px' }} /> Savings: {savingsPct}%
+        <input type="range" min="0" max="50" value={savingsPct} onChange={(e) => updateSavingsPct(e.target.value)} style={{ margin: '5px' }} /> Savings: {savingsPct}% (Aim 10%+)
         <input type="range" min="0" max="50" value={debtPct} onChange={(e) => updateDebtPct(e.target.value)} style={{ margin: '5px' }} /> Debt: {debtPct}%
-        <input type="range" min="0" max="100" value={expensesPct} onChange={(e) => updateExpensesPct(e.target.value)} style={{ margin: '5px' }} /> Expenses: {expensesPct}%<br />
-        <label>Emergency Target (KES): <input key="emergency" type="number" value={emergencyTarget || 0} onChange={(e) => setEmergencyTarget(parseFloat(e.target.value) || 0)} onFocus={clearOnFocus} className="input-field" /> (Auto-updates below)</label>
+        <input type="range" min="0" max="100" value={expensesPct} onChange={(e) => updateExpensesPct(e.target.value)} style={{ margin: '5px' }} /> Expenses: {expensesPct}% (Live on 90%)<br />
+        <label>Emergency Target (KES): <input key="emergency" type="number" value={emergencyTarget || 0} onChange={(e) => setEmergencyTarget(parseFloat(e.target.value) || 0)} onFocus={clearOnFocus} className="input-field" /> (Auto-updates below - Ensure future income)</label>
       </section>
 
       <section className="section">
-        <h2>Loans</h2>
+        <h2>Loans (Break the Chains of Debt)</h2>
         {loans.map((loan, i) => (
           <div key={`loan-${i}`} className="loan-card">
             <h3>Loan {i+1}</h3>
@@ -833,7 +859,7 @@ function App() {
       </section>
 
       <section className="section">
-        <h2>Expenses</h2>
+        <h2>Expenses (Control Thy Desires - Second Cure)</h2>
         {expenses.map((exp, i) => (
           <div key={`exp-${i}`} className="expense-card">
             <h3>Expense {i+1}</h3>
@@ -847,9 +873,9 @@ function App() {
 
       <section className="section">
         <h2>Actions</h2>
-        <label style={{ display: 'block', marginBottom: '10px', color: '#2E7D32' }}>Enable Free AI Advice: <input type="checkbox" checked={enableAI} onChange={(e) => setEnableAI(e.target.checked)} /></label>
+        <label style={{ display: 'block', marginBottom: '10px', color: '#2E7D32' }}>Enable Free AI Advice (Babylonian Wisdom): <input type="checkbox" checked={enableAI} onChange={(e) => setEnableAI(e.target.checked)} /></label>
         <div className="button-group">
-          <button onClick={handleCalculate} className="action-button">Calculate & Generate Plan</button>
+          <button onClick={handleCalculate} className="action-button">Calculate & Generate Plan (Apply the Cures)</button>
           <button onClick={downloadHistory} className="action-button download-button">Download History CSV</button>
           <button onClick={clearHistory} className="action-button clear-button">Clear History</button>
         </div>
@@ -857,7 +883,7 @@ function App() {
 
       {adjustedData && adjustedData.length > 0 && (
         <section className="section">
-          <h2>Adjusted Plan Table</h2>
+          <h2>Adjusted Plan Table (Controlled Expenditures)</h2>
           <div className="table-container">
             <table className="table">
               <thead><tr><th>Category</th><th>Current (KES)</th><th>Adjusted (KES)</th><th>Suggestion</th></tr></thead>
@@ -871,8 +897,8 @@ function App() {
 
       {planData && planData.length > 0 && (
         <section className="section">
-          <h2>Monthly Payment Plan (Prioritized for Loans/Expenses/Savings)</h2>
-          <p style={{ color: '#388E3C' }}>Even after adjustments, here's your detailed monthly plan. Loans prioritized by interest rate (highest first). Expenses budgeted per item. Deficit advice if over salary.</p>
+          <h2>Monthly Payment Plan (Prioritized for Loans/Expenses/Savings - Babylonian Discipline)</h2>
+          <p style={{ color: '#388E3C' }}>Even after adjustments, here's your detailed monthly plan. Loans prioritized by interest rate (highest first - Break chains). Expenses budgeted per item (Control desires). Deficit advice if over salary (Increase earning).</p>
           <div className="table-container">
             <table className="table">
               <thead><tr>
@@ -899,7 +925,7 @@ function App() {
 
       {chartData && (
         <section className="section">
-          <h2>Adjusted Allocation Chart (Totals correctly with Spare if available)</h2>
+          <h2>Adjusted Allocation Chart (Totals correctly with Spare if available - Fatten Thy Purse)</h2>
           <div className="chart-container">
             <Pie data={chartData} />
           </div>
@@ -908,13 +934,13 @@ function App() {
 
       {advice && (
         <section className="section">
-          <h2>Financial Advice</h2>
+          <h2>Financial Advice (The Seven Cures Applied)</h2>
           <div className="advice-box" dangerouslySetInnerHTML={{ __html: advice.replace(/\n/g, '<br>') }} />
         </section>
       )}
 
       <section className="section">
-        <h2>History</h2>
+        <h2>History (Track Thy Golden Stream)</h2>
         <div className="chart-container">
           <Line data={historyData} />
         </div>
@@ -928,13 +954,13 @@ function App() {
       </section>
 
       <section className="section progress-section">
-        <h2>Emergency Fund Progress</h2>
+        <h2>Emergency Fund Progress (Ensure Future Income - Sixth Cure)</h2>
         <p>Current Savings: KES {currentSavings.toLocaleString()} / {emergencyTarget.toLocaleString()}</p>
         <progress value={currentSavings} max={emergencyTarget || 1} className="progress-bar" />
       </section>
 
       <footer className="footer">
-        <p>For enquiries: <a href="https://wa.me/254705245123" target="_blank" rel="noopener noreferrer" className="footer-link">
+        <p>Built on timeless wisdom from <em>The Richest Man in Babylon</em> by George S. Clason - Recover from debts, enhance savings, invest to multiply gold, budget wisely. For enquiries: <a href="https://wa.me/254705245123" target="_blank" rel="noopener noreferrer" className="footer-link">
           <svg width="24" height="24" viewBox="0 0 24 24" fill="#25D366" style={{ verticalAlign: 'middle' }}>
             <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893A11.821 11.821 0 0020.885 3.488"/>
           </svg>
