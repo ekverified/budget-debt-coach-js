@@ -1,20 +1,16 @@
-/* Your original App.css content here (globals, sections, forms, buttons, tables, charts, responsive) - unchanged */
-
-/* New/Enhanced Classes for Inline Extraction */
+/* Updated App.css - Cleaned up duplicates and adjusted input widths */
 .app-container {
   display: flex;
   flex-direction: column;
   min-height: 100vh;
-  padding: 10px;
-  box-sizing: border-box;
-  max-width: 100%;
-  overflow-x: hidden;
   padding: 20px;
   max-width: 1200px;
   margin: 0 auto;
   background-color: #f1f8e9;
   min-height: 100vh;
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
+  box-sizing: border-box;
+  overflow-x: hidden;
 }
 
 .header {
@@ -46,12 +42,6 @@
 
 .quote-box {
   text-align: center;
-  padding: 10px;
-  background: #f5f5f5;
-  border-radius: 5px;
-  margin: 10px 0;
-  font-size: 0.9em;
-  text-align: center;
   background-color: #FFF3E0;
   padding: 15px;
   border-radius: 10px;
@@ -68,11 +58,6 @@
 }
 
 .section {
-  margin-bottom: 20px;
-  padding: 15px;
-  background: #fff;
-  border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
   margin-bottom: 30px;
   background-color: white;
   padding: 20px;
@@ -95,16 +80,12 @@ label {
 }
 
 .input-field {
-  width: 100%;
-  padding: 8px;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-  box-sizing: border-box;
-  font-size: 1em;
-  margin: 5px;
   padding: 8px;
   border: 1px solid #81C784;
   border-radius: 5px;
+  font-size: 1em;
+  margin: 5px;
+  display: inline-block;
 }
 
 input[type="range"] {
@@ -112,11 +93,6 @@ input[type="range"] {
 }
 
 .loan-card, .expense-card {
-  border: 1px solid #ddd;
-  padding: 10px;
-  margin-bottom: 10px;
-  border-radius: 5px;
-  background: #f9f9f9;
   border: 1px solid #A5D6A7;
   margin: 10px 0;
   padding: 15px;
@@ -132,29 +108,17 @@ input[type="range"] {
 }
 
 .action-button {
-  width: 100%;
-  padding: 12px;
-  background: #4CAF50;
-  color: white;
-  border: none;
-  border-radius: 5px;
-  font-size: 1em;
-  margin-bottom: 5px;
-  cursor: pointer;
   padding: 12px 24px;
   background: #4CAF50;
   color: white;
   border: none;
   border-radius: 8px;
-  margin: 10px;
+  margin: 10px 5px;
   cursor: pointer;
   font-weight: bold;
   min-height: 44px;
-  padding: 8px 16px;
   font-size: 0.9em;
-  min-height: 32px;
   width: auto;
-  margin: 5px;
 }
 
 .action-button:hover {
@@ -162,7 +126,6 @@ input[type="range"] {
 }
 
 .download-button {
-  background: #2196F3;
   background: #66BB6A;
 }
 
@@ -171,7 +134,6 @@ input[type="range"] {
 }
 
 .clear-button {
-  background: #f44336;
   background: #FF5722;
 }
 
@@ -187,25 +149,18 @@ input[type="range"] {
 .table {
   width: 100%;
   border-collapse: collapse;
-  font-size: 0.85em;
-  width: 100%;
-  border-collapse: collapse;
   border: 1px solid #A5D6A7;
+  font-size: 0.85em;
 }
 
 .table th, .table td {
   padding: 8px;
   text-align: left;
-  border-bottom: 1px solid #ddd;
-  white-space: nowrap;
   border: 1px solid #A5D6A7;
-  padding: 8px;
+  white-space: nowrap;
 }
 
 .table th {
-  background-color: #f2f2f2;
-  border: 1px solid #A5D6A7;
-  padding: 8px;
   background-color: #C8E6C9;
 }
 
@@ -216,16 +171,13 @@ input[type="range"] {
 }
 
 .advice-box {
-  white-space: pre-wrap;
-  font-size: 0.9em;
-  line-height: 1.4;
-  background: #e8f5e8;
-  padding: 15px;
-  border-radius: 8px;
   white-space: pre-line;
   font-size: 14px;
   line-height: 1.4;
   border-left: 4px solid #4CAF50;
+  background: #e8f5e8;
+  padding: 15px;
+  border-radius: 8px;
 }
 
 .history-list {
@@ -235,13 +187,11 @@ input[type="range"] {
 }
 
 .history-item {
-  padding: 5px;
-  border-bottom: 1px solid #eee;
-  margin: 5px 0;
   padding: 10px;
   border-bottom: 1px solid #A5D6A7;
   background-color: #f1f8e9;
   border-radius: 5px;
+  margin: 5px 0;
 }
 
 .history-item strong {
@@ -260,10 +210,6 @@ input[type="range"] {
 }
 
 .footer {
-  margin-top: auto;
-  text-align: center;
-  padding: 10px;
-  font-size: 0.8em;
   text-align: center;
   margin-top: 40px;
   padding: 20px;
@@ -303,49 +249,38 @@ input[type="range"] {
   margin: 5px 0;
 }
 
-@keyframes blink { 0%, 50% { opacity: 1; text-shadow: 0 0 5px #FF9800; } 51%, 100% { opacity: 0.7; text-shadow: none; } }
 @keyframes blink {
   0%, 50% { opacity: 1; text-shadow: 0 0 5px #FF9800; }
   51%, 100% { opacity: 0.7; text-shadow: none; }
 }
+
 @media (max-width: 768px) {
   .app-container {
-    padding: 5px;
     padding: 5px;
   }
   .header h1 {
     font-size: 1.2em;
-    font-size: 1.2em;
   }
   .header p {
-    font-size: 0.8em;
     font-size: 0.8em;
   }
   .section {
     padding: 10px;
     margin-bottom: 15px;
-    padding: 10px;
-    margin-bottom: 15px;
   }
   .section h2 {
-    font-size: 1.1em;
     font-size: 1.1em;
   }
   .input-field {
     font-size: 16px; /* Prevent zoom on iOS */
-    font-size: 16px; /* Prevent zoom on iOS */
   }
   .loan-card, .expense-card {
-    padding: 8px;
     padding: 8px;
   }
   .loan-card h3, .expense-card h3 {
     font-size: 0.95em;
-    font-size: 0.95em;
   }
   .action-button {
-    padding: 15px;
-    font-size: 16px;
     padding: 8px 16px;
     font-size: 0.9em;
     min-height: 32px;
@@ -354,99 +289,39 @@ input[type="range"] {
   }
   .table {
     font-size: 0.75em;
-    font-size: 0.75em;
   }
   .table th, .table td {
-    padding: 4px;
     padding: 4px;
   }
   .chart-container {
     height: 250px;
-    height: 250px;
   }
   .advice-box {
-    font-size: 0.85em;
     font-size: 0.85em;
   }
   .history-list {
     font-size: 0.8em;
-    font-size: 0.8em;
   }
   .history-item {
     padding: 3px;
-    padding: 3px;
-  }
-  .nse-widget {
-    position: fixed !important;
-    bottom: 10px !important;
-    left: 50% !important;
-    transform: translateX(-50%) !important;
-    right: auto !important;
-    top: auto !important;
-    max-width: 90vw !important;
-    font-size: 10px !important;
-    padding: 5px !important;
-    position: fixed !important;
-    bottom: 10px !important;
-    left: 50% !important;
-    transform: translateX(-50%) !important;
-    right: auto !important;
-    top: auto !important;
-    max-width: 90vw !important;
-    font-size: 10px !important;
-    padding: 5px !important;
-  }
-  .nse-widget h3 {
-    font-size: 12px !important;
-    margin: 5px 0 !important;
-    font-size: 12px !important;
-    margin: 5px 0 !important;
-  }
-  .nse-widget table {
-    font-size: 9px !important;
-    font-size: 9px !important;
-  }
-  .nse-widget table th, .nse-widget table td {
-    padding: 1px 2px !important;
-    padding: 1px 2px !important;
   }
   .quote-box {
     font-size: 0.8em;
     padding: 8px;
-    font-size: 0.8em;
-    padding: 8px;
   }
   label {
-    font-size: 0.85em;
     font-size: 0.85em;
   }
   .button-group {
     flex-direction: column;
   }
 }
+
 @media (max-width: 480px) {
   .table {
-    font-size: 0.7em;
     font-size: 0.7em;
   }
   .chart-container {
     height: 200px;
-    height: 200px;
-  }
-  .nse-widget {
-    max-width: 95vw !important;
-    font-size: 8px !important;
-    max-width: 95vw !important;
-    font-size: 8px !important;
-  }
-  .nse-widget h3 {
-    font-size: 10px !important;
-    font-size: 10px !important;
-  }
-  .nse-widget table th, .nse-widget table td {
-    padding: 0.5px 1px !important;
-    padding: 0.5px 1px !important;
   }
 }
-
-/* ... (rest of your original responsive CSS) */
