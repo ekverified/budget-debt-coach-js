@@ -26,6 +26,10 @@ function App() {
   const [enableAI, setEnableAI] = useState(true);
   const [financialData, setFinancialData] = useState(null);
   const [currentQuote, setCurrentQuote] = useState('');
+  // Added missing state variables to fix build errors
+  const [adjustedSavings, setAdjustedSavings] = useState(0);
+  const [adjustedTotalExpenses, setAdjustedTotalExpenses] = useState(0);
+  const [adjustedTotalMinPayments, setAdjustedTotalMinPayments] = useState(0);
 
   useEffect(() => {
     const savedHistory = localStorage.getItem('budgetHistory');
