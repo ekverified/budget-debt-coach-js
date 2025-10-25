@@ -1,406 +1,192 @@
+/* App.css */
 .app-container {
-  display: flex;
-  flex-direction: column;
-  min-height: 100vh;
-  padding: 20px;
   max-width: 1200px;
   margin: 0 auto;
-  background-color: #f1f8e9;
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
-  box-sizing: border-box;
-  overflow-x: hidden;
+  padding: 20px;
+  font-family: 'Arial', sans-serif;
+  background-color: #f5f5f5;
 }
 
 .header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  background-color: #4CAF50;
-  color: white;
-  padding: 15px;
-  border-radius: 10px;
+  text-align: center;
   margin-bottom: 20px;
-  font-size: 1.5em;
 }
 
 .header h1 {
-  margin: 0;
-  font-size: 24px;
-  color: white;
-}
-
-.header p {
-  margin: 0;
-  font-size: 14px;
-  opacity: 0.9;
-}
-
-.quote-box {
-  text-align: center;
-  background-color: #FFF3E0;
-  padding: 15px;
-  border-radius: 10px;
-  margin-bottom: 20px;
-  font-size: 18px;
-  font-style: italic;
-  color: #E65100;
-  animation: blink 2s infinite;
-  border: 2px solid #FF9800;
-}
-
-.quote-box strong {
-  font-weight: bold;
+  font-size: 2.5em;
+  color: #333;
 }
 
 .section {
-  margin-bottom: 30px;
-  background-color: white;
+  background: #fff;
   padding: 20px;
-  border-radius: 10px;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  margin-bottom: 20px;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
-.section h2 {
-  font-size: 1.2em;
-  margin-top: 0;
-  margin-bottom: 15px;
-  color: #2E7D32;
+.input-section {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
 }
 
-label {
-  display: block;
-  margin-bottom: 10px;
-  font-size: 0.9em;
+.input-group {
+  display: flex;
+  gap: 15px;
+  flex-wrap: wrap;
 }
 
 .input-field {
   padding: 8px;
-  border: 1px solid #81C784;
-  border-radius: 5px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
   font-size: 1em;
-  margin: 5px;
-  display: inline-block;
-  width: 100%; /* Ensure consistent input width */
-  max-width: 200px; /* Limit width for better layout */
-}
-
-input[type="range"] {
-  width: 100%;
-  accent-color: #4CAF50; /* Match primary button color */
-}
-
-.card-container {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-  gap: 15px;
-}
-
-.card {
-  border: 1px solid #A5D6A7;
-  margin: 10px 0;
-  padding: 15px;
-  border-radius: 8px;
-  background-color: #f1f8e9;
-}
-
-.card h3 {
-  font-size: 1em;
-  margin: 0 0 10px 0;
-  color: #388E3C;
-}
-
-.action-button {
-  padding: 12px 24px;
-  background: #4CAF50;
-  color: white;
-  border: none;
-  border-radius: 8px;
-  margin: 10px 5px;
-  cursor: pointer;
-  font-weight: bold;
-  min-height: 44px;
-  font-size: 0.9em;
-}
-
-.action-button:hover {
-  background: #45a049;
-}
-
-.primary-button {
-  background: #4CAF50;
-}
-
-.primary-button:hover {
-  background: #45a049;
-}
-
-.secondary-button {
-  background: #0288D1;
-}
-
-.secondary-button:hover {
-  background: #0277BD;
-}
-
-.small-button {
-  padding: 6px 12px;
-  font-size: 0.8em;
-  margin: 5px 0;
 }
 
 .slider-group {
   display: flex;
-  flex-wrap: wrap;
-  gap: 20px;
-}
-
-.slider-group div {
-  flex: 1;
-  min-width: 200px;
+  flex-direction: column;
+  gap: 10px;
 }
 
 .slider {
   width: 100%;
-  accent-color: #4CAF50;
 }
 
-.input-group {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+.card-container {
+  display: flex;
+  flex-wrap: wrap;
   gap: 15px;
+}
+
+.card {
+  background: #f9f9f9;
+  padding: 15px;
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  flex: 1 1 300px;
+  max-width: 300px;
+}
+
+.card h3 {
+  margin: 0 0 10px;
+  font-size: 1.2em;
+}
+
+.button-group {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.action-button {
+  padding: 10px 20px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 1em;
+}
+
+.primary-button {
+  background-color: #4CAF50;
+  color: white;
+}
+
+.primary-button:hover {
+  background-color: #45a049;
+}
+
+.secondary-button {
+  background-color: #2196F3;
+  color: white;
+}
+
+.secondary-button:hover {
+  background-color: #1e87db;
 }
 
 .table-container {
   overflow-x: auto;
-  margin-bottom: 10px;
 }
 
 .table {
   width: 100%;
   border-collapse: collapse;
-  border: 1px solid #A5D6A7;
-  font-size: 0.85em;
 }
 
-.table th, .table td {
-  padding: 8px;
+.table th,
+.table td {
+  padding: 10px;
+  border: 1px solid #ddd;
   text-align: left;
-  border: 1px solid #A5D6A7;
-  white-space: nowrap;
 }
 
 .table th {
-  background-color: #C8E6C9;
+  background-color: #f2f2f2;
 }
 
 .chart-container {
-  position: relative;
-  height: 300px;
-  width: 100%;
-}
-
-.advice-box {
-  white-space: pre-line;
-  font-size: 14px;
-  line-height: 1.4;
-  border-left: 4px solid #4CAF50;
-  background: #e8f5e8;
-  padding: 15px;
-  border-radius: 8px;
+  max-width: 600px;
+  margin: 20px auto;
 }
 
 .history-list {
-  list-style-type: none;
+  list-style: none;
   padding: 0;
-  font-size: 0.85em;
 }
 
 .history-item {
   padding: 10px;
-  border-bottom: 1px solid #A5D6A7;
-  background-color: #f1f8e9;
-  border-radius: 5px;
-  margin: 5px 0;
+  background: #f9f9f9;
+  margin-bottom: 5px;
+  border-radius: 4px;
 }
 
-.history-item strong {
-  color: #388E3C;
-}
-
-.progress-section p {
-  color: #388E3C;
+.progress-section {
+  text-align: center;
 }
 
 .progress-bar {
   width: 100%;
   height: 20px;
-  border-radius: 10px;
-  background-color: #A5D6A7;
-  accent-color: #4CAF50; /* Match primary button color */
 }
 
 .footer {
   text-align: center;
-  margin-top: 40px;
-  padding: 20px;
-  background-color: #4CAF50;
-  color: white;
-  border-radius: 10px;
-}
-
-.footer p {
-  margin: 0;
-  font-size: 16px;
-}
-
-.footer a {
-  color: #2196F3;
-  text-decoration: none;
-  margin-right: 20px;
-}
-
-.footer a:hover {
-  text-decoration: underline;
-}
-
-.button-group {
-  display: flex;
-  justify-content: space-between;
-  gap: 10px;
-}
-
-@keyframes blink {
-  0%, 50% { opacity: 1; text-shadow: 0 0 5px #FF9800; }
-  51%, 100% { opacity: 0.7; text-shadow: none; }
-}
-
-@media (max-width: 768px) {
-  .app-container {
-    padding: 5px;
-  }
-  .header h1 {
-    font-size: 1.2em;
-  }
-  .header p {
-    font-size: 0.8em;
-  }
-  .section {
-    padding: 10px;
-    margin-bottom: 15px;
-  }
-  .section h2 {
-    font-size: 1.1em;
-  }
-  .input-field {
-    font-size: 16px; /* Prevent zoom on iOS */
-  }
-  .card {
-    padding: 8px;
-  }
-  .card h3 {
-    font-size: 0.95em;
-  }
-  .action-button {
-    padding: 8px 16px;
-    font-size: 0.9em;
-    min-height: 32px;
-    margin: 5px;
-  }
-  .table {
-    font-size: 0.75em;
-  }
-  .table th, .table td {
-    padding: 4px;
-  }
-  .chart-container {
-    height: 250px;
-  }
-  .advice-box {
-    font-size: 0.85em;
-  }
-  .history-list {
-    font-size: 0.8em;
-  }
-  .history-item {
-    padding: 3px;
-  }
-  .quote-box {
-    font-size: 0.8em;
-    padding: 8px;
-  }
-  .input-group {
-    grid-template-columns: 1fr;
-  }
-  .card-container {
-    grid-template-columns: 1fr;
-  }
-  .button-group {
-    flex-direction: column;
-  }
-}
-
-@media (max-width: 480px) {
-  .table {
-    font-size: 0.7em;
-  }
-  .chart-container {
-    height: 200px;
-  }
-}
-
-/* New styles for footer icons and golden quote */
-.golden-quote {
-  text-align: center;
-  background-color: #FFF3E0;
-  padding: 15px;
-  border-radius: 10px;
-  margin-bottom: 20px;
-  font-size: 18px;
-  font-style: italic;
-  color: #FFD700; /* Golden color for daily quotes */
-  border: 2px solid #FF9800;
-}
-
-.golden-quote strong {
-  font-weight: bold;
+  margin-top: 20px;
+  color: #555;
 }
 
 .footer-link {
+  color: #2196F3;
   text-decoration: none;
-  margin: 0 10px;
-  display: inline-flex;
-  align-items: center;
+  margin: 0 5px;
 }
 
 .footer-icon {
-  width: 24px;
-  height: 24px;
   vertical-align: middle;
-  transition: transform 0.2s;
+  margin-left: 5px;
 }
 
-.footer-icon:hover {
-  transform: scale(1.2); /* Slight hover effect for interactivity */
+.footer-icon.whatsapp-icon:hover {
+  fill: #25D366;
 }
 
-.whatsapp-icon {
-  fill: #25D366; /* WhatsApp green */
+.footer-icon.x-icon:hover {
+  fill: #000000;
 }
 
-.x-icon {
-  fill: #000000; /* X black */
+.footer-icon.tiktok-icon:hover {
+  fill: #000000;
 }
 
-.tiktok-icon {
-  fill: #000000; /* TikTok black (simplified, could use gradient for teal/red) */
-}
-
-/* Override footer link color to remove blue text styling for icons */
-.footer a {
-  color: transparent; /* Hide text color for icon-only links */
-  margin: 0 10px; /* Match .footer-link margin */
-}
-
-.footer a:hover {
-  text-decoration: none; /* Remove underline on hover for icons */
+.quote-box.golden-quote {
+  background-color: #1B263B; /* Changed from gold to navy blue */
+  color: #FFFFFF; /* White text for contrast */
+  padding: 10px;
+  border-radius: 5px;
+  margin: 10px 0;
+  text-align: center;
+  font-style: italic;
 }
