@@ -26,10 +26,53 @@ function App() {
   const [enableAI, setEnableAI] = useState(true);
   const [financialData, setFinancialData] = useState(null);
   const [currentQuote, setCurrentQuote] = useState('');
-  // Added missing state variables to fix build errors
   const [adjustedSavings, setAdjustedSavings] = useState(0);
   const [adjustedTotalExpenses, setAdjustedTotalExpenses] = useState(0);
   const [adjustedTotalMinPayments, setAdjustedTotalMinPayments] = useState(0);
+  // New state for install prompt
+  const [showInstallPrompt, setShowInstallPrompt] = useState(false);
+  const [deferredPrompt, setDeferredPrompt] = useState(null);
+
+  // Handle PWA install prompt
+  useEffect(() => {
+    const hasSeenPrompt = localStorage.getItem('hasSeenInstallPrompt');
+    const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
+
+    if (!hasSeenPrompt && !isStandalone) {
+      const handler = (e) => {
+        e.preventDefault();
+        setDeferredPrompt(e);
+        setShowInstallPrompt(true);
+      };
+
+      window.addEventListener('beforeinstallprompt', handler);
+
+      return () => {
+        window.removeEventListener('beforeinstallprompt', handler);
+      };
+    }
+  }, []);
+
+  const handleInstallClick = () => {
+    if (deferredPrompt) {
+      deferredPrompt.prompt();
+      deferredPrompt.userChoice.then((choiceResult) => {
+        if (choiceResult.outcome === 'accepted') {
+          console.log('User accepted the install prompt');
+        } else {
+          console.log('User dismissed the install prompt');
+        }
+        setShowInstallPrompt(false);
+        localStorage.setItem('hasSeenInstallPrompt', 'true');
+        setDeferredPrompt(null);
+      });
+    }
+  };
+
+  const handleDismissInstall = () => {
+    setShowInstallPrompt(false);
+    localStorage.setItem('hasSeenInstallPrompt', 'true');
+  };
 
   useEffect(() => {
     const savedHistory = localStorage.getItem('budgetHistory');
@@ -716,6 +759,59 @@ function App() {
       {currentQuote && (
         <div className="quote-box golden-quote" title="Daily financial wisdom to guide your journey">
           <strong>{currentQuote.text} - {currentQuote.author}</strong>
+        </div>
+      )}
+
+      {showInstallPrompt && (
+        <div
+          style={{
+            position: 'fixed',
+            bottom: '20px',
+            left: '50%',
+            transform: 'translateX(-50%)',
+            backgroundColor: '#1B263B',
+            color: '#FFFFFF',
+            padding: '15px 20px',
+            borderRadius: '8px',
+            boxShadow: '0 4px 8px rgba(0, 0, 0, 0.2)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            maxWidth: '500px',
+            width: '90%',
+            zIndex: 1000,
+          }}
+        >
+          <span>Install Budget & Debt Coach App for a better experience!</span>
+          <div>
+            <button
+              onClick={handleInstallClick}
+              style={{
+                backgroundColor: '#4CAF50',
+                color: '#FFFFFF',
+                border: 'none',
+                padding: '8px 16px',
+                borderRadius: '4px',
+                marginRight: '10px',
+                cursor: 'pointer',
+              }}
+            >
+              Install
+            </button>
+            <button
+              onClick={handleDismissInstall}
+              style={{
+                backgroundColor: '#FF5722',
+                color: '#FFFFFF',
+                border: 'none',
+                padding: '8px 16px',
+                borderRadius: '4px',
+                cursor: 'pointer',
+              }}
+            >
+              Dismiss
+            </button>
+          </div>
         </div>
       )}
 
