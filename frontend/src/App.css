@@ -347,3 +347,60 @@ input[type="range"] {
     height: 200px;
   }
 }
+
+/* New styles for footer icons and golden quote */
+.golden-quote {
+  text-align: center;
+  background-color: #FFF3E0;
+  padding: 15px;
+  border-radius: 10px;
+  margin-bottom: 20px;
+  font-size: 18px;
+  font-style: italic;
+  color: #FFD700; /* Golden color for daily quotes */
+  border: 2px solid #FF9800;
+}
+
+.golden-quote strong {
+  font-weight: bold;
+}
+
+.footer-link {
+  text-decoration: none;
+  margin: 0 10px;
+  display: inline-flex;
+  align-items: center;
+}
+
+.footer-icon {
+  width: 24px;
+  height: 24px;
+  vertical-align: middle;
+  transition: transform 0.2s;
+}
+
+.footer-icon:hover {
+  transform: scale(1.2); /* Slight hover effect for interactivity */
+}
+
+.whatsapp-icon {
+  fill: #25D366; /* WhatsApp green */
+}
+
+.x-icon {
+  fill: #000000; /* X black */
+}
+
+.tiktok-icon {
+  fill: #000000; /* TikTok black (simplified, could use gradient for teal/red) */
+}
+
+/* Override footer link color to remove blue text styling for icons */
+.footer a {
+  color: transparent; /* Hide text color for icon-only links */
+  margin: 0 10px; /* Match .footer-link margin */
+}
+
+.footer a:hover {
+  text-decoration: none; /* Remove underline on hover for icons */
+}
