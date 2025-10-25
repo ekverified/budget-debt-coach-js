@@ -29,11 +29,9 @@ function App() {
   const [adjustedSavings, setAdjustedSavings] = useState(0);
   const [adjustedTotalExpenses, setAdjustedTotalExpenses] = useState(0);
   const [adjustedTotalMinPayments, setAdjustedTotalMinPayments] = useState(0);
-  // New state for install prompt
   const [showInstallPrompt, setShowInstallPrompt] = useState(false);
   const [deferredPrompt, setDeferredPrompt] = useState(null);
 
-  // Handle PWA install prompt
   useEffect(() => {
     const hasSeenPrompt = localStorage.getItem('hasSeenInstallPrompt');
     const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
