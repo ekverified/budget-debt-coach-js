@@ -2,9 +2,8 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { Chart as ChartJS, ArcElement, Tooltip, Legend, LineElement, PointElement, LinearScale, CategoryScale } from 'chart.js';
 import { Pie, Line } from 'react-chartjs-2';
 import jsPDF from 'jspdf';
-import './App.css'; // Ensure CSS is loaded
+import './App.css';
 
-// Chart.js registration
 ChartJS.register(ArcElement, Tooltip, Legend, LineElement, PointElement, LinearScale, CategoryScale);
 
 function App() {
@@ -27,9 +26,6 @@ function App() {
   const [enableAI, setEnableAI] = useState(true);
   const [financialData, setFinancialData] = useState(null);
   const [currentQuote, setCurrentQuote] = useState('');
-  const [adjustedSavings, setAdjustedSavings] = useState(0);
-  const [adjustedTotalExpenses, setAdjustedTotalExpenses] = useState(0);
-  const [adjustedTotalMinPayments, setAdjustedTotalMinPayments] = useState(0);
 
   useEffect(() => {
     const savedHistory = localStorage.getItem('budgetHistory');
@@ -95,6 +91,11 @@ function App() {
         { name: 'Madison MMF', net: 10.5, note: 'Safe, liquid - Ensure future income with steady yields' },
         { name: 'Cytonn MMF', net: 16.2, note: 'Higher yield for growth - Invest where thy principal is protected' },
         { name: 'Ndovu MMF', net: 16.5, note: 'Top performer - Increase thy ability to earn through compounded returns' }
+      ],
+      callDeposits: [
+        { name: 'KCB Bank', rate: 6.3, minInvestment: 100000, note: 'Start small for family emergency buffers' },
+        { name: 'Absa Bank', rate: 6.5, minInvestment: 50000, note: 'Scale for short-term household needs' },
+        { name: 'I&M Bank', rate: 6.4, minInvestment: 50000, note: 'Ensure future income with competitive rates and easy withdrawals' }
       ]
     };
     setFinancialData(data);
@@ -239,7 +240,7 @@ function App() {
     const models = ['distilgpt2', 'gpt2'];
     let tips = [];
     for (const model of models) {
-      const prompt = `Kenyan financial advisor inspired by "The Richest Man in Babylon". Employ all seven cures: Start purse fattening (10% save), control expenditures, make gold multiply (invest wisely), guard against loss (safe options), own home, ensure future income (retirement), increase earning ability (skills/side hustles). For ${userData.householdSize}-member household. Advice: Debt (avalanche method for high-interest), cuts (min ${1000 * userData.householdSize}${currency}/month for essentials), savings (emergency 3-mo scaled for ${userData.householdSize}), invest (MMFs, SACCOs, bonds, call deposits - tie to cures). Data: Salary ${userData.salary}${currency}, Debt ${userData.debtBudget}${currency}, Expenses ${userData.totalExpenses}${currency}. Loans/Expenses: ${JSON.stringify([...userData.loans, ...userData.expenses].slice(0,4))}. Cuts: ${userData.suggestedCuts?.slice(0,100)||'None'}. SACCOs: ${finData.saccos.map(s => `${s.name} ${s.dividend}%`).join(', ')}. Bonds: 10Y ${finData.bonds['10Y']}% . MMFs: ${finData.mmfs.map(m => `${m.name} ${m.net || m.gross}%`).join(', ')}. Call Deposits: KCB (6.3%, min 100k), Absa (6.5%, min 50k), I&M (6.4%, min 50k). Include side hustles suitable for ${userData.householdSize} members, home ownership tips, compound interest example. 5 bullets tying to book cures.`;
+      const prompt = `Kenyan financial advisor inspired by "The Richest Man in Babylon". Employ all seven cures: Start purse fattening (10% save), control expenditures, make gold multiply (invest wisely), guard against loss (safe options), own home, ensure future income (retirement), increase earning ability (skills/side hustles). For ${userData.householdSize}-member household. Advice: Debt (avalanche method for high-interest), cuts (min ${1000 * userData.householdSize}${currency}/month for essentials), savings (emergency 3-mo scaled for ${userData.householdSize}), invest (MMFs, SACCOs, bonds, call deposits - tie to cures). Data: Salary ${userData.salary}${currency}, Debt ${userData.debtBudget}${currency}, Expenses ${userData.totalExpenses}${currency}. Loans/Expenses: ${JSON.stringify([...userData.loans, ...userData.expenses].slice(0,4))}. Cuts: ${userData.suggestedCuts?.slice(0,100)||'None'}. SACCOs: ${finData.saccos.map(s => `${s.name} ${s.dividend}%`).join(', ')}. Bonds: 10Y ${finData.bonds['10Y']}% . MMFs: ${finData.mmfs.map(m => `${m.name} ${m.net || m.gross}%`).join(', ')}. Call Deposits: ${finData.callDeposits.map(d => `${d.name} ${d.rate}% (min ${currency} ${d.minInvestment.toLocaleString()})`).join(', ')}. Include side hustles suitable for ${userData.householdSize} members, home ownership tips, compound interest example. 5 bullets tying to book cures.`;
       try {
         const response = await fetch(`https://api-inference.huggingface.co/models/${model}`, {
           method: 'POST',
@@ -269,7 +270,7 @@ function App() {
       }
 
       const finData = await loadFinancialData();
-      const hs = Math.max(1, parseInt(householdSize) || 1); // Ensure householdSize >= 1
+      const hs = Math.max(1, parseInt(householdSize) || 1);
 
       let localAdjustedSavings = salary * (savingsPct / 100);
       let debtBudget = salary * (debtPct / 100);
@@ -292,21 +293,18 @@ function App() {
       const adjustments = [];
       const expenseAdjustMap = new Map();
 
-      // Scale minimums based on household size
-      const baseMinPerPerson = 1000; // Base for essentials (e.g., food, utilities)
-      const nonEssentialMinPerPerson = 500; // Base for non-essentials (e.g., shopping)
-      const householdFactor = 1 + (hs - 1) * 0.2; // Increase minimums by 20% per additional member
+      const baseMinPerPerson = 1000;
+      const nonEssentialMinPerPerson = 500;
+      const householdFactor = 1 + (hs - 1) * 0.2;
       const minEssentialPerPerson = baseMinPerPerson * householdFactor;
       const minNonEssentialPerPerson = nonEssentialMinPerPerson * householdFactor;
 
-      // Iterative budget revision
       let totalAdjustedOutgo = localAdjustedTotalMinPayments + localAdjustedTotalExpenses + localAdjustedSavings;
       let iteration = 0;
       const maxIterations = 5;
       let deficit = totalAdjustedOutgo - salary;
 
       while (deficit > 0 && iteration < maxIterations) {
-        // Handle debt overage
         let debtOverage = localAdjustedTotalMinPayments > localAdjustedDebtBudget ? localAdjustedTotalMinPayments - localAdjustedDebtBudget : 0;
         if (debtOverage > 0) {
           localAdjustedDebtBudget = localAdjustedTotalMinPayments;
@@ -332,7 +330,7 @@ function App() {
           const remainingOverage = debtOverage - coveredFromExpenses;
           if (remainingOverage > 0) {
             const cutFromSavings = Math.min(remainingOverage, localAdjustedSavings * 0.3);
-            localAdjustedSavings = Math.max(salary * (hs <= 2 ? 0.05 : 0.03), localAdjustedSavings - cutFromSavings); // Lower min savings for larger households
+            localAdjustedSavings = Math.max(salary * (hs <= 2 ? 0.05 : 0.03), localAdjustedSavings - cutFromSavings);
             adjustments.push({
               category: 'Savings Adjustment for Debt',
               current: localAdjustedSavings + cutFromSavings,
@@ -343,7 +341,6 @@ function App() {
           overageAdvice += `Debt overage covered: ${currency} ${coveredFromExpenses.toLocaleString()} from expenses for ${hs} members. `;
         }
 
-        // Handle expenses overage
         let cutAmount = 0;
         if (localAdjustedTotalExpenses > expensesBudget) {
           const expOverage = localAdjustedTotalExpenses - expensesBudget;
@@ -368,7 +365,6 @@ function App() {
           overageAdvice += `Expense cuts saved ${currency} ${cutAmount.toLocaleString()} for ${hs} members. `;
         }
 
-        // Additional cuts if deficit persists
         if (deficit > 0) {
           const remainingNonEssentials = expenses.filter(exp => !exp.isEssential && (expenseAdjustMap.get(exp.name || `Expense ${expenses.indexOf(exp) + 1}`) || exp.amount) > (minNonEssentialPerPerson * hs));
           let extraCutNeeded = deficit;
@@ -389,7 +385,6 @@ function App() {
           });
         }
 
-        // Reduce savings if deficit remains
         if (deficit > 0) {
           const savingsCut = Math.min(deficit, localAdjustedSavings - (salary * (hs <= 2 ? 0.05 : 0.03)));
           localAdjustedSavings = Math.max(salary * (hs <= 2 ? 0.05 : 0.03), localAdjustedSavings - savingsCut);
@@ -464,7 +459,7 @@ function App() {
       const mmfYield = finData.mmfs[0].net;
       adviceText += `<br><br><img src="https://upload.wikimedia.org/wikipedia/commons/thumb/4/49/Flag_of_Kenya.svg/16px-Flag_of_Kenya.svg.png?20221128225827" alt="Flag of Kenya" style="width: 16px; height: 12px; vertical-align: middle;" /> Kenyan Investment Options: SACCOs (${finData.saccos.map(s => `${s.name} ~${s.dividend}% - ${s.note}`).join(', ')}). Bonds: 10Y ~${bondYield}%; T-Bills ~${finData.bonds.tBills['91-day']}% to ${finData.bonds.tBills['364-day']}% (91-364 days). MMFs: ${finData.mmfs.map(m => `${m.name} (${m.net || m.gross}% - ${m.note})`).join(', ')}. For ${hs} members, start with ${mmfRec} at ${mmfYield}% for monthly growth.`;
 
-      adviceText += `<br><br>Bank Call Deposits for ${hs} Members: Flexible, low-risk growth for monthly liquidity. KCB Bank (6.3% p.a., min KSh ${100000 * Math.min(hs, 3)}, family emergency buffer); Absa Bank (6.5% p.a., min KSh ${50000 * Math.min(hs, 3)}, scaled for monthly needs); I&M Bank (6.4% p.a., min KSh ${50000 * Math.min(hs, 3)}, competitive rates).`;
+      adviceText += `<br><br>Bank Call Deposits for ${hs} Members: Flexible, low-risk growth for monthly liquidity. ${finData.callDeposits.map(d => `${d.name} (${d.rate}% p.a., min ${currency} ${(d.minInvestment * Math.min(hs, 3)).toLocaleString()} - ${d.note})`).join('; ')}.`;
 
       const plan = [];
       let totalPlan = 0;
@@ -542,7 +537,7 @@ function App() {
       const annualRate = finData.mmfs[0].net / 100;
       const monthlyRate = annualRate / 12;
       const years = 5;
-      const monthlySavingsAdjusted = localAdjustedSavings / Math.max(1, hs * 0.5); // Scale savings for compounding
+      const monthlySavingsAdjusted = localAdjustedSavings / Math.max(1, hs * 0.5);
       const futureValue = monthlySavingsAdjusted * ((Math.pow(1 + monthlyRate, 12 * years) - 1) / monthlyRate);
       adviceText += `<br><br>Compounding Example: Investing ${currency} ${monthlySavingsAdjusted.toLocaleString()} monthly per member (total ${currency} ${localAdjustedSavings.toLocaleString()} for ${hs} members) at ${finData.mmfs[0].net}% in ${mmfRec} could grow to ${currency} ${futureValue.toLocaleString()} per member over 5 years.`;
 
@@ -612,7 +607,12 @@ function App() {
   const handleDownloadPDF = useCallback(() => {
     try {
       const hs = Math.max(1, parseInt(householdSize) || 1);
-      const finData = financialData || { saccos: [{ name: 'Tower SACCO', dividend: 20 }], bonds: { '10Y': 13.46 }, mmfs: [{ name: 'Madison MMF', net: 10.5 }] };
+      const finData = financialData || { 
+        saccos: [{ name: 'Tower SACCO', dividend: 20 }], 
+        bonds: { '10Y': 13.46 }, 
+        mmfs: [{ name: 'Madison MMF', net: 10.5 }],
+        callDeposits: [{ name: 'KCB Bank', rate: 6.3, minInvestment: 100000 }]
+      };
       const totalAdjustedOutgo = adjustedSavings + adjustedTotalExpenses + adjustedTotalMinPayments;
       const { months: snowMonths, totalInterest: snowInterest } = snowball(loans, adjustedTotalMinPayments);
       const { months: avaMonths, totalInterest: avaInterest } = avalanche(loans, adjustedTotalMinPayments);
@@ -710,7 +710,7 @@ function App() {
       </header>
 
       {currentQuote && (
-        <div className="quote-box" title="Daily financial wisdom to guide your journey">
+        <div className="quote-box golden-quote" title="Daily financial wisdom to guide your journey">
           <strong>{currentQuote.text} - {currentQuote.author}</strong>
         </div>
       )}
@@ -897,23 +897,20 @@ function App() {
 
       <footer className="footer">
         <p>Recover from debts, enhance savings, invest to multiply gold, budget wisely for your household. For enquiries: 
-          <a href="https://wa.me/254705245123" target="_blank" rel="noopener noreferrer" className="footer-link">
-            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" className="footer-icon" viewBox="0 0 16 16">
-              <path d="M13.601 2.326A7.85 7.85 0 0 0 7.994 0C3.627 0 .068 3.558.064 7.926c0 1.399.366 2.76 1.057 3.965L0 16l4.204-1.102a7.9 7.9 0 0 0 3.79.965h.004c4.368 0 7.926-3.558 7.93-7.93A7.9 7.9 0 0 0 13.6 2.326zM7.994 14.521a6.6 6.6 0 0 1-3.356-.92l-.24-.144-2.494.654.666-2.433-.156-.251a6.56 6.56 0 0 1-1.007-3.505c0-3.626 2.957-6.584 6.591-6.584a6.56 6.56 0 0 1 4.66 1.931 6.56 6.56 0 0 1 1.928 4.66c-.004 3.639-2.961 6.592-6.592 6.592z"/>
+          <a href="https://wa.me/254705245123" target="_blank" rel="noopener noreferrer" className="footer-link" title="Contact via WhatsApp">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" className="footer-icon whatsapp-icon" viewBox="0 0 16 16">
+              <path fill="#25D366" d="M13.601 2.326A7.85 7.85 0 0 0 7.994 0C3.627 0 .068 3.558.064 7.926c0 1.399.366 2.76 1.057 3.965L0 16l4.204-1.102a7.9 7.9 0 0 0 3.79.965h.004c4.368 0 7.926-3.558 7.93-7.93A7.9 7.9 0 0 0 13.6 2.326zM7.994 14.521a6.6 6.6 0 0 1-3.356-.92l-.24-.144-2.494.654.666-2.433-.156-.251a6.56 6.56 0 0 1-1.007-3.505c0-3.626 2.957-6.584 6.591-6.584a6.56 6.56 0 0 1 4.66 1.931 6.56 6.56 0 0 1 1.928 4.66c-.004 3.639-2.961 6.592-6.592 6.592z"/>
             </svg>
-            WhatsApp
           </a> | 
-          <a href="https://x.com/B_D_coach_app" target="_blank" rel="noopener noreferrer" className="footer-link">
-            <svg width="24" height="24" viewBox="0 0 1200 1227" fill="currentColor" className="footer-icon" xmlns="http://www.w3.org/2000/svg">
-              <path d="M714.163 519.284L1160.89 0H1055.03L667.137 450.887L357.328 0H0L468.492 681.821L0 1226.37H105.866L515.491 750.218L842.672 1226.37H1200L714.137 519.284H714.163ZM569.165 687.828L521.697 619.934L144.011 79.6944H306.615L611.412 515.685L658.88 583.579L1055.08 1150.3H892.476L569.165 687.854V687.828Z" />
+          <a href="https://x.com/B_D_coach_app" target="_blank" rel="noopener noreferrer" className="footer-link" title="Follow on X">
+            <svg width="24" height="24" viewBox="0 0 1200 1227" className="footer-icon x-icon" xmlns="http://www.w3.org/2000/svg">
+              <path fill="#000000" d="M714.163 519.284L1160.89 0H1055.03L667.137 450.887L357.328 0H0L468.492 681.821L0 1226.37H105.866L515.491 750.218L842.672 1226.37H1200L714.137 519.284H714.163ZM569.165 687.828L521.697 619.934L144.011 79.6944H306.615L611.412 515.685L658.88 583.579L1055.08 1150.3H892.476L569.165 687.854V687.828Z" />
             </svg>
-            X
           </a> | 
-          <a href="https://www.tiktok.com/@budget_and_debt_coach" target="_blank" rel="noopener noreferrer" className="footer-link">
-            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" className="footer-icon" viewBox="0 0 16 16">
-              <path d="M9 0h1.98c.144.715.54 1.617 1.235 2.512C12.895 3.389 13.797 4 15 4v2c-1.753 0-3.07-.814-4-1.829V11a5 5 0 1 1-5-5v2a3 3 0 1 0 3 3z"/>
+          <a href="https://www.tiktok.com/@budget_and_debt_coach" target="_blank" rel="noopener noreferrer" className="footer-link" title="Follow on TikTok">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" className="footer-icon tiktok-icon" viewBox="0 0 16 16">
+              <path fill="#000000" d="M9 0h1.98c.144.715.54 1.617 1.235 2.512C12.895 3.389 13.797 4 15 4v2c-1.753 0-3.07-.814-4-1.829V11a5 5 0 1 1-5-5v2a3 3 0 1 0 3 3z"/>
             </svg>
-            TikTok
           </a>
         </p>
       </footer>
