@@ -55,6 +55,9 @@ function App() {
   useEffect(() => {
     const countryToCurrency = {
       'KE': 'KES', 'US': 'USD', 'GB': 'GBP', 'DE': 'EUR', 'FR': 'EUR', 'IN': 'INR', 'NG': 'NGN', 'ZA': 'ZAR',
+      'JP': 'JPY', 'CA': 'CAD', 'AU': 'AUD', 'CH': 'CHF', 'CN': 'CNY', 'KR': 'KRW', 'BR': 'BRL', 'MX': 'MXN',
+      'SE': 'SEK', 'NO': 'NOK', 'DK': 'DKK', 'TR': 'TRY', 'RU': 'RUB', 'CL': 'CLP', 'AR': 'ARS', 'SG': 'SGD',
+      'HK': 'HKD', 'NZ': 'NZD', 'IE': 'EUR', 'NL': 'EUR', 'IT': 'EUR', 'ES': 'EUR', 'PL': 'PLN', 'CZ': 'CZK'
     };
     fetch('https://ipapi.co/json/')
       .then(res => res.json())
@@ -99,11 +102,11 @@ function App() {
         { name: 'Cytonn MMF', net: 16.2, note: 'Higher yield for growth - Invest where thy principal is protected' },
         { name: 'Ndovu MMF', net: 16.5, note: 'Top performer - Increase thy ability to earn through compounded returns' }
       ],
-      crypto: {
-        lowRisk: ['Bitcoin (stable at ~$124,725, up 0.5%, ETF potential) - Guard against loss: Treat as digital gold', 'Ethereum (DeFi growth at ~$4,686) - Make thy gold multiply via staking'],
-        highPotential: ['Solana (scalability, 2025 boom candidate at ~$232) - Opportunity for the prepared'],
-        highRisk: ['Dogecoin (meme volatility at ~$0.266, 1000x potential but high risk, 80% ETF odds) - Beware: Only spare cash, as desires can devour unprepared purses']
-      }
+      banks: [
+        { name: 'Equity Bank', product: 'EazzySave', interest: 9.0, min: 1000, note: 'High-yield call deposit with easy access - Ideal for emergency funds with liquidity' },
+        { name: 'KCB Bank', product: 'Goal Account', interest: 8.5, min: 5000, note: 'Competitive rates for flexible savings - Guard treasures with insured deposits' },
+        { name: 'Co-operative Bank', product: 'Hekima Savers', interest: 7.8, min: 2000, note: 'Reliable call deposits for steady growth - Start fattening purse with low entry' }
+      ]
     };
     setFinancialData(data);
     return data;
@@ -247,7 +250,7 @@ function App() {
     const models = ['distilgpt2', 'gpt2'];
     let tips = [];
     for (const model of models) {
-      const prompt = `Kenyan financial advisor inspired by "The Richest Man in Babylon". Employ all seven cures: Start purse fattening (10% save), control expenditures, make gold multiply (invest wisely), guard against loss (safe options), own home, ensure future income (retirement), increase earning ability (skills/side hustles). For ${userData.householdSize} members. Advice: Debt (high-interest payoff like avalanche), cuts (min 1000${currency}/person on non-essentials), savings (emergency 3-mo), invest (MMFs, SACCOs, bonds - tie to cures). Crypto: balanced, warn volatility. Data: Salary ${userData.salary}${currency}, Debt ${userData.debtBudget}${currency}, Expenses ${userData.totalExpenses}${currency}. Loans/Expenses: ${JSON.stringify([...userData.loans, ...userData.expenses].slice(0,4))}. Cuts: ${userData.suggestedCuts?.slice(0,100)||'None'}. SACCOs: ${finData.saccos.map(s => `${s.name} ${s.dividend}%`).join(', ')}. Bonds: 10Y ${finData.bonds['10Y']}% . MMFs: ${finData.mmfs.map(m => `${m.name} ${m.net || m.gross}%`).join(', ')}. Crypto: ${JSON.stringify(finData.crypto)}. Include side hustles, home ownership tips, compound interest example. 5 bullets tying to book cures.`;
+      const prompt = `Kenyan financial advisor inspired by "The Richest Man in Babylon". Employ all seven cures: Start purse fattening (10% save), control expenditures, make gold multiply (invest wisely), guard against loss (safe options), own home, ensure future income (retirement), increase earning ability (skills/side hustles). For ${userData.householdSize} members. Advice: Debt (high-interest payoff like avalanche), cuts (min 1000${currency}/person on non-essentials), savings (emergency 3-mo), invest (MMFs, SACCOs, bonds, banks call deposits - tie to cures). Data: Salary ${userData.salary}${currency}, Debt ${userData.debtBudget}${currency}, Expenses ${userData.totalExpenses}${currency}. Loans/Expenses: ${JSON.stringify([...userData.loans, ...userData.expenses].slice(0,4))}. Cuts: ${userData.suggestedCuts?.slice(0,100)||'None'}. SACCOs: ${finData.saccos.map(s => `${s.name} ${s.dividend}%`).join(', ')}. Bonds: 10Y ${finData.bonds['10Y']}% . MMFs: ${finData.mmfs.map(m => `${m.name} ${m.net || m.gross}%`).join(', ')}. Banks: ${finData.banks.map(b => `${b.name} ${b.product} ${b.interest}% (min ${b.min})`).join(', ')}. Include side hustles, home ownership tips, compound interest example. 5 bullets tying to book cures.`;
       try {
         const response = await fetch(`https://api-inference.huggingface.co/models/${model}`, {
           method: 'POST',
@@ -265,7 +268,7 @@ function App() {
     const highInt = userData.highInterestLoans || 'high-interest loans';
     const saccoRec = finData.saccos[0].name;
     const mmfRec = finData.mmfs[0].name;
-    const fallback = `- First Cure: Start thy purse to fattening - Save 10% in ${saccoRec} (${finData.saccos[0].dividend}%).\n- Second: Control expenditures - Cut non-essentials 20%, allocate 70% to expenses.\n- Third: Make gold multiply - Invest cuts in ${mmfRec} at ${finData.mmfs[0].net}% net.\n- Fourth: Guard against loss - Bonds at ${finData.bonds['10Y']}% yield, avoid high-risk crypto.\n- Fifth-Seventh: Own home via SACCO loans, plan retirement income, increase earning via family side hustles for ${userData.householdSize} members. Build 3-mo emergency.`;
+    const fallback = `- First Cure: Start thy purse to fattening - Save 10% in ${saccoRec} (${finData.saccos[0].dividend}%).\n- Second: Control expenditures - Cut non-essentials 20%, allocate 70% to expenses.\n- Third: Make gold multiply - Invest cuts in ${mmfRec} at ${finData.mmfs[0].net}% net.\n- Fourth: Guard against loss - Bonds at ${finData.bonds['10Y']}% yield or bank call deposits.\n- Fifth-Seventh: Own home via SACCO loans, plan retirement income, increase earning via family side hustles for ${userData.householdSize} members. Build 3-mo emergency.`;
     return tips.length > 0 ? tips.join('\n\n') : fallback;
   }, [enableAI, currency]);
 
@@ -472,7 +475,7 @@ function App() {
       const mmfYield = finData.mmfs[0].net;
       adviceText += `<br><br><img src="https://upload.wikimedia.org/wikipedia/commons/thumb/4/49/Flag_of_Kenya.svg/16px-Flag_of_Kenya.svg.png?20221128225827" alt="Flag of Kenya" style="width: 16px; height: 12px; vertical-align: middle;" /> Kenyan Investment Options: Top SACCOs include ${finData.saccos.map(s => `${s.name} (~${s.dividend}% dividends - ${s.note})`).join(', ')}. Government Bonds: 10Y yield ~${bondYield}%; T-Bills ranging from ~${finData.bonds.tBills['91-day']}% to ${finData.bonds.tBills['364-day']}% (91-364 days, with principal protection). MMFs: ${finData.mmfs.map(m => `${m.name} (${m.net || m.gross}% ${m.net ? 'net' : 'gross'} - ${m.note})`).join(', ')} - For example, allocate budget cuts to ${mmfRec} at ${mmfYield}% net to generate compounded returns.`;
 
-      adviceText += `<br><br>Crypto Investment Considerations: For low-risk exposure, consider ${finData.crypto.lowRisk.join(', ')} as stable assets similar to digital gold. For higher growth potential, explore ${finData.crypto.highPotential.join(', ')}. High-volatility options like ${finData.crypto.highRisk[0]} offer significant upside but carry substantial risk; limit to spare cash only and avoid if it kindizes essentials.`;
+      adviceText += `<br><br>Bank Call Deposits: ${finData.banks.map(b => `${b.name} ${b.product} at ~${b.interest}% interest (minimum investment ${b.min} ${currency} - ${b.note})`).join(', ')}. These provide flexible, insured savings options to guard against loss while earning steady yields.`;
 
       // Generate Monthly Payment Plan
       const plan = [];
@@ -608,7 +611,7 @@ function App() {
       yPos += 7;
       doc.text(`Emergency: ${currency} ${threeMonthTarget.toLocaleString()} (3 mo for ${hs})`, 10, yPos);
       yPos += 7;
-      doc.text(`Invest: ${saccoRec} ${finData.saccos[0].dividend}%, Bonds ${bondYield}%, ${mmfRec} ${mmfYield}%`, 10, yPos);
+      doc.text(`Invest: ${saccoRec} ${finData.saccos[0].dividend}%, Bonds ${bondYield}%, ${mmfRec} ${mmfYield}%, Banks: ${finData.banks[0].name} ${finData.banks[0].interest}%`, 10, yPos);
       yPos += 10;
       doc.text(`5-Yr Projection: ${currency} ${futureValue.toLocaleString()} from monthly savings`, 10, yPos);
       yPos += 7;
@@ -687,127 +690,145 @@ function App() {
   };
 
   return (
-    <div className="app-container">
-      <header className="header">
-        <h1>Budget & Debt Coach App</h1>
-        <p style={{ color: '#555' }}>Plan your financial future with wisdom and discipline</p>
+    <div className="app-container" style={{ fontFamily: 'Arial, sans-serif', lineHeight: 1.6 }}>
+      <header className="header" style={{ boxShadow: '0 2px 4px rgba(0,0,0,0.1)', padding: '1rem' }}>
+        <h1 style={{ margin: 0, color: '#2E7D32' }}>Budget & Debt Coach App</h1>
+        <p style={{ color: '#555', margin: '0.5rem 0 0 0', fontStyle: 'italic' }}>Plan your financial future with wisdom and discipline</p>
       </header>
 
       {currentQuote && (
-        <div className="quote-box" title="Daily financial wisdom to guide your journey">
+        <div className="quote-box" title="Daily financial wisdom to guide your journey" style={{ backgroundColor: '#f5f5f5', padding: '1rem', margin: '1rem', borderLeft: '4px solid #4CAF50', fontStyle: 'italic' }}>
           <strong>{currentQuote.text} - {currentQuote.author}</strong>
         </div>
       )}
 
-      <section className="section input-section">
-        <h2>Budget Settings</h2>
-        <div className="input-group">
-          <label title="Your total monthly income after taxes">Monthly Salary ({currency}): 
-            <input type="number" value={salary || 0} onChange={(e) => setSalary(parseFloat(e.target.value) || 0)} onFocus={clearOnFocus} className="input-field" />
+      <section className="section input-section" style={{ padding: '1.5rem' }}>
+        <h2 style={{ color: '#2E7D32', borderBottom: '2px solid #4CAF50', paddingBottom: '0.5rem' }}>Budget Settings</h2>
+        <div className="input-group" style={{ display: 'flex', flexWrap: 'wrap', gap: '1rem', marginBottom: '1rem' }}>
+          <label title="Your total monthly income after taxes" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', minWidth: '200px' }}>Monthly Salary ({currency}): 
+            <input type="number" value={salary || 0} onChange={(e) => setSalary(parseFloat(e.target.value) || 0)} onFocus={clearOnFocus} className="input-field" style={{ flex: 1 }} />
           </label>
-          <label title="Number of household members to scale expense recommendations">Household Size: 
+          <label title="Number of household members to scale expense recommendations" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', minWidth: '200px' }}>Household Size: 
             <input type="number" min="1" value={householdSize || ''} onChange={(e) => setHouseholdSize(e.target.value)} className="input-field" style={{ width: '80px' }} />
           </label>
-          <label title="Select your preferred currency">Currency: 
-            <select value={currency} onChange={(e) => setCurrency(e.target.value)} className="input-field">
-              <option value="KES">KES</option>
-              <option value="USD">USD</option>
-              <option value="EUR">EUR</option>
-              <option value="GBP">GBP</option>
-              <option value="INR">INR</option>
-              <option value="NGN">NGN</option>
-              <option value="ZAR">ZAR</option>
+          <label title="Select your preferred currency" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', minWidth: '200px' }}>Currency: 
+            <select value={currency} onChange={(e) => setCurrency(e.target.value)} className="input-field" style={{ flex: 1 }}>
+              <option value="KES">KES (Kenyan Shilling)</option>
+              <option value="USD">USD (US Dollar)</option>
+              <option value="EUR">EUR (Euro)</option>
+              <option value="GBP">GBP (British Pound)</option>
+              <option value="INR">INR (Indian Rupee)</option>
+              <option value="NGN">NGN (Nigerian Naira)</option>
+              <option value="ZAR">ZAR (South African Rand)</option>
+              <option value="JPY">JPY (Japanese Yen)</option>
+              <option value="CAD">CAD (Canadian Dollar)</option>
+              <option value="AUD">AUD (Australian Dollar)</option>
+              <option value="CHF">CHF (Swiss Franc)</option>
+              <option value="CNY">CNY (Chinese Yuan)</option>
+              <option value="KRW">KRW (South Korean Won)</option>
+              <option value="BRL">BRL (Brazilian Real)</option>
+              <option value="MXN">MXN (Mexican Peso)</option>
+              <option value="SEK">SEK (Swedish Krona)</option>
+              <option value="NOK">NOK (Norwegian Krone)</option>
+              <option value="DKK">DKK (Danish Krone)</option>
+              <option value="TRY">TRY (Turkish Lira)</option>
+              <option value="RUB">RUB (Russian Ruble)</option>
+              <option value="SGD">SGD (Singapore Dollar)</option>
+              <option value="HKD">HKD (Hong Kong Dollar)</option>
+              <option value="NZD">NZD (New Zealand Dollar)</option>
+              <option value="PLN">PLN (Polish Zloty)</option>
+              <option value="CZK">CZK (Czech Koruna)</option>
             </select>
           </label>
         </div>
-        <label style={{ color: '#2E7D32' }} title="Adjust allocation percentages (must sum to 100%)">Customization (%):</label>
-        <div className="slider-group">
-          <div>
+        <label style={{ color: '#2E7D32', display: 'block', marginBottom: '0.5rem' }} title="Adjust allocation percentages (must sum to 100%)">Customization (%):</label>
+        <div className="slider-group" style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <label>Savings: {savingsPct}% (Aim 10%+)</label>
-            <input type="range" min="0" max="50" value={savingsPct} onChange={(e) => updateSavingsPct(e.target.value)} className="slider" />
+            <input type="range" min="0" max="50" value={savingsPct} onChange={(e) => updateSavingsPct(e.target.value)} className="slider" style={{ flex: 1, marginLeft: '1rem' }} />
           </div>
-          <div>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <label>Debt: {debtPct}%</label>
-            <input type="range" min="0" max="50" value={debtPct} onChange={(e) => updateDebtPct(e.target.value)} className="slider" />
+            <input type="range" min="0" max="50" value={debtPct} onChange={(e) => updateDebtPct(e.target.value)} className="slider" style={{ flex: 1, marginLeft: '1rem' }} />
           </div>
-          <div>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <label>Expenses: {expensesPct}%</label>
-            <input type="range" min="0" max="100" value={expensesPct} onChange={(e) => updateExpensesPct(e.target.value)} className="slider" />
+            <input type="range" min="0" max="100" value={expensesPct} onChange={(e) => updateExpensesPct(e.target.value)} className="slider" style={{ flex: 1, marginLeft: '1rem' }} />
           </div>
         </div>
-        <label title="Set a target for your emergency fund">Emergency Target ({currency}): 
-          <input type="number" value={emergencyTarget || 0} onChange={(e) => setEmergencyTarget(parseFloat(e.target.value) || 0)} onFocus={clearOnFocus} className="input-field" />
+        <label title="Set a target for your emergency fund" style={{ display: 'block', marginTop: '1rem' }}>Emergency Target ({currency}): 
+          <input type="number" value={emergencyTarget || 0} onChange={(e) => setEmergencyTarget(parseFloat(e.target.value) || 0)} onFocus={clearOnFocus} className="input-field" style={{ marginLeft: '0.5rem' }} />
         </label>
       </section>
 
-      <section className="section input-section">
-        <h2>Add Available Loans</h2>
-        <div className="card-container">
+      <section className="section input-section" style={{ padding: '1.5rem' }}>
+        <h2 style={{ color: '#2E7D32', borderBottom: '2px solid #4CAF50', paddingBottom: '0.5rem' }}>Add Available Loans</h2>
+        <div className="card-container" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '1rem' }}>
           {loans.map((loan, i) => (
-            <div key={`loan-${i}`} className="card">
-              <h3>Loan {i+1}</h3>
-              <label title="Name of the loan or creditor">Name: 
-                <input type="text" value={loan.name} onChange={(e) => updateLoan(i, 'name', e.target.value)} className="input-field" />
+            <div key={`loan-${i}`} className="card" style={{ border: '1px solid #ddd', borderRadius: '8px', padding: '1rem', boxShadow: '0 2px 4px rgba(0,0,0,0.05)' }}>
+              <h3 style={{ marginTop: 0, color: '#FF5722' }}>Loan {i+1}</h3>
+              <label title="Name of the loan or creditor" style={{ display: 'block', marginBottom: '0.5rem' }}>Name: 
+                <input type="text" value={loan.name} onChange={(e) => updateLoan(i, 'name', e.target.value)} className="input-field" style={{ width: '100%', marginTop: '0.25rem' }} />
               </label>
-              <label title="Current outstanding loan balance">Balance ({currency}): 
-                <input type="number" value={loan.balance || 0} onChange={(e) => updateLoan(i, 'balance', e.target.value)} onFocus={clearOnFocus} className="input-field" />
+              <label title="Current outstanding loan balance" style={{ display: 'block', marginBottom: '0.5rem' }}>Balance ({currency}): 
+                <input type="number" value={loan.balance || 0} onChange={(e) => updateLoan(i, 'balance', e.target.value)} onFocus={clearOnFocus} className="input-field" style={{ width: '100%', marginTop: '0.25rem' }} />
               </label>
-              <label title="Annual interest rate (%)">Rate (%): 
-                <input type="number" step="0.1" value={loan.rate || 0} onChange={(e) => updateLoan(i, 'rate', e.target.value)} onFocus={clearOnFocus} className="input-field" />
+              <label title="Annual interest rate (%)" style={{ display: 'block', marginBottom: '0.5rem' }}>Rate (%): 
+                <input type="number" step="0.1" value={loan.rate || 0} onChange={(e) => updateLoan(i, 'rate', e.target.value)} onFocus={clearOnFocus} className="input-field" style={{ width: '100%', marginTop: '0.25rem' }} />
               </label>
-              <label title="Minimum monthly payment required">Min Payment ({currency}): 
-                <input type="number" value={loan.minPayment || 0} onChange={(e) => updateLoan(i, 'minPayment', e.target.value)} onFocus={clearOnFocus} className="input-field" />
+              <label title="Minimum monthly payment required" style={{ display: 'block', marginBottom: '0.5rem' }}>Min Payment ({currency}): 
+                <input type="number" value={loan.minPayment || 0} onChange={(e) => updateLoan(i, 'minPayment', e.target.value)} onFocus={clearOnFocus} className="input-field" style={{ width: '100%', marginTop: '0.25rem' }} />
               </label>
-              <label title="Is this loan critical to maintain?">Essential?: 
-                <input type="checkbox" checked={loan.isEssential || false} onChange={() => toggleLoanEssential(i)} />
+              <label title="Is this loan critical to maintain?" style={{ display: 'block', marginBottom: '0.5rem' }}>Essential?: 
+                <input type="checkbox" checked={loan.isEssential || false} onChange={() => toggleLoanEssential(i)} style={{ marginLeft: '0.5rem' }} />
               </label>
             </div>
           ))}
         </div>
-        <button onClick={addLoan} className="action-button small-button">Add Loan</button>
+        <button onClick={addLoan} className="action-button small-button" style={{ backgroundColor: '#4CAF50', color: 'white', border: 'none', padding: '0.5rem 1rem', borderRadius: '4px', cursor: 'pointer' }}>Add Loan</button>
       </section>
 
-      <section className="section input-section">
-        <h2>Monthly Expenses</h2>
-        <div className="card-container">
+      <section className="section input-section" style={{ padding: '1.5rem' }}>
+        <h2 style={{ color: '#2E7D32', borderBottom: '2px solid #4CAF50', paddingBottom: '0.5rem' }}>Monthly Expenses</h2>
+        <div className="card-container" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '1rem' }}>
           {expenses.map((exp, i) => (
-            <div key={`exp-${i}`} className="card">
-              <h3>Expense {i+1}</h3>
-              <label title="Name of the expense">Name: 
-                <input type="text" value={exp.name} onChange={(e) => updateExpense(i, 'name', e.target.value)} className="input-field" />
+            <div key={`exp-${i}`} className="card" style={{ border: '1px solid #ddd', borderRadius: '8px', padding: '1rem', boxShadow: '0 2px 4px rgba(0,0,0,0.05)' }}>
+              <h3 style={{ marginTop: 0, color: '#2196F3' }}>Expense {i+1}</h3>
+              <label title="Name of the expense" style={{ display: 'block', marginBottom: '0.5rem' }}>Name: 
+                <input type="text" value={exp.name} onChange={(e) => updateExpense(i, 'name', e.target.value)} className="input-field" style={{ width: '100%', marginTop: '0.25rem' }} />
               </label>
-              <label title="Monthly amount for this expense">Amount ({currency}): 
-                <input type="number" value={exp.amount || 0} onChange={(e) => updateExpense(i, 'amount', e.target.value)} onFocus={clearOnFocus} className="input-field" />
+              <label title="Monthly amount for this expense" style={{ display: 'block', marginBottom: '0.5rem' }}>Amount ({currency}): 
+                <input type="number" value={exp.amount || 0} onChange={(e) => updateExpense(i, 'amount', e.target.value)} onFocus={clearOnFocus} className="input-field" style={{ width: '100%', marginTop: '0.25rem' }} />
               </label>
-              <label title="Is this expense critical for basic needs?">Essential?: 
-                <input type="checkbox" checked={exp.isEssential || false} onChange={() => toggleExpenseEssential(i)} />
+              <label title="Is this expense critical for basic needs?" style={{ display: 'block', marginBottom: '0.5rem' }}>Essential?: 
+                <input type="checkbox" checked={exp.isEssential || false} onChange={() => toggleExpenseEssential(i)} style={{ marginLeft: '0.5rem' }} />
               </label>
             </div>
           ))}
         </div>
-        <button onClick={addExpense} className="action-button small-button">Add Expense</button>
+        <button onClick={addExpense} className="action-button small-button" style={{ backgroundColor: '#4CAF50', color: 'white', border: 'none', padding: '0.5rem 1rem', borderRadius: '4px', cursor: 'pointer' }}>Add Expense</button>
       </section>
 
-      <section className="section">
-        <h2>Actions</h2>
-        <label title="Enable AI-driven financial advice">Enable Free AI Advice: 
-          <input type="checkbox" checked={enableAI} onChange={(e) => setEnableAI(e.target.checked)} />
+      <section className="section" style={{ padding: '1.5rem' }}>
+        <h2 style={{ color: '#2E7D32', borderBottom: '2px solid #4CAF50', paddingBottom: '0.5rem' }}>Actions</h2>
+        <label title="Enable AI-driven financial advice" style={{ display: 'block', marginBottom: '1rem' }}>Enable Free AI Advice: 
+          <input type="checkbox" checked={enableAI} onChange={(e) => setEnableAI(e.target.checked)} style={{ marginLeft: '0.5rem' }} />
         </label>
-        <div className="button-group">
-          <button onClick={handleCalculate} className="action-button primary-button" title="Generate your personalized budget plan">Calculate & Generate Plan</button>
-          <button onClick={downloadHistory} className="action-button secondary-button" title="Download your budget history as a CSV file">Download History CSV</button>
-          <button onClick={clearHistory} className="action-button secondary-button" title="Clear all budget history">Clear History</button>
+        <div className="button-group" style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
+          <button onClick={handleCalculate} className="action-button primary-button" title="Generate your personalized budget plan" style={{ backgroundColor: '#4CAF50', color: 'white', border: 'none', padding: '0.75rem 1.5rem', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold' }}>Calculate & Generate Plan</button>
+          <button onClick={downloadHistory} className="action-button secondary-button" title="Download your budget history as a CSV file" style={{ backgroundColor: '#2196F3', color: 'white', border: 'none', padding: '0.75rem 1.5rem', borderRadius: '4px', cursor: 'pointer' }}>Download History CSV</button>
+          <button onClick={clearHistory} className="action-button secondary-button" title="Clear all budget history" style={{ backgroundColor: '#FF5722', color: 'white', border: 'none', padding: '0.75rem 1.5rem', borderRadius: '4px', cursor: 'pointer' }}>Clear History</button>
         </div>
       </section>
 
       {adjustedData && adjustedData.length > 0 && (
-        <section className="section">
-          <h2>Adjusted Plan Table</h2>
-          <div className="table-container">
-            <table className="table">
-              <thead><tr><th>Category</th><th>Current ({currency})</th><th>Adjusted ({currency})</th><th>Suggestion</th></tr></thead>
+        <section className="section" style={{ padding: '1.5rem' }}>
+          <h2 style={{ color: '#2E7D32', borderBottom: '2px solid #4CAF50', paddingBottom: '0.5rem' }}>Adjusted Plan Table</h2>
+          <div className="table-container" style={{ overflowX: 'auto' }}>
+            <table className="table" style={{ width: '100%', borderCollapse: 'collapse', border: '1px solid #ddd' }}>
+              <thead><tr style={{ backgroundColor: '#f5f5f5' }}><th style={{ padding: '0.5rem', border: '1px solid #ddd' }}>Category</th><th style={{ padding: '0.5rem', border: '1px solid #ddd' }}>Current ({currency})</th><th style={{ padding: '0.5rem', border: '1px solid #ddd' }}>Adjusted ({currency})</th><th style={{ padding: '0.5rem', border: '1px solid #ddd' }}>Suggestion</th></tr></thead>
               <tbody>{adjustedData.map((adj, i) => (
-                <tr key={i}><td>{adj.category}</td><td>{adj.current.toLocaleString()}</td><td>{adj.adjusted.toLocaleString()}</td><td>{adj.suggestion}</td></tr>
+                <tr key={i} style={{ backgroundColor: i % 2 === 0 ? '#fafafa' : 'white' }}><td style={{ padding: '0.5rem', border: '1px solid #ddd' }}>{adj.category}</td><td style={{ padding: '0.5rem', border: '1px solid #ddd' }}>{adj.current.toLocaleString()}</td><td style={{ padding: '0.5rem', border: '1px solid #ddd' }}>{adj.adjusted.toLocaleString()}</td><td style={{ padding: '0.5rem', border: '1px solid #ddd' }}>{adj.suggestion}</td></tr>
               ))}</tbody>
             </table>
           </div>
@@ -815,25 +836,25 @@ function App() {
       )}
 
       {planData && planData.length > 0 && (
-        <section className="section">
-          <h2>Monthly Payment Plan</h2>
-          <p style={{ color: '#388E3C' }}>Your optimized monthly plan, prioritizing debt repayment and essential expenses.</p>
-          <div className="table-container">
-            <table className="table">
-              <thead><tr>
-                <th>Category</th>
-                <th>Item</th>
-                <th>Priority</th>
-                <th>Budgeted ({currency})</th>
-                <th>Notes</th>
+        <section className="section" style={{ padding: '1.5rem' }}>
+          <h2 style={{ color: '#2E7D32', borderBottom: '2px solid #4CAF50', paddingBottom: '0.5rem' }}>Monthly Payment Plan</h2>
+          <p style={{ color: '#388E3C', fontWeight: 'bold' }}>Your optimized monthly plan, prioritizing debt repayment and essential expenses.</p>
+          <div className="table-container" style={{ overflowX: 'auto' }}>
+            <table className="table" style={{ width: '100%', borderCollapse: 'collapse', border: '1px solid #ddd' }}>
+              <thead><tr style={{ backgroundColor: '#f5f5f5' }}>
+                <th style={{ padding: '0.5rem', border: '1px solid #ddd' }}>Category</th>
+                <th style={{ padding: '0.5rem', border: '1px solid #ddd' }}>Item</th>
+                <th style={{ padding: '0.5rem', border: '1px solid #ddd' }}>Priority</th>
+                <th style={{ padding: '0.5rem', border: '1px solid #ddd' }}>Budgeted ({currency})</th>
+                <th style={{ padding: '0.5rem', border: '1px solid #ddd' }}>Notes</th>
               </tr></thead>
               <tbody>{planData.map((item, i) => (
-                <tr key={i} style={{ backgroundColor: item.category === 'Deficit' ? '#ffebee' : item.category === 'Surplus' ? '#e8f5e8' : '#f1f8e9' }}>
-                  <td>{item.category}</td>
-                  <td>{item.subcategory}</td>
-                  <td>{item.priority}</td>
-                  <td>{item.budgeted.toLocaleString()}</td>
-                  <td>{item.notes}</td>
+                <tr key={i} style={{ backgroundColor: item.category === 'Deficit' ? '#ffebee' : item.category === 'Surplus' ? '#e8f5e8' : (i % 2 === 0 ? '#fafafa' : 'white') }}>
+                  <td style={{ padding: '0.5rem', border: '1px solid #ddd' }}>{item.category}</td>
+                  <td style={{ padding: '0.5rem', border: '1px solid #ddd' }}>{item.subcategory}</td>
+                  <td style={{ padding: '0.5rem', border: '1px solid #ddd' }}>{item.priority}</td>
+                  <td style={{ padding: '0.5rem', border: '1px solid #ddd' }}>{item.budgeted.toLocaleString()}</td>
+                  <td style={{ padding: '0.5rem', border: '1px solid #ddd' }}>{item.notes}</td>
                 </tr>
               ))}</tbody>
             </table>
@@ -843,46 +864,46 @@ function App() {
       )}
 
       {chartData && (
-        <section className="section">
-          <h2>Allocation Chart</h2>
-          <div className="chart-container">
+        <section className="section" style={{ padding: '1.5rem', textAlign: 'center' }}>
+          <h2 style={{ color: '#2E7D32', borderBottom: '2px solid #4CAF50', paddingBottom: '0.5rem' }}>Allocation Chart</h2>
+          <div className="chart-container" style={{ maxWidth: '400px', margin: '0 auto' }}>
             <Pie data={chartData} />
           </div>
         </section>
       )}
 
       {advice && (
-        <section className="section">
-          <h2>Financial Advice</h2>
-          <div className="advice-box" dangerouslySetInnerHTML={{ __html: advice }} />
+        <section className="section" style={{ padding: '1.5rem' }}>
+          <h2 style={{ color: '#2E7D32', borderBottom: '2px solid #4CAF50', paddingBottom: '0.5rem' }}>Financial Advice</h2>
+          <div className="advice-box" style={{ backgroundColor: '#f9f9f9', padding: '1rem', borderRadius: '4px', borderLeft: '4px solid #4CAF50' }} dangerouslySetInnerHTML={{ __html: advice }} />
         </section>
       )}
 
-      <section className="section">
-        <h2>History</h2>
-        <div className="chart-container">
+      <section className="section" style={{ padding: '1.5rem' }}>
+        <h2 style={{ color: '#2E7D32', borderBottom: '2px solid #4CAF50', paddingBottom: '0.5rem' }}>History</h2>
+        <div className="chart-container" style={{ maxWidth: '800px', margin: '0 auto 1rem' }}>
           <Line data={historyData} />
         </div>
-        <ul className="history-list">
+        <ul className="history-list" style={{ listStyle: 'none', padding: 0 }}>
           {budgetHistory.map((entry, i) => (
-            <li key={i} className="history-item">
+            <li key={i} className="history-item" style={{ padding: '0.5rem', borderBottom: '1px solid #eee', backgroundColor: i % 2 === 0 ? '#fafafa' : 'white' }}>
               <strong>{entry.month}:</strong> Salary {currency} {entry.salary.toLocaleString()}, Savings {currency} {entry.savings.toLocaleString()}, Debt {currency} {entry.debtBudget.toLocaleString()}, Expenses {currency} {entry.totalExpenses.toLocaleString()} {entry.adjustments ? `(Adjusts: ${entry.adjustments})` : ''} (Household: {entry.householdSize || 1})
             </li>
           ))}
         </ul>
       </section>
 
-      <section className="section progress-section">
-        <h2>Fund Progress</h2>
+      <section className="section progress-section" style={{ padding: '1.5rem', textAlign: 'center' }}>
+        <h2 style={{ color: '#2E7D32', borderBottom: '2px solid #4CAF50', paddingBottom: '0.5rem' }}>Fund Progress</h2>
         <p>Current Savings: {currency} {currentSavings.toLocaleString()} / {currency} {emergencyTarget.toLocaleString()}</p>
-        <progress value={currentSavings} max={emergencyTarget || 1} className="progress-bar" />
+        <progress value={currentSavings} max={emergencyTarget || 1} className="progress-bar" style={{ width: '100%', height: '20px' }} />
       </section>
 
-      <footer className="footer">
+      <footer className="footer" style={{ backgroundColor: '#f5f5f5', padding: '1rem', textAlign: 'center', borderTop: '2px solid #4CAF50' }}>
         <p>Recover from debts, enhance savings, invest to multiply gold, budget wisely. For enquiries: 
-          <a href="https://wa.me/254705245123" target="_blank" rel="noopener noreferrer" className="footer-link">WhatsApp</a> | 
-          <a href="https://x.com/B_D_coach_app" target="_blank" rel="noopener noreferrer" className="footer-link">X</a> | 
-          <a href="https://www.tiktok.com/@budget_and_debt_coach" target="_blank" rel="noopener noreferrer" className="footer-link">TikTok</a>
+          <a href="https://wa.me/254705245123" target="_blank" rel="noopener noreferrer" className="footer-link" style={{ color: '#2196F3', margin: '0 0.5rem' }}>WhatsApp</a> | 
+          <a href="https://x.com/B_D_coach_app" target="_blank" rel="noopener noreferrer" className="footer-link" style={{ color: '#2196F3', margin: '0 0.5rem' }}>X</a> | 
+          <a href="https://www.tiktok.com/@budget_and_debt_coach" target="_blank" rel="noopener noreferrer" className="footer-link" style={{ color: '#2196F3', margin: '0 0.5rem' }}>TikTok</a>
         </p>
       </footer>
     </div>
