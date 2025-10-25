@@ -44,7 +44,7 @@
   margin-bottom: 20px;
   font-size: 18px;
   font-style: italic;
-  color: #FFFFFF; /* White text for contrast with navy blue in .golden-quote */
+  color: #FFFFFF; /* Changed from #E65100 to white for contrast */
   animation: blink 2s infinite;
   border: 2px solid #FF9800;
 }
