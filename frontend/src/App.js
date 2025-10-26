@@ -988,13 +988,13 @@ function App() {
       </section>
 
       <section className="section progress-section">
-        <h2>Fund Progress for {householdSize || 1} Members</h2>
+        <h2>Fund Progress</h2>
         <p>Current Savings: {currency} {currentSavings.toLocaleString()} / {currency} {emergencyTarget.toLocaleString()}</p>
         <progress value={currentSavings} max={emergencyTarget || 1} className="progress-bar" />
       </section>
 
       <footer className="footer">
-        <p>Recover from debts, enhance savings, invest to multiply gold, budget wisely for your household. For enquiries: 
+        <p>Recover from debts, enhance savings, invest & budget wisely. For enquiries: 
           <a href="https://wa.me/254705245123" target="_blank" rel="noopener noreferrer" className="footer-link" title="Contact via WhatsApp">
             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" className="footer-icon whatsapp-icon" viewBox="0 0 16 16">
               <path fill="#25D366" d="M13.601 2.326A7.85 7.85 0 0 0 7.994 0C3.627 0 .068 3.558.064 7.926c0 1.399.366 2.76 1.057 3.965L0 16l4.204-1.102a7.9 7.9 0 0 0 3.79.965h.004c4.368 0 7.926-3.558 7.93-7.93A7.9 7.9 0 0 0 13.6 2.326zM7.994 14.521a6.6 6.6 0 0 1-3.356-.92l-.24-.144-2.494.654.666-2.433-.156-.251a6.56 6.56 0 0 1-1.007-3.505c0-3.626 2.957-6.584 6.591-6.584a6.56 6.56 0 0 1 4.66 1.931 6.56 6.56 0 0 1 1.928 4.66c-.004 3.639-2.961 6.592-6.592 6.592z"/>
