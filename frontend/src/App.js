@@ -995,11 +995,11 @@ function App() {
 
       <footer className="footer">
         <p>Recover from debts, enhance savings, invest & budget wisely. For enquiries: 
-         <a href="https://x.com/010deux" target="_blank" rel="noopener noreferrer" className="footer-link" title="Follow on X">
-  <svg width="24" height="24" className="footer-icon x-icon" viewBox="0 0 16 16">
-    <path fill="#fff" d="M12.602 1H3.398L8 8.918L12.602 1zM8 7.082L3.398 15H12.602L8 7.082zM4.602 13H1.27L8 4.417L14.73 13H11.398L8 6.583L4.602 13z"/>
+        <a href="https://x.com/010deux" target="_blank" rel="noopener noreferrer" className="footer-link" title="Follow on X">
+  <svg width="24" height="24" className="footer-icon x-icon" viewBox="0 0 24 24">
+    <path fill="#fff" d="M18.901 1.153h3.68l-8.04 9.19L24 22.846h-7.406l-5.8-7.584-6.638 7.584H.474l8.6-9.83L0 1.154h7.594l5.243 6.932 6.064-6.933zM16.61 20.644h2.039L7.486 3.24H5.396l11.214 17.404z"/>
   </svg>
- </a> || 
+</a> || 
           <a href="https://wa.me/254705245123" target="_blank" rel="noopener noreferrer" className="footer-link" title="Contact via WhatsApp">
   <svg width="24" height="24" className="footer-icon whatsapp-icon" viewBox="0 0 16 16">
     <path fill="#fff" d="M13.601 2.326A7.85 7.85 0 0 0 7.994 0C3.627 0 .068 3.558.064 7.926c0 1.399.366 2.76 1.057 3.965L0 16l4.204-1.102a7.9 7.9 0 0 0 3.79.965h.004c4.368 0 7.926-3.558 7.93-7.93A7.9 7.9 0 0 0 13.6 2.326zM7.994 14.521a6.6 6.6 0 0 1-3.356-.92l-.24-.144-2.494.654.666-2.433-.156-.251a6.56 6.56 0 0 1-1.007-3.505c0-3.626 2.957-6.584 6.591-6.584a6.56 6.56 0 0 1 4.66 1.931 6.56 6.56 0 0 1 1.928 4.66c-.004 3.639-2.961 6.592-6.592 6.592z"/>
