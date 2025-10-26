@@ -780,14 +780,14 @@ function App() {
             zIndex: 1000,
           }}
         >
-          <span>Install Budget & Debt Coach App for a better experience!</span>
+          <span>Install Budget & Debt Coach App</span>
           <div>
             <button
               onClick={handleInstallClick}
               style={{
                 backgroundColor: '#4CAF50',
-                color: '#FFFFFF',
-                border: 'none',
+                color: '#008080',
+                border: '2px solid #000000',
                 padding: '8px 16px',
                 borderRadius: '4px',
                 marginRight: '10px',
@@ -801,7 +801,7 @@ function App() {
               style={{
                 backgroundColor: '#FF5722',
                 color: '#FFFFFF',
-                border: 'none',
+                border: '2px solid #000000',
                 padding: '8px 16px',
                 borderRadius: '4px',
                 cursor: 'pointer',
@@ -999,12 +999,13 @@ function App() {
             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" className="footer-icon whatsapp-icon" viewBox="0 0 16 16">
               <path fill="#25D366" d="M13.601 2.326A7.85 7.85 0 0 0 7.994 0C3.627 0 .068 3.558.064 7.926c0 1.399.366 2.76 1.057 3.965L0 16l4.204-1.102a7.9 7.9 0 0 0 3.79.965h.004c4.368 0 7.926-3.558 7.93-7.93A7.9 7.9 0 0 0 13.6 2.326zM7.994 14.521a6.6 6.6 0 0 1-3.356-.92l-.24-.144-2.494.654.666-2.433-.156-.251a6.56 6.56 0 0 1-1.007-3.505c0-3.626 2.957-6.584 6.591-6.584a6.56 6.56 0 0 1 4.66 1.931 6.56 6.56 0 0 1 1.928 4.66c-.004 3.639-2.961 6.592-6.592 6.592z"/>
             </svg>
-          </a> | 
-          <a href="https://x.com/B_D_coach_app" target="_blank" rel="noopener noreferrer" className="footer-link" title="Follow on X">
-            <svg width="24" height="24" viewBox="0 0 1200 1227" className="footer-icon x-icon" xmlns="http://www.w3.org/2000/svg">
-              <path fill="#000000" d="M714.163 519.284L1160.89 0H1055.03L667.137 450.887L357.328 0H0L468.492 681.821L0 1226.37H105.866L515.491 750.218L842.672 1226.37H1200L714.137 519.284H714.163ZM569.165 687.828L521.697 619.934L144.011 79.6944H306.615L611.412 515.685L658.88 583.579L1055.08 1150.3H892.476L569.165 687.854V687.828Z" />
-            </svg>
-          </a> | 
+          </a> || 
+          <a href="https://wa.me/254705245123" target="_blank" rel="noopener noreferrer" className="footer-link" title="Contact via WhatsApp">
+  <svg width="24" height="24" className="footer-icon whatsapp-icon" viewBox="0 0 16 16">
+    <path fill="#fff" d="M13.601 2.326A7.85 7.85 0 0 0 7.994 0C3.627 0 .068 3.558.064 7.926c0 1.399.366 2.76 1.057 3.965L0 16l4.204-1.102a7.9 7.9 0 0 0 3.79.965h.004c4.368 0 7.926-3.558 7.93-7.93A7.9 7.9 0 0 0 13.6 2.326zM7.994 14.521a6.6 6.6 0 0 1-3.356-.92l-.24-.144-2.494.654.666-2.433-.156-.251a6.56 6.56 0 0 1-1.007-3.505c0-3.626 2.957-6.584 6.591-6.584a6.56 6.56 0 0 1 4.66 1.931 6.56 6.56 0 0 1 1.928 4.66c-.004 3.639-2.961 6.592-6.592 6.592z"/>
+    <path fill="#fff" d="M5.434 9.176a1.144 1.144 0 0 1-.365-.246c-.08-.07-.152-.162-.224-.265a.51.51 0 0 1-.09-.168.618.618 0 0 1-.037-.208.384.384 0 0 1-.004-.083.568.568 0 0 1 .082-.266c.032-.046.069-.092.115-.138.077-.077.166-.168.272-.256a.434.434 0 0 1 .18-.11c.106-.037.215-.055.328-.055.215 0 .39.062.525.185.136.12.235.297.297.531.062.235.062.483 0 .74a.925.925 0 0 1-.22.457c-.12.162-.284.288-.49.378-.205.09-.431.135-.678.135-.247 0-.48-.045-.698-.135-.218-.09-.408-.216-.57-.378-.162-.162-.288-.35-.378-.57-.09-.217-.135-.45-.135-.697 0-.247.045-.48.135-.698a.925.925 0 0 1 .378-.57c.162-.162.35-.288.57-.378.217-.09.45-.135.698-.135.247 0 .48.045.698.135a.925.925 0 0 1 .57.378c.162.162.288.35.378.57.09.217.135.45.135.698s-.045.48-.135.698a.925.925 0 0 1-.378.57c-.162.162-.35.288-.57.378a.925.925 0 0 1-.698.135z"/>
+  </svg>
+          </a> ||
           <a href="https://www.tiktok.com/@budget_and_debt_coach" target="_blank" rel="noopener noreferrer" className="footer-link" title="Follow on TikTok">
             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" className="footer-icon tiktok-icon" viewBox="0 0 16 16">
               <path fill="#000000" d="M9 0h1.98c.144.715.54 1.617 1.235 2.512C12.895 3.389 13.797 4 15 4v2c-1.753 0-3.07-.814-4-1.829V11a5 5 0 1 1-5-5v2a3 3 0 1 0 3 3z"/>
