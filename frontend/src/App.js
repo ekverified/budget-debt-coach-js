@@ -995,7 +995,7 @@ function App() {
 
       <footer className="footer">
         <p>Recover from debts, enhance savings, invest & budget wisely. For enquiries: 
-        <a href="https://x.com/010deux" target="_blank" rel="noopener noreferrer" className="footer-link" title="Follow on X">
+        <a href="https://x.com/B_D_coach_app" target="_blank" rel="noopener noreferrer" className="footer-link" title="Follow on X">
   <svg width="24" height="24" className="footer-icon x-icon" viewBox="0 0 24 24">
     <path fill="#fff" d="M18.901 1.153h3.68l-8.04 9.19L24 22.846h-7.406l-5.8-7.584-6.638 7.584H.474l8.6-9.83L0 1.154h7.594l5.243 6.932 6.064-6.933zM16.61 20.644h2.039L7.486 3.24H5.396l11.214 17.404z"/>
   </svg>
