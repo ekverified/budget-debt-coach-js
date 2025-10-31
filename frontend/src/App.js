@@ -70,6 +70,11 @@ function App() {
         const parsed = JSON.parse(savedHistory);
         if (parsed && parsed.length > 0) {
           setBudgetHistory(parsed);
+          // Update currentSavings from latest history entry if available
+          const latest = parsed[parsed.length - 1];
+          if (latest && latest.currentSavings) {
+            setCurrentSavings(latest.currentSavings);
+          }
         }
       } catch (e) {
         console.warn('Invalid history in localStorage, clearing:', e);
@@ -324,7 +329,7 @@ function App() {
           nonEssentialExpenses.forEach(exp => {
             const minPerPerson = exp.name.toLowerCase().includes('shopping') || exp.name.toLowerCase().includes('food') ? minEssentialPerPerson : minNonEssentialPerPerson;
             const maxCut = Math.max(0, exp.amount - (minPerPerson * hs));
-            const cut = Math.min(maxCut, debtOverage - coveredFromExpenses);
+            const cut = Math.min(maxCut * 0.3, debtOverage - coveredFromExpenses);
             if (cut > 0) {
               coveredFromExpenses += cut;
               expenseAdjustMap.set(exp.name || `Expense ${expenses.indexOf(exp) + 1}`, exp.amount - cut);
@@ -332,7 +337,7 @@ function App() {
                 category: exp.name || `Expense ${expenses.indexOf(exp) + 1}`,
                 current: exp.amount,
                 adjusted: exp.amount - cut,
-                suggestion: `Reduced by ${currency} ${cut.toLocaleString()} to cover debt shortfall, preserving ${currency} ${(minPerPerson * hs).toLocaleString()} for monthly needs`
+                suggestion: `Reduced by ${currency} ${cut.toLocaleString()} (up to 30% of excess) to cover debt shortfall, preserving ${currency} ${(minPerPerson * hs).toLocaleString()} minimum for monthly needs`
               });
             }
           });
@@ -345,7 +350,7 @@ function App() {
               category: 'Savings Adjustment for Debt',
               current: localAdjustedSavings + cutFromSavings,
               adjusted: localAdjustedSavings,
-              suggestion: `Temporarily reduced by ${currency} ${cutFromSavings.toLocaleString()} to cover debt; restore savings next month`
+              suggestion: `Temporarily reduced by ${currency} ${cutFromSavings.toLocaleString()} to cover debt; restore full 10% next month to build savings`
             });
           }
           overageAdvice += `Debt overage covered: ${currency} ${coveredFromExpenses.toLocaleString()} from expenses. `;
@@ -365,7 +370,7 @@ function App() {
                 category: exp.name || `Expense ${expenses.indexOf(exp) + 1}`,
                 current: exp.amount,
                 adjusted: (expenseAdjustMap.get(exp.name || `Expense ${expenses.indexOf(exp) + 1}`) || exp.amount) - cut,
-                suggestion: `Reduced by up to 30% (${currency} ${cut.toLocaleString()}) to fit monthly budget, ensuring ${currency} ${(minPerPerson * hs).toLocaleString()} minimum`
+                suggestion: `Reduced by ${currency} ${cut.toLocaleString()} (up to 30% of excess) to fit 70% expenses allocation, ensuring ${currency} ${(minPerPerson * hs).toLocaleString()} minimum for monthly needs`
               });
             }
           });
@@ -387,7 +392,7 @@ function App() {
                 category: `Balance Cut - ${exp.name || `Expense ${expenses.indexOf(exp) + 1}`}`,
                 current: currentAmount,
                 adjusted: currentAmount - extraCut,
-                suggestion: `Additional 20% reduction (${currency} ${extraCut.toLocaleString()}) to balance monthly budget`
+                suggestion: `Additional reduction of ${currency} ${extraCut.toLocaleString()} (20% of current) to eliminate deficit and reflect earnings in budget`
               });
             }
           });
@@ -400,7 +405,7 @@ function App() {
               category: 'Savings Adjustment for Deficit',
               current: localAdjustedSavings + savingsCut,
               adjusted: localAdjustedSavings,
-              suggestion: `Further reduced by ${currency} ${savingsCut.toLocaleString()} to eliminate monthly deficit`
+              suggestion: `Further reduced by ${currency} ${savingsCut.toLocaleString()} to eliminate deficit; maintain min allocation to start building emergency fund`
             });
           }
         }
@@ -415,13 +420,13 @@ function App() {
         category: 'Total Debt Min Payments',
         current: totalMinPayments,
         adjusted: localAdjustedTotalMinPayments,
-        suggestion: `Fully allocated within monthly budget; prioritize high-interest loans`
+        suggestion: `Fully allocated within 20% debt budget; pay minimums now to recover from debts faster`
       });
       adjustments.push({
         category: 'Total Expenses',
         current: totalExpenses,
         adjusted: localAdjustedTotalExpenses,
-        suggestion: `Adjusted down by ${currency} ${(totalExpenses - localAdjustedTotalExpenses).toLocaleString()} to sustain monthly needs`
+        suggestion: `Adjusted down by ${currency} ${(totalExpenses - localAdjustedTotalExpenses).toLocaleString()} to fit 70% allocation and sustain monthly needs within earnings`
       });
       const spareCash = Math.max(0, salary - totalAdjustedOutgo);
       if (totalAdjustedOutgo > salary * 0.95) {
@@ -469,39 +474,52 @@ function App() {
       let totalPlan = 0;
       const sortedLoans = [...loans].sort((a, b) => b.rate - a.rate).filter(l => l.minPayment > 0);
       const extraForDebt = Math.max(0, localAdjustedDebtBudget - totalMinPayments);
+      const { months: avaMonths, totalInterest: avaInterest } = avalanche(loans, localAdjustedDebtBudget);
       sortedLoans.forEach((loan, idx) => {
         const minPay = loan.minPayment;
         const extraPay = idx === 0 ? extraForDebt : 0;
         const totalPay = minPay + extraPay;
+        const loanNotes = `Pay ${currency} ${totalPay.toLocaleString()} this month (${minPay.toLocaleString()} min + ${extraPay.toLocaleString()} extra). At this rate, full payoff in ${avaMonths} months, saving ${currency} ${avaInterest.toLocaleString()} in interest. Focus here to recover from debt.`;
         plan.push({
           category: 'Loan',
           subcategory: loan.name || `Loan ${idx + 1}`,
           priority: idx + 1,
           budgeted: totalPay,
-          notes: `Priority ${idx + 1} (${loan.rate}% rate). Min: ${currency} ${minPay.toLocaleString()}. Extra: ${currency} ${extraPay.toLocaleString()}. Avalanche method to minimize interest.`
+          notes: loanNotes
         });
         totalPlan += totalPay;
       });
       expenses.forEach((exp, idx) => {
         const adjAmount = expenseAdjustMap.get(exp.name || `Expense ${idx + 1}`) || exp.amount;
-        const notes = exp.isEssential 
-          ? `Essential allocation: ${currency} ${adjAmount.toLocaleString()}` 
-          : `Non-essential: ${currency} ${adjAmount.toLocaleString()}; review for potential cuts`;
+        let expNotes = '';
+        if (exp.name.toLowerCase().includes('shopping') || exp.name.toLowerCase().includes('food')) {
+          expNotes = `Allocate ${currency} ${adjAmount.toLocaleString()}; plan weekly bulk buys at market to stretch budget and control spending.`;
+        } else if (exp.name.toLowerCase().includes('rent')) {
+          expNotes = `Pay ${currency} ${adjAmount.toLocaleString()}; negotiate with landlord if possible to reduce future costs.`;
+        } else if (exp.name.toLowerCase().includes('fee') || exp.name.toLowerCase().includes('transport')) {
+          expNotes = `Budget ${currency} ${adjAmount.toLocaleString()}; use public options or carpool to minimize.`;
+        } else {
+          expNotes = `Set aside ${currency} ${adjAmount.toLocaleString()}; track usage weekly to ensure it fits within 70% expenses goal.`;
+        }
+        if (!exp.isEssential) {
+          expNotes += ` Monitor closely to free up more for debt recovery.`;
+        }
         plan.push({
           category: 'Expense',
           subcategory: exp.name || `Expense ${idx + 1}`,
           priority: exp.isEssential ? 'Essential' : 'Non-Essential',
           budgeted: adjAmount,
-          notes
+          notes: expNotes
         });
         totalPlan += adjAmount;
       });
+      const savingsNotes = `Transfer ${currency} ${localAdjustedSavings.toLocaleString()} immediately to a SACCO or MMF (e.g., Madison at 11%) to start your savings journey and build toward emergency fund.`;
       plan.push({
         category: 'Savings',
         subcategory: 'Emergency/Investments',
         priority: 'N/A',
         budgeted: localAdjustedSavings,
-        notes: `Monthly allocation: ${currency} ${localAdjustedSavings.toLocaleString()}. Prioritize emergency fund, then MMFs/SACCOs.`
+        notes: savingsNotes
       });
       totalPlan += localAdjustedSavings;
       const finalTotalPlanned = localAdjustedSavings + localAdjustedTotalExpenses + localAdjustedTotalMinPayments;
@@ -526,12 +544,13 @@ function App() {
           notes: `Monthly shortfall of ${currency} ${finalDeficit.toLocaleString()}. ${actionPlan} Reassess next month.`
         });
       } else {
+        const surplusNotes = `Apply ${currency} ${Math.max(0, salary - finalTotalPlanned).toLocaleString()} surplus: ${extraForDebt > 0 ? 'First to debt extra payments' : ''}, then to savings or low-risk MMF to accelerate debt recovery and savings growth.`;
         plan.push({
           category: 'Surplus',
           subcategory: 'Spare Cash',
           priority: 'Opportunity',
           budgeted: Math.max(0, salary - finalTotalPlanned),
-          notes: `Available surplus: ${currency} ${(salary - finalTotalPlanned).toLocaleString()}. Use to pay down debt or invest for stability.`
+          notes: surplusNotes
         });
       }
       setPlanData(plan);
@@ -575,13 +594,14 @@ function App() {
       setAdvice(adviceText);
       setAdjustedData(adjustments);
       setEmergencyTarget(threeMonthTarget);
+      const updatedCurrentSavings = currentSavings + localAdjustedSavings;
       const historyEntry = {
         month: new Date().toISOString().slice(0, 7),
         salary, savings: localAdjustedSavings, debtBudget: localAdjustedDebtBudget, expensesBudget: localAdjustedTotalExpenses,
         totalExpenses: localAdjustedTotalExpenses, snowMonths, snowInterest, avaMonths, avaInterest,
-        emergencyTarget: threeMonthTarget, currentSavings: currentSavings + localAdjustedSavings, adjustments: overageAdvice, householdSize: hs
+        emergencyTarget: threeMonthTarget, currentSavings: updatedCurrentSavings, adjustments: overageAdvice, householdSize: hs
       };
-      setCurrentSavings(historyEntry.currentSavings);
+      setCurrentSavings(updatedCurrentSavings);
       setBudgetHistory(prev => [...prev, historyEntry]);
       const pieLabels = ['Savings', 'Debt', 'Expenses'];
       const pieDataValues = [localAdjustedSavings, localAdjustedDebtBudget, localAdjustedExpensesBudget];
@@ -689,6 +709,7 @@ function App() {
   }, [budgetHistory]);
   const clearHistory = useCallback(() => {
     setBudgetHistory([]);
+    setCurrentSavings(0);
     localStorage.removeItem('budgetHistory');
   }, []);
   const historyData = {
