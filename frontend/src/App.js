@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { Chart as ChartJS, ArcElement, Tooltip, Legend, LineElement, PointElement, LinearScale, CategoryScale } from 'chart.js';
 import { Pie, Line } from 'react-chartjs-2';
 import jsPDF from 'jspdf';
@@ -29,6 +29,9 @@ function App() {
   const [adjustedTotalMinPayments, setAdjustedTotalMinPayments] = useState(0);
   const [showInstallPrompt, setShowInstallPrompt] = useState(false);
   const [deferredPrompt, setDeferredPrompt] = useState(null);
+  const [theme, setTheme] = useState(localStorage.getItem('theme') || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'));
+  const [subGoals, setSubGoals] = useState([]);
+  const [spareCash, setSpareCash] = useState(0);
   useEffect(() => {
     const hasSeenPrompt = localStorage.getItem('hasSeenInstallPrompt');
     const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
@@ -113,6 +116,10 @@ function App() {
     const dayIndex = today.getDate() % quotes.length;
     setCurrentQuote(quotes[dayIndex]);
   }, []);
+  useEffect(() => {
+    localStorage.setItem('theme', theme);
+    document.documentElement.classList.toggle('dark', theme === 'dark');
+  }, [theme]);
   const loadFinancialData = useCallback(async () => {
     const data = {
       saccos: [
@@ -428,7 +435,8 @@ function App() {
         adjusted: localAdjustedTotalExpenses,
         suggestion: `Adjusted down by ${currency} ${(totalExpenses - localAdjustedTotalExpenses).toLocaleString()} to fit 70% allocation and sustain monthly needs within earnings`
       });
-      const spareCash = Math.max(0, salary - totalAdjustedOutgo);
+      const spareCashLocal = Math.max(0, salary - totalAdjustedOutgo);
+      setSpareCash(spareCashLocal);
       if (totalAdjustedOutgo > salary * 0.95) {
         localAdjustedSavings = Math.max(localAdjustedSavings, salary * (hs <= 2 ? 0.05 : 0.03));
         setAdjustedSavings(localAdjustedSavings);
@@ -455,14 +463,14 @@ function App() {
         }
         deficitAdvice = `<br><br>Shortfall of ${currency} ${deficit.toLocaleString()}. ${actionPlan}`;
         adviceText += deficitAdvice;
-      } else if (spareCash > 0) {
-        adviceText += `<br><br>Surplus of ${currency} ${spareCash.toLocaleString()}. Direct it to accelerate debt payoff or low-risk investments like bonds for compounded growth.`;
+      } else if (spareCashLocal > 0) {
+        adviceText += `<br><br>Surplus of ${currency} ${spareCashLocal.toLocaleString()}. Direct it to accelerate debt payoff or low-risk investments like bonds for compounded growth.`;
       }
       adviceText += `<br><br>Total monthly outflow: ${currency} ${totalAdjustedOutgo.toLocaleString()} vs Salary ${currency} ${salary.toLocaleString()}.`;
       const monthlyExpensesForEmergency = Math.max(localAdjustedTotalExpenses, (minEssentialPerPerson * hs * expenses.length) / 2);
       const threeMonthTarget = Math.max(emergencyTarget, monthlyExpensesForEmergency * 3 * householdFactor);
       const monthsToEmergency = localAdjustedSavings > 0 ? Math.ceil((threeMonthTarget - currentSavings) / localAdjustedSavings) : 0;
-      const thisMonthAdd = Math.min(spareCash, 1000 * hs);
+      const thisMonthAdd = Math.min(spareCashLocal, 1000 * hs);
       adviceText += `<br><br>Emergency Fund: Target ${currency} ${threeMonthTarget.toLocaleString()} (3 months of expenses, scaled for household). Current: ${currency} ${currentSavings.toLocaleString()}. Projected reach: ~${monthsToEmergency} months. Contribute ${currency} ${thisMonthAdd.toLocaleString()} this month to a SACCO.`;
       const saccoRec = finData.saccos[0].name;
       const bondYield = finData.bonds['10Y'];
@@ -570,7 +578,7 @@ function App() {
       const curesProgress = [
         `1. <strong>Start thy purse to fattening</strong>: ${savingsPct >= (hs <= 2 ? 10 : 8) ? `✅ Met - Saving ${savingsPct}%` : `<span style="color:red">❌ Not met</span> - Aim for ${hs <= 2 ? 10 : 8}%`}`,
         `2. <strong>Control thy expenditures</strong>: ${localAdjustedTotalExpenses <= expensesBudget ? `✅ Met - Budget aligned` : `<span style="color:red">❌ Not met</span> - Cut non-essentials`}`,
-        `3. <strong>Make thy gold multiply</strong>: ${spareCash > 0 ? `✅ Met - Surplus available` : `<span style="color:red">❌ Not met</span> - Create surplus`}`,
+        `3. <strong>Make thy gold multiply</strong>: ${spareCashLocal > 0 ? `✅ Met - Surplus available` : `<span style="color:red">❌ Not met</span> - Create surplus`}`,
         `4. <strong>Guard thy treasures from loss</strong>: ✅ Met - Safe investments prioritized`,
         `5. <strong>Make thy home a worthwhile investment</strong>: <span style="color:red">❌ Pending</span> - Explore SACCO mortgages`,
         `6. <strong>Ensure a future income</strong>: ${monthsToEmergency < 12 ? `✅ Met - Emergency fund building` : `<span style="color:red">❌ Not met</span> - Build fund`}`,
@@ -587,12 +595,18 @@ function App() {
       adjustments.push({
         category: 'Spare',
         current: 0,
-        adjusted: spareCash,
-        suggestion: spareCash > 0 ? `Surplus ${currency} ${spareCash.toLocaleString()}; invest for growth` : `No surplus; focus on balance`
+        adjusted: spareCashLocal,
+        suggestion: spareCashLocal > 0 ? `Surplus ${currency} ${spareCashLocal.toLocaleString()}; invest for growth` : `No surplus; focus on balance`
       });
       setAdvice(adviceText);
       setAdjustedData(adjustments);
       setEmergencyTarget(threeMonthTarget);
+      const monthlyBuffer = monthlyExpensesForEmergency;
+      setSubGoals([
+        { target: monthlyBuffer, label: '1-Month Buffer' },
+        { target: monthlyBuffer * 3, label: '3-Month Emergency' },
+        { target: monthlyBuffer * 6, label: '6-Month Safety Net' }
+      ].map(g => ({ ...g, achieved: currentSavings >= g.target })));
       const updatedCurrentSavings = currentSavings + localAdjustedSavings;
       const historyEntry = {
         month: new Date().toISOString().slice(0, 7),
@@ -605,9 +619,9 @@ function App() {
       const pieLabels = ['Savings', 'Debt', 'Expenses'];
       const pieDataValues = [localAdjustedSavings, localAdjustedDebtBudget, localAdjustedExpensesBudget];
       const pieColors = ['#4CAF50', '#FF5722', '#2196F3'];
-      if (spareCash > 0) {
+      if (spareCashLocal > 0) {
         pieLabels.push('Spare Cash');
-        pieDataValues.push(spareCash);
+        pieDataValues.push(spareCashLocal);
         pieColors.push('#FFC107');
       }
       const pieData = {
@@ -624,6 +638,13 @@ function App() {
       alert(`Calc failed: ${error.message}. Check console. Try disabling AI.`);
     }
   }, [salary, savingsPct, debtPct, expensesPct, householdSize, currency, loans, expenses, emergencyTarget, currentSavings, enableAI, budgetHistory, snowball, avalanche, getFreeAIAdvice, loadFinancialData]);
+  const addSurplusToGoal = useCallback(() => {
+    const surplus = spareCash || 0;
+    if (surplus > 0) {
+      setCurrentSavings(prev => prev + surplus);
+      alert(`Added ${currency} ${surplus.toLocaleString()} to savings goal!`);
+    }
+  }, [spareCash, currency]);
   const handleDownloadPDF = useCallback(() => {
     try {
       const hs = Math.max(1, parseInt(householdSize) || 1);
@@ -711,6 +732,15 @@ function App() {
     setCurrentSavings(0);
     localStorage.removeItem('budgetHistory');
   }, []);
+  const badges = useMemo(() => {
+    if (budgetHistory.length < 3) return [];
+    const latest = budgetHistory[budgetHistory.length - 1];
+    const streak = budgetHistory.filter(h => h.savings / h.salary >= 0.1).length;
+    const badgesList = [];
+    if (streak >= 3) badgesList.push({ name: 'Purse Fattener', desc: '3+ months saving 10% – Cure #1 achieved!' });
+    if (latest.avaMonths <= 12) badgesList.push({ name: 'Debt Slayer', desc: 'Debt payoff under 1 year – Avalanche win!' });
+    return badgesList;
+  }, [budgetHistory]);
   const historyData = {
     labels: budgetHistory.map(entry => entry.month).reverse(),
     datasets: [
@@ -719,7 +749,7 @@ function App() {
     ]
   };
   return (
-    <div className="app-container">
+    <div className={`app-container ${theme === 'dark' ? 'dark-mode' : ''}`}>
       <header className="header">
         <h1>Budget & Debt Coach App</h1>
         <p style={{ color: '#555' }}>Plan your financial future with wisdom and discipline</p>
@@ -945,11 +975,26 @@ function App() {
             </li>
           ))}
         </ul>
+        {badges.length > 0 && (
+          <div className="badges-section">
+            <h3>Achievements</h3>
+            <ul>{badges.map((badge, i) => (
+              <li key={i}><strong>{badge.name}:</strong> {badge.desc}</li>
+            ))}</ul>
+          </div>
+        )}
       </section>
       <section className="section progress-section">
         <h2>Fund Progress</h2>
         <p>Current Savings: {currency} {currentSavings.toLocaleString()} / {currency} {emergencyTarget.toLocaleString()}</p>
         <progress value={currentSavings} max={emergencyTarget || 1} className="progress-bar" />
+        {subGoals.map((goal, i) => (
+          <div key={i} className={`sub-goal ${goal.achieved ? 'achieved' : ''}`}>
+            <span>{goal.label}: {currency} {goal.target.toLocaleString()}</span>
+            <progress value={Math.min(currentSavings, goal.target)} max={goal.target} />
+          </div>
+        ))}
+        <button onClick={addSurplusToGoal} className="action-button small-button" disabled={!spareCash}>Add Surplus to Goal</button>
       </section>
       <footer className="footer">
         <p>Recover from debts, enhance savings, invest & budget wisely. For enquiries:
@@ -970,6 +1015,9 @@ function App() {
             </svg>
           </a>
         </p>
+        <label title="Toggle dark mode for better low-light viewing">
+          Dark Mode: <input type="checkbox" checked={theme === 'dark'} onChange={(e) => setTheme(e.target.checked ? 'dark' : 'light')} />
+        </label>
       </footer>
     </div>
   );
