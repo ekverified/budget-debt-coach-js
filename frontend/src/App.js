@@ -474,7 +474,6 @@ function App() {
       let totalPlan = 0;
       const sortedLoans = [...loans].sort((a, b) => b.rate - a.rate).filter(l => l.minPayment > 0);
       const extraForDebt = Math.max(0, localAdjustedDebtBudget - totalMinPayments);
-      const { months: avaMonths, totalInterest: avaInterest } = avalanche(loans, localAdjustedDebtBudget);
       sortedLoans.forEach((loan, idx) => {
         const minPay = loan.minPayment;
         const extraPay = idx === 0 ? extraForDebt : 0;
