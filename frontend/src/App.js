@@ -32,6 +32,7 @@ function App() {
   const [theme, setTheme] = useState(localStorage.getItem('theme') || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'));
   const [subGoals, setSubGoals] = useState([]);
   const [spareCash, setSpareCash] = useState(0);
+  const [updateAvailable, setUpdateAvailable] = useState(false);
   useEffect(() => {
     const hasSeenPrompt = localStorage.getItem('hasSeenInstallPrompt');
     const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
@@ -47,6 +48,43 @@ function App() {
       };
     }
   }, []);
+  useEffect(() => {
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.addEventListener('controllerchange', () => {
+        window.location.reload();
+      });
+      if (navigator.serviceWorker.controller) {
+        navigator.serviceWorker.controller.postMessage({ type: 'SYNC_REMINDER' });
+      }
+    }
+  }, []);
+  useEffect(() => {
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('/service-worker.js').then((registration) => {
+        registration.addEventListener('updatefound', () => {
+          const newWorker = registration.installing;
+          newWorker.addEventListener('statechange', () => {
+            if (newWorker.state === 'installed') {
+              if (navigator.serviceWorker.controller) {
+                setUpdateAvailable(true);
+              }
+            }
+          });
+        });
+      }).catch((error) => {
+        console.error('SW registration failed:', error);
+      });
+    }
+  }, []);
+  const handleUpdateClick = () => {
+    if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
+      navigator.serviceWorker.controller.postMessage({ type: 'SKIP_WAITING' });
+      setUpdateAvailable(false);
+    }
+  };
+  const handleDismissUpdate = () => {
+    setUpdateAvailable(false);
+  };
   const handleInstallClick = () => {
     if (deferredPrompt) {
       deferredPrompt.prompt();
@@ -807,6 +845,59 @@ function App() {
               }}
             >
               Dismiss
+            </button>
+          </div>
+        </div>
+      )}
+      {updateAvailable && (
+        <div
+          style={{
+            position: 'fixed',
+            top: '20px',
+            left: '50%',
+            transform: 'translateX(-50%)',
+            backgroundColor: '#4CAF50',
+            color: 'white',
+            padding: '15px 20px',
+            borderRadius: '8px',
+            boxShadow: '0 4px 8px rgba(0, 0, 0, 0.2)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            maxWidth: '500px',
+            width: '90%',
+            zIndex: 1000,
+          }}
+        >
+          <span>New version available! Update for the latest features and fixes.</span>
+          <div>
+            <button
+              onClick={handleUpdateClick}
+              style={{
+                backgroundColor: 'white',
+                color: '#4CAF50',
+                border: '2px solid white',
+                padding: '8px 16px',
+                borderRadius: '4px',
+                marginRight: '10px',
+                cursor: 'pointer',
+                fontWeight: 'bold',
+              }}
+            >
+              Update Now
+            </button>
+            <button
+              onClick={handleDismissUpdate}
+              style={{
+                backgroundColor: 'transparent',
+                color: 'white',
+                border: '2px solid white',
+                padding: '8px 16px',
+                borderRadius: '4px',
+                cursor: 'pointer',
+              }}
+            >
+              Later
             </button>
           </div>
         </div>
