@@ -1,33 +1,26 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <svg width="400" height="400" viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg">
   <defs>
-    <!-- Paper texture background -->
-    <filter id="paper">
-      <feTurbulence type="fractalNoise" baseFrequency="0.8" numOctaves="4" result="noise"/>
-      <feDiffuseLighting in="noise" lighting-color="#fff" surfaceScale="2">
-        <feDistantLight azimuth="45" elevation="60"/>
-      </feDiffuseLighting>
-      <feComposite in="SourceGraphic" operator="over"/>
-    </filter>
+    <!-- Paper texture (tiny embedded PNG) -->
+    <pattern id="paperTex" width="256" height="256" patternUnits="userSpaceOnUse">
+      <image href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAQAAAAEACAYAAABccqhmAAAACXBIWXMAAAsTAAALEwEAmpwYAAA
+      VcUlEQVR4nOzdvY7dNhCA0c1D/////2m0u5u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u.8=" width="256" height="256"/>
+    </pattern>
 
-    <!-- Bevel filter for 3D ring -->
-    <filter id="bevel" x="-50%" y="-50%" width="200%" height="200%">
-      <feGaussianBlur in="SourceAlpha" stdDeviation="3" result="blur"/>
-      <feSpecularLighting in="blur" surfaceScale="5" specularConstant="0.7" specularExponent="20" lighting-color="#fff" result="spec">
+    <!-- Bevelled ring -->
+    <filter id="bevelRing" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur in="SourceAlpha" stdDeviation="4" result="blur"/>
+      <feSpecularLighting in="blur" surfaceScale="6" specularConstant="0.6" specularExponent="30" lighting-color="#fff" result="spec">
         <fePointLight x="-5000" y="-10000" z="20000"/>
       </feSpecularLighting>
       <feComposite in="spec" in2="SourceAlpha" operator="in" result="spec"/>
-      <feComposite in="SourceGraphic" in2="spec" operator="over" result="bevel"/>
-      <feMerge>
-        <feMergeNode in="bevel"/>
-        <feMergeNode in="SourceGraphic"/>
-      </feMerge>
+      <feComposite in="SourceGraphic" in2="spec" operator="over"/>
     </filter>
 
-    <!-- Coin texture -->
-    <pattern id="coinPattern" patternUnits="userSpaceOnUse" width="20" height="20">
-      <circle cx="10" cy="10" r="8" fill="#f4c542" stroke="#e8b833" stroke-width="1"/>
-      <circle cx="10" cy="10" r="5" fill="#fcd977" opacity="0.6"/>
+    <!-- Coin texture (tiny repeating pattern) -->
+    <pattern id="coinPat" width="12" height="12" patternUnits="userSpaceOnUse">
+      <circle cx="6" cy="6" r="5" fill="#f4c542"/>
+      <circle cx="6" cy="6" r="3" fill="#fcd977" opacity="0.7"/>
     </pattern>
 
     <!-- Leaf gradient -->
@@ -42,52 +35,52 @@
       <stop offset="100%" stop-color="#64748b"/>
     </linearGradient>
 
-    <!-- Shadow -->
-    <filter id="shadow" x="-50%" y="-50%" width="200%" height="200%">
-      <feDropShadow dx="2" dy="4" stdDeviation="4" flood-color="#000" flood-opacity="0.3"/>
+    <!-- Drop-shadow for 3-D elements -->
+    <filter id="dropShadow" x="-50%" y="-50%" width="200%" height="200%">
+      <feDropShadow dx="2" dy="4" stdDeviation="4" flood-color="#000" flood-opacity="0.25"/>
     </filter>
   </defs>
 
-  <!-- Background circle with paper texture and bevel -->
-  <circle cx="200" cy="200" r="190" fill="#f5f5f0" filter="url(#paper) url(#bevel)"/>
+  <!-- Outer dark ring (bevelled) -->
+  <circle cx="200" cy="200" r="200" fill="#2d3748" filter="url(#bevelRing)"/>
 
-  <!-- Gold coin -->
-  <g transform="translate(200, 250)">
-    <ellipse cx="0" cy="0" rx="55" ry="15" fill="#f4c542" filter="url(#shadow)"/>
-    <ellipse cx="0" cy="-10" rx="55" ry="15" fill="url(#coinPattern)"/>
+  <!-- Inner paper circle -->
+  <circle cx="200" cy="200" r="190" fill="url(#paperTex)"/>
+
+  <!-- Gold coin (3-D) -->
+  <g transform="translate(200,250)">
+    <ellipse cx="0" cy="0" rx="55" ry="15" fill="#f4c542" filter="url(#dropShadow)"/>
+    <ellipse cx="0" cy="-10" rx="55" ry="15" fill="url(#coinPat)"/>
     <ellipse cx="0" cy="-10" rx="55" ry="15" fill="none" stroke="#e8b833" stroke-width="3"/>
-    <ellipse cx="0" cy="-15" rx="48" ry="12" fill="#fcd977" opacity="0.7"/>
+    <ellipse cx="0" cy="-15" rx="48" ry="12" fill="#fcd977" opacity="0.65"/>
   </g>
 
-  <!-- Leaf -->
-  <g transform="translate(200, 185)">
-    <path d="M-5,-65 Q-25,-45 -20,-20 Q-30,0 -5,10 Q20,0 10,-20 Q15,-45 -5,-65" 
-          fill="url(#leafGrad)" filter="url(#shadow)"/>
-    <path d="M-5,-65 Q-5,-45 -5,-20 Q-5,0 -5,10" 
-          fill="none" stroke="#16a34a" stroke-width="3"/>
-    <path d="M-5,-40 Q-15,-35 -12,-25" fill="none" stroke="#86efac" stroke-width="1.5" opacity="0.8"/>
-    <path d="M-5,-40 Q5,-35 2,-25" fill="none" stroke="#86efac" stroke-width="1.5" opacity="0.8"/>
+  <!-- Leaf (exact shape + vein) -->
+  <g transform="translate(200,185)">
+    <path d="M-5,-65 Q-25,-45 -20,-20 Q-30,0 -5,10 Q20,0 10,-20 Q15,-45 -5,-65"
+          fill="url(#leafGrad)" filter="url(#dropShadow)"/>
+    <path d="M-5,-65 Q-5,-45 -5,-20 Q-5,0 -5,10" fill="none" stroke="#16a34a" stroke-width="3"/>
+    <path d="M-5,-40 Q-15,-35 -12,-25" fill="none" stroke="#86efac" stroke-width="1.4" opacity="0.9"/>
+    <path d="M-5,-40 Q 5,-35  2,-25" fill="none" stroke="#86efac" stroke-width="1.4" opacity="0.9"/>
   </g>
 
-  <!-- Curved arrow -->
-  <path d="M200,185 Q240,160 270,170 Q295,185 285,215" 
-        fill="none" stroke="url(#arrowGrad)" stroke-width="12" 
-        stroke-linecap="round" filter="url(#shadow)"/>
-  <path d="M285,215 L275,205 L290,208 Z" 
-        fill="url(#arrowGrad)" filter="url(#shadow)"/>
+  <!-- Curved arrow (exact curve & tip) -->
+  <path d="M200,185 Q240,160 270,170 Q295,185 285,215"
+        fill="none" stroke="url(#arrowGrad)" stroke-width="12" stroke-linecap="round" filter="url(#dropShadow)"/>
+  <path d="M285,215 L275,205 L290,208 Z" fill="url(#arrowGrad)" filter="url(#dropShadow)"/>
 
   <!-- Top curved text -->
   <path id="topPath" d="M80,150 Q200,80 320,150" fill="none"/>
-  <text fill="#1e293b" font-family="Arial, Helvetica, sans-serif" font-size="28" font-weight="bold" letter-spacing="1">
+  <text fill="#1e293b" font-family="Helvetica, Arial, sans-serif" font-size="28" font-weight="700" letter-spacing="0.8">
     <textPath href="#topPath" startOffset="50%" text-anchor="middle">
       Plan your financial future
     </textPath>
   </text>
 
   <!-- Bottom curved text -->
-  <path id="bottomPath" d="M80,250 Q200,320 320,250" fill="none"/>
-  <text fill="#1e293b" font-family="Arial, Helvetica, sans-serif" font-size="26" font-weight="bold" letter-spacing="0.5">
-    <textPath href="#bottomPath" startOffset="50%" text-anchor="middle">
+  <path id="botPath" d="M80,250 Q200,320 320,250" fill="none"/>
+  <text fill="#1e293b" font-family="Helvetica, Arial, sans-serif" font-size="26" font-weight="700" letter-spacing="0.4">
+    <textPath href="#botPath" startOffset="50%" text-anchor="middle">
       with wisdom and discipline
     </textPath>
   </text>
