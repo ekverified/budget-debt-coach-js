@@ -10,8 +10,9 @@
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
   box-sizing: border-box;
   overflow-x: hidden;
+  font-size: 16px; /* Base font size for better readability across devices */
+  line-height: 1.5; /* Improved line height for better text flow */
 }
-
 .header {
   display: flex;
   justify-content: space-between;
@@ -23,19 +24,16 @@
   margin-bottom: 20px;
   font-size: 1.5em;
 }
-
 .header h1 {
   margin: 0;
   font-size: 24px;
   color: white;
 }
-
 .header p {
   margin: 0;
   font-size: 14px;
   opacity: 0.9;
 }
-
 .quote-box {
   text-align: center;
   background-color: #FFF3E0;
@@ -44,15 +42,13 @@
   margin-bottom: 20px;
   font-size: 18px;
   font-style: italic;
-  color: #FFFFFF; /* Changed from #E65100 to white for contrast */
+  color: #E65100; /* Reverted to original for better contrast on light background; white was low contrast */
   animation: blink 2s infinite;
   border: 2px solid #FF9800;
 }
-
 .quote-box strong {
   font-weight: bold;
 }
-
 .section {
   margin-bottom: 30px;
   background-color: white;
@@ -60,22 +56,20 @@
   border-radius: 10px;
   box-shadow: 0 2px 4px rgba(0,0,0,0.1);
 }
-
 .section h2 {
   font-size: 1.2em;
   margin-top: 0;
   margin-bottom: 15px;
   color: #2E7D32;
 }
-
 label {
   display: block;
   margin-bottom: 10px;
   font-size: 0.9em;
+  font-weight: 500; /* Slightly bolder for better hierarchy */
 }
-
 .input-field {
-  padding: 8px;
+  padding: 12px; /* Increased padding for better touch targets on mobile */
   border: 1px solid #81C784;
   border-radius: 5px;
   font-size: 1em;
@@ -83,33 +77,39 @@ label {
   display: inline-block;
   width: 100%; /* Ensure consistent input width */
   max-width: 200px; /* Limit width for better layout */
+  box-sizing: border-box; /* Include padding in width calculations */
+  transition: border-color 0.2s ease; /* Subtle focus transition */
 }
-
+.input-field:focus {
+  outline: none;
+  border-color: #4CAF50; /* Highlight on focus */
+}
 input[type="range"] {
   width: 100%;
   accent-color: #4CAF50; /* Match primary button color */
+  padding: 10px 0; /* Add vertical padding for better slider interaction */
 }
-
 .card-container {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
   gap: 15px;
 }
-
 .card {
   border: 1px solid #A5D6A7;
   margin: 10px 0;
   padding: 15px;
   border-radius: 8px;
   background-color: #f1f8e9;
+  transition: box-shadow 0.2s ease; /* Subtle hover/shadow transition */
 }
-
+.card:hover {
+  box-shadow: 0 4px 8px rgba(0,0,0,0.1); /* Enhanced hover for desktop interactivity */
+}
 .card h3 {
   font-size: 1em;
   margin: 0 0 10px 0;
   color: #388E3C;
 }
-
 .action-button {
   padding: 12px 24px;
   background: #4CAF50;
@@ -119,87 +119,78 @@ input[type="range"] {
   margin: 10px 5px;
   cursor: pointer;
   font-weight: bold;
-  min-height: 44px;
+  min-height: 44px; /* Ensure touch-friendly height on mobile */
   font-size: 0.9em;
+  transition: background-color 0.2s ease, transform 0.1s ease; /* Smooth transitions */
 }
-
 .action-button:hover {
   background: #45a049;
+  transform: translateY(-1px); /* Subtle lift on hover for desktop */
 }
-
+.action-button:active {
+  transform: translateY(0); /* Reset on active/press */
+}
 .primary-button {
   background: #4CAF50;
 }
-
 .primary-button:hover {
   background: #45a049;
 }
-
 .secondary-button {
   background: #0288D1;
 }
-
 .secondary-button:hover {
   background: #0277BD;
 }
-
 .small-button {
   padding: 6px 12px;
   font-size: 0.8em;
   margin: 5px 0;
+  min-height: 36px; /* Minimum touch target for smaller buttons */
 }
-
 .slider-group {
   display: flex;
   flex-wrap: wrap;
   gap: 20px;
 }
-
 .slider-group div {
   flex: 1;
   min-width: 200px;
 }
-
 .slider {
   width: 100%;
   accent-color: #4CAF50;
 }
-
 .input-group {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
   gap: 15px;
 }
-
 .table-container {
   overflow-x: auto;
   margin-bottom: 10px;
+  -webkit-overflow-scrolling: touch; /* Smooth scrolling on iOS */
 }
-
 .table {
   width: 100%;
   border-collapse: collapse;
   border: 1px solid #A5D6A7;
   font-size: 0.85em;
 }
-
 .table th, .table td {
   padding: 8px;
   text-align: left;
   border: 1px solid #A5D6A7;
   white-space: nowrap;
 }
-
 .table th {
   background-color: #C8E6C9;
 }
-
 .chart-container {
   position: relative;
   height: 300px;
   width: 100%;
 }
-
 .advice-box {
   white-space: pre-line;
   font-size: 14px;
@@ -209,13 +200,11 @@ input[type="range"] {
   padding: 15px;
   border-radius: 8px;
 }
-
 .history-list {
   list-style-type: none;
   padding: 0;
   font-size: 0.85em;
 }
-
 .history-item {
   padding: 10px;
   border-bottom: 1px solid #A5D6A7;
@@ -223,15 +212,12 @@ input[type="range"] {
   border-radius: 5px;
   margin: 5px 0;
 }
-
 .history-item strong {
   color: #388E3C;
 }
-
 .progress-section p {
   color: #388E3C;
 }
-
 .progress-bar {
   width: 100%;
   height: 20px;
@@ -239,7 +225,6 @@ input[type="range"] {
   background-color: #A5D6A7;
   accent-color: #4CAF50; /* Match primary button color */
 }
-
 .footer {
   text-align: center;
   margin-top: 40px;
@@ -248,64 +233,133 @@ input[type="range"] {
   color: white;
   border-radius: 10px;
 }
-
 .footer p {
   margin: 0;
   font-size: 16px;
 }
-
 .footer a {
   color: #2196F3;
   text-decoration: none;
   margin-right: 20px;
 }
-
 .footer a:hover {
   text-decoration: underline;
 }
-
 .button-group {
   display: flex;
   justify-content: space-between;
   gap: 10px;
 }
-
 @keyframes blink {
   0%, 50% { opacity: 1; text-shadow: 0 0 5px #FF9800; }
   51%, 100% { opacity: 0.7; text-shadow: none; }
 }
-
 @media (max-width: 768px) {
   .app-container {
-    padding: 5px;
+    padding: 10px; /* Slightly increased from 5px for better breathing room without crowding */
+    font-size: 16px; /* Lock base font size to prevent iOS zoom */
+  }
+  .header {
+    padding: 12px; /* Slightly reduced for mobile header fit */
+    flex-direction: column; /* Stack on very small screens if needed, but keep flex for now */
+    text-align: center;
+    gap: 8px;
   }
   .header h1 {
-    font-size: 1.2em;
+    font-size: 20px; /* Adjusted for mobile header balance */
   }
   .header p {
-    font-size: 0.8em;
+    font-size: 12px; /* Smaller subtitle on mobile */
   }
   .section {
-    padding: 10px;
-    margin-bottom: 15px;
+    padding: 15px; /* Balanced padding for mobile sections */
+    margin-bottom: 20px;
   }
   .section h2 {
     font-size: 1.1em;
+    line-height: 1.3; /* Tighter line height for mobile */
   }
   .input-field {
     font-size: 16px; /* Prevent zoom on iOS */
+    padding: 14px; /* Larger touch target padding */
+    max-width: none; /* Allow full width on mobile inputs */
   }
   .card {
-    padding: 8px;
+    padding: 12px; /* Slightly reduced but still readable */
+    margin: 5px 0;
   }
   .card h3 {
-    font-size: 0.95em;
+    font-size: 1em; /* Keep readable */
   }
   .action-button {
-    padding: 8px 16px;
-    font-size: 0.9em;
-    min-height: 32px;
-    margin: 5px;
+    padding: 14px 20px; /* Larger padding for touch */
+    font-size: 1em; /* Bolder font size for mobile buttons */
+    min-height: 48px; /* Enhanced touch target */
+    width: 100%; /* Full width for better mobile tap */
+    margin: 8px 0;
+  }
+  .small-button {
+    min-height: 40px;
+    width: 100%;
+  }
+  .table {
+    font-size: 0.8em; /* Slightly larger than original 0.75em for readability */
+  }
+  .table th, .table td {
+    padding: 6px; /* Adequate padding without squeezing */
+  }
+  .chart-container {
+    height: 250px;
+  }
+  .advice-box {
+    font-size: 14px; /* Keep readable */
+    padding: 12px;
+  }
+  .history-list {
+    font-size: 0.9em; /* Improved from 0.8em */
+  }
+  .history-item {
+    padding: 8px; /* Balanced */
+    font-size: inherit; /* Inherit for consistency */
+  }
+  .quote-box {
+    font-size: 16px; /* Ensure readable on mobile */
+    padding: 12px;
+  }
+  .input-group {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+  .card-container {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+  .button-group {
+    flex-direction: column;
+    gap: 8px;
+  }
+  .slider-group {
+    flex-direction: column; /* Stack sliders vertically on mobile */
+    gap: 15px;
+  }
+  .slider-group div {
+    min-width: auto;
+  }
+  /* Disable desktop-only hovers on mobile */
+  .card:hover,
+  .action-button:hover {
+    transform: none; /* Remove lift on touch devices */
+  }
+}
+@media (max-width: 480px) {
+  .app-container {
+    padding: 8px;
+  }
+  .header h1 {
+    font-size: 18px;
+  }
+  .section {
+    padding: 12px;
   }
   .table {
     font-size: 0.75em;
@@ -314,41 +368,16 @@ input[type="range"] {
     padding: 4px;
   }
   .chart-container {
-    height: 250px;
-  }
-  .advice-box {
-    font-size: 0.85em;
-  }
-  .history-list {
-    font-size: 0.8em;
-  }
-  .history-item {
-    padding: 3px;
-  }
-  .quote-box {
-    font-size: 0.8em;
-    padding: 8px;
-  }
-  .input-group {
-    grid-template-columns: 1fr;
-  }
-  .card-container {
-    grid-template-columns: 1fr;
-  }
-  .button-group {
-    flex-direction: column;
-  }
-}
-
-@media (max-width: 480px) {
-  .table {
-    font-size: 0.7em;
-  }
-  .chart-container {
     height: 200px;
   }
+  .quote-box {
+    font-size: 14px;
+    padding: 10px;
+  }
+  .action-button {
+    padding: 12px 16px;
+  }
 }
-
 /* New styles for footer icons and golden quote */
 .golden-quote {
   text-align: center;
@@ -361,47 +390,54 @@ input[type="range"] {
   color: #1B263B; /* Changed from gold (#FFD700) to navy blue */
   border: 2px solid #FF9800;
 }
-
 .golden-quote strong {
   font-weight: bold;
 }
-
 .footer-link {
   text-decoration: none;
   margin: 0 10px;
   display: inline-flex;
   align-items: center;
 }
-
 .footer-icon {
   width: 24px;
   height: 24px;
   vertical-align: middle;
   transition: transform 0.2s;
 }
-
 .footer-icon:hover {
   transform: scale(1.2); /* Slight hover effect for interactivity */
 }
-
 .whatsapp-icon {
   fill: #25D366; /* WhatsApp green */
 }
-
 .x-icon {
   fill: #000000; /* X black */
 }
-
 .tiktok-icon {
   fill: #000000; /* TikTok black (simplified, could use gradient for teal/red) */
 }
-
 /* Override footer link color to remove blue text styling for icons */
 .footer a {
   color: transparent; /* Hide text color for icon-only links */
   margin: 0 10px; /* Match .footer-link margin */
 }
-
 .footer a:hover {
   text-decoration: none; /* Remove underline on hover for icons */
+}
+@media (max-width: 768px) {
+  .footer {
+    padding: 15px;
+    margin-top: 20px;
+  }
+  .footer p {
+    font-size: 14px;
+  }
+  .footer-link {
+    margin: 0 8px;
+  }
+  .footer-icon {
+    width: 20px;
+    height: 20px;
+  }
 }
