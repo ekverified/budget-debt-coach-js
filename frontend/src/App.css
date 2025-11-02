@@ -441,7 +441,6 @@ input[type="range"] {
     height: 20px;
   }
 }
-
 /* Dark Mode Overrides */
 .dark,
 .dark-mode {
@@ -452,18 +451,15 @@ input[type="range"] {
   --accent-green: #4CAF50; /* Keep your green for buttons/labels */
   --shadow-light: rgba(255, 255, 255, 0.1); /* Subtle shadows */
 }
-
 html.dark {
   background-color: var(--bg-primary);
   color: var(--text-primary);
 }
-
 .app-container.dark-mode {
   background-color: var(--bg-primary);
   color: var(--text-primary);
   min-height: 100vh;
 }
-
 .dark-mode .header,
 .dark-mode .section,
 .dark-mode .card,
@@ -474,53 +470,55 @@ html.dark {
   color: var(--text-primary);
   border-color: var(--text-secondary);
 }
-
 .dark-mode .header {
   background-color: #2E7D32; /* Darker green for header */
 }
-
 .dark-mode .section h2 {
   color: #81C784; /* Lighter green for headings */
 }
-
 .dark-mode .input-field,
 .dark-mode input[type="range"] {
   background-color: var(--bg-primary);
   color: var(--text-primary);
   border-color: var(--accent-green);
 }
-
 .dark-mode .action-button,
 .dark-mode .primary-button,
 .dark-mode .secondary-button {
   background-color: var(--accent-green);
   color: var(--text-primary);
 }
-
 .dark-mode .action-button:hover {
   background-color: #45a049; /* Slightly darker hover */
 }
-
+.dark-mode .table {
+  border-color: #4CAF50;
+  background-color: var(--bg-secondary);
+}
 .dark-mode .table th {
   background-color: #2E7D32; /* Dark green for table headers */
+  color: var(--text-primary);
 }
-
+.dark-mode .table td {
+  color: var(--text-primary);
+  border-color: #4CAF50;
+}
+.dark-mode .table tr {
+  background-color: inherit;
+}
 .dark-mode .footer {
   background-color: #2E7D32; /* Dark green footer */
 }
-
 .dark-mode .quote-box {
   background-color: #1B5E20; /* Very dark green for quote */
   border-color: #4CAF50;
   color: #E8F5E8; /* Light text for contrast */
 }
-
 .dark-mode .golden-quote {
   background-color: #1B5E20;
   color: #E8F5E8;
   border-color: #FF9800;
 }
-
 /* Ensure charts adapt (if using Chart.js defaults; customize further if needed) */
 .dark-mode .chart-container {
   background-color: var(--bg-secondary);
