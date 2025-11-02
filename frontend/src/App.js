@@ -335,7 +335,7 @@ function App() {
     const highInt = userData.highInterestLoans || 'high-interest loans';
     const saccoRec = finData.saccos[0].name;
     const mmfRec = finData.mmfs[0].name;
-    const fallback = `- First Cure: Start thy purse to fattening - Save 10% in ${saccoRec} (${finData.saccos[0].dividend}%).\n- Second: Control expenditures - Cut non-essentials by 20%, maintain essentials budget.\n- Third: Make gold multiply - Invest cuts in ${mmfRec} at ${finData.mmfs[0].net}% for growth.\n- Fourth: Guard against loss - Use call deposits (e.g., Absa 7.2%, min 150k) for safe returns.\n- Fifth-Seventh: Plan home ownership via SACCO loans, secure retirement, boost income with side hustles.`;
+    const fallback = `- First Cure: Start thy purse to fattening - Save ${userData.savingsPct || 10}% in ${saccoRec} (${finData.saccos[0].dividend}%).\n- Second: Control expenditures - Cut non-essentials by ${Math.min(20, 25 - (userData.householdSize || 1)) }%, maintain essentials budget.\n- Third: Make gold multiply - Invest cuts in ${mmfRec} at ${finData.mmfs[0].net}% for growth.\n- Fourth: Guard against loss - Use call deposits (e.g., Absa 7.2%, min ${ (userData.householdSize || 1) * 50000 } ) for safe returns.\n- Fifth-Seventh: Plan home ownership via SACCO loans, secure retirement, boost income with side hustles.`;
     return tips.length > 0 ? tips.join('\n\n') : fallback;
   }, [enableAI, currency]);
   const handleCalculate = useCallback(async () => {
@@ -528,11 +528,24 @@ function App() {
       let totalPlan = 0;
       const sortedLoans = [...loans].sort((a, b) => b.rate - a.rate).filter(l => l.minPayment > 0);
       const extraForDebt = Math.max(0, localAdjustedDebtBudget - totalMinPayments);
+      let remainingExtra = extraForDebt;
       sortedLoans.forEach((loan, idx) => {
         const minPay = loan.minPayment;
-        const extraPay = idx === 0 ? extraForDebt : 0;
-        const totalPay = minPay + extraPay;
-        const loanNotes = `Pay ${currency} ${totalPay.toLocaleString()} this month (${minPay.toLocaleString()} min + ${extraPay.toLocaleString()} extra). At this rate, full payoff in ${avaMonths} months, saving ${currency} ${avaInterest.toLocaleString()} in interest. Focus here to recover from debt.`;
+        let extraPay = 0;
+        if (remainingExtra > 0 && idx === 0) {  // Apply to highest rate loan first
+          extraPay = Math.min(remainingExtra, Math.max(0, loan.balance - minPay));
+          remainingExtra -= extraPay;
+        }
+        const totalPay = Math.min(minPay + extraPay, loan.balance > 0 ? loan.balance : minPay);
+        let loanNotes = '';
+        if (loan.balance <= totalPay) {
+          const estimatedInterestSaved = loan.balance * (loan.rate / 100 / 12);  // Simple 1-month interest estimate
+          loanNotes = `Pay ${currency} ${totalPay.toLocaleString()} this month (full payoff). Estimated interest saved: ${currency} ${estimatedInterestSaved.toFixed(0)}. Focus here to eliminate debt.`;
+        } else {
+          const approxMonths = Math.ceil((loan.balance - totalPay) / (minPay + (extraPay > 0 ? extraPay : 0))) + 1;
+          const approxInterestSaved = (loan.balance * (loan.rate / 100 / 12)) * approxMonths * 0.8;  // Approximate savings from extra
+          loanNotes = `Pay ${currency} ${totalPay.toLocaleString()} this month (${minPay.toLocaleString()} min + ${extraPay.toLocaleString()} extra). At this rate, full payoff in ~${approxMonths} months, saving ~${currency} ${approxInterestSaved.toFixed(0)} in interest. Focus here to recover from debt.`;
+        }
         plan.push({
           category: 'Loan',
           subcategory: loan.name || `Loan ${idx + 1}`,
@@ -625,7 +638,7 @@ function App() {
         `1. <strong>Start thy purse to fattening</strong>: ${savingsPct >= (hs <= 2 ? 10 : 8) ? `✅ Met - Saving ${savingsPct}%` : `<span style="color:red">❌ Not met</span> - Aim for ${hs <= 2 ? 10 : 8}%`}`,
         `2. <strong>Control thy expenditures</strong>: ${localAdjustedTotalExpenses <= expensesBudget ? `✅ Met - Budget aligned` : `<span style="color:red">❌ Not met</span> - Cut non-essentials`}`,
         `3. <strong>Make thy gold multiply</strong>: ${spareCashLocal > 0 ? `✅ Met - Surplus available` : `<span style="color:red">❌ Not met</span> - Create surplus`}`,
-        `4. <strong>Guard thy treasures from loss</strong>: ✅ Met - Safe investments prioritized`,
+        `4. <strong>Guard thy treasures from loss</strong>: ${spareCashLocal > 0 || loans.length === 0 ? `✅ Met - Safe investments prioritized` : `<span style="color:red">❌ Not met</span> - Prioritize low-risk options`}`,
         `5. <strong>Make thy home a worthwhile investment</strong>: <span style="color:red">❌ Pending</span> - Explore SACCO mortgages`,
         `6. <strong>Ensure a future income</strong>: ${monthsToEmergency < 12 ? `✅ Met - Emergency fund building` : `<span style="color:red">❌ Not met</span> - Build fund`}`,
         `7. <strong>Increase thy ability to earn</strong>: <span style="color:red">❌ Pending</span> - Develop side income`
@@ -1026,7 +1039,7 @@ function App() {
           <h2>Monthly Payment Plan</h2>
           <p style={{ color: '#388E3C' }}>Your optimized monthly plan, prioritizing debt and essentials.</p>
           <div className="table-container">
-            <table className="table">
+            <table className={`table ${theme === 'dark' ? 'dark-table' : ''}`} style={theme === 'dark' ? { color: '#FFFFFF', backgroundColor: '#2C3E50' } : {}}>
               <thead><tr>
                 <th>Category</th>
                 <th>Item</th>
