@@ -40,7 +40,9 @@ function App() {
       const handler = (e) => {
         e.preventDefault();
         setDeferredPrompt(e);
-        setShowInstallPrompt(true);
+        setTimeout(() => {
+          setShowInstallPrompt(true);
+        }, 10000);
       };
       window.addEventListener('beforeinstallprompt', handler);
       return () => {
@@ -67,6 +69,12 @@ function App() {
             if (newWorker.state === 'installed') {
               if (navigator.serviceWorker.controller) {
                 setUpdateAvailable(true);
+                setTimeout(() => {
+                  if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
+                    navigator.serviceWorker.controller.postMessage({ type: 'SKIP_WAITING' });
+                    setUpdateAvailable(false);
+                  }
+                }, 10000);
               }
             }
           });
