@@ -122,6 +122,9 @@ input[type="range"] {
   min-height: 44px; /* Ensure touch-friendly height on mobile */
   font-size: 0.9em;
   transition: background-color 0.2s ease, transform 0.1s ease; /* Smooth transitions */
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 .action-button:hover {
   background: #45a049;
@@ -129,6 +132,11 @@ input[type="range"] {
 }
 .action-button:active {
   transform: translateY(0); /* Reset on active/press */
+}
+.action-button:disabled {
+  background: #9E9E9E;
+  cursor: not-allowed;
+  transform: none;
 }
 .primary-button {
   background: #4CAF50;
@@ -253,6 +261,18 @@ input[type="range"] {
 @keyframes blink {
   0%, 50% { opacity: 1; text-shadow: 0 0 5px #FF9800; }
   51%, 100% { opacity: 0.7; text-shadow: none; }
+}
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+.spinner {
+  border: 2px solid #f3f3f3;
+  border-top: 2px solid #4CAF50;
+  border-radius: 50%;
+  width: 16px;
+  height: 16px;
+  animation: spin 1s linear infinite;
 }
 @media (max-width: 768px) {
   .app-container {
@@ -494,17 +514,22 @@ html.dark {
 .dark-mode .table {
   border-color: #4CAF50;
   background-color: var(--bg-secondary);
+  color: #FFFFFF !important;
 }
 .dark-mode .table th {
   background-color: #2E7D32; /* Dark green for table headers */
-  color: var(--text-primary);
+  color: #FFFFFF !important;
 }
 .dark-mode .table td {
-  color: var(--text-primary);
+  color: #FFFFFF !important;
   border-color: #4CAF50;
 }
 .dark-mode .table tr {
   background-color: inherit;
+  color: #FFFFFF !important;
+}
+.dark-mode .table tr td {
+  color: #FFFFFF !important;
 }
 .dark-mode .footer {
   background-color: #2E7D32; /* Dark green footer */
