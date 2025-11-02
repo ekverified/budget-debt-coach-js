@@ -33,6 +33,10 @@ function App() {
   const [subGoals, setSubGoals] = useState([]);
   const [spareCash, setSpareCash] = useState(0);
   const [updateAvailable, setUpdateAvailable] = useState(false);
+  const [isCalculating, setIsCalculating] = useState(false);
+  const Spinner = () => (
+    <div className="spinner" style={{ display: 'inline-block', marginRight: '8px' }}></div>
+  );
   useEffect(() => {
     const hasSeenPrompt = localStorage.getItem('hasSeenInstallPrompt');
     const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
@@ -339,6 +343,7 @@ function App() {
     return tips.length > 0 ? tips.join('\n\n') : fallback;
   }, [enableAI, currency]);
   const handleCalculate = useCallback(async () => {
+    setIsCalculating(true);
     try {
       if (savingsPct + debtPct + expensesPct !== 100) {
         alert('Percentages must sum to 100%');
@@ -635,7 +640,7 @@ function App() {
       const futureValue = monthlySavingsAdjusted * ((Math.pow(1 + monthlyRate, 12 * years) - 1) / monthlyRate);
       adviceText += `<br><br>Compounding Example: Investing ${currency} ${monthlySavingsAdjusted.toLocaleString()} monthly (total ${currency} ${localAdjustedSavings.toLocaleString()}) at ${finData.mmfs[0].net}% in ${mmfRec} could grow to ${currency} ${futureValue.toLocaleString()} over 5 years.`;
       const curesProgress = [
-        `1. <strong>Start thy purse to fattening</strong>: ${savingsPct >= (hs <= 2 ? 10 : 8) ? `✅ Met - Saving ${savingsPct}%` : `<span style="color:red">❌ Not met</span> - Aim for ${hs <= 2 ? 10 : 8}%`}`,
+        `1. <strong>Start thy purse to fattening</strong>: ${savingsPct >= 10 ? `✅ Met - Saving ${savingsPct}%` : `<span style="color:red">❌ Not met</span> - Aim for 10%`}`,
         `2. <strong>Control thy expenditures</strong>: ${localAdjustedTotalExpenses <= expensesBudget ? `✅ Met - Budget aligned` : `<span style="color:red">❌ Not met</span> - Cut non-essentials`}`,
         `3. <strong>Make thy gold multiply</strong>: ${spareCashLocal > 0 ? `✅ Met - Surplus available` : `<span style="color:red">❌ Not met</span> - Create surplus`}`,
         `4. <strong>Guard thy treasures from loss</strong>: ${spareCashLocal > 0 || loans.length === 0 ? `✅ Met - Safe investments prioritized` : `<span style="color:red">❌ Not met</span> - Prioritize low-risk options`}`,
@@ -695,8 +700,10 @@ function App() {
     } catch (error) {
       console.error('Calculate Error:', error);
       alert(`Calc failed: ${error.message}. Check console. Try disabling AI.`);
+    } finally {
+      setIsCalculating(false);
     }
-  }, [salary, savingsPct, debtPct, expensesPct, householdSize, currency, loans, expenses, emergencyTarget, currentSavings, enableAI, budgetHistory, snowball, avalanche, getFreeAIAdvice, loadFinancialData]);
+  }, [salary, savingsPct, debtPct, expensesPct, householdSize, currency, loans, expenses, emergencyTarget, currentSavings, enableAI, budgetHistory, snowball, avalanche, getFreeAIAdvice, loadFinancialData, isCalculating]);
   const addSurplusToGoal = useCallback(() => {
     const surplus = spareCash || 0;
     if (surplus > 0) {
@@ -789,6 +796,7 @@ function App() {
   const clearHistory = useCallback(() => {
     setBudgetHistory([]);
     setCurrentSavings(0);
+    setSubGoals([]);
     localStorage.removeItem('budgetHistory');
   }, []);
   const badges = useMemo(() => {
@@ -947,7 +955,7 @@ function App() {
         <label style={{ color: '#2E7D32' }} title="Adjust allocation percentages (must sum to 100%)">Customization (%):</label>
         <div className="slider-group">
           <div>
-            <label>Savings: {savingsPct}% (Aim {householdSize <= 2 ? 10 : 8}%+)</label>
+            <label>Savings: {savingsPct}% (Aim 10%+)</label>
             <input type="range" min="0" max="50" value={savingsPct} onChange={(e) => updateSavingsPct(e.target.value)} className="slider" />
           </div>
           <div>
@@ -1015,7 +1023,16 @@ function App() {
           <input type="checkbox" checked={enableAI} onChange={(e) => setEnableAI(e.target.checked)} />
         </label>
         <div className="button-group">
-          <button onClick={handleCalculate} className="action-button primary-button" title="Generate your personalized monthly budget plan">Calculate & Generate Plan</button>
+          <button onClick={handleCalculate} disabled={isCalculating} className="action-button primary-button" title="Generate your personalized monthly budget plan">
+            {isCalculating ? (
+              <>
+                <Spinner />
+                Calculating...
+              </>
+            ) : (
+              'Calculate & Generate Plan'
+            )}
+          </button>
           <button onClick={handleDownloadPDF} className="action-button secondary-button" title="Download the monthly budget report as PDF">Download PDF Report</button>
           <button onClick={downloadHistory} className="action-button secondary-button" title="Download your budget history as a CSV file">Download History CSV</button>
           <button onClick={clearHistory} className="action-button secondary-button" title="Clear all budget history">Clear History</button>
