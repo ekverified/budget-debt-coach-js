@@ -321,7 +321,8 @@ function App() {
     const models = ['distilgpt2', 'gpt2'];
     let tips = [];
     for (const model of models) {
-      const prompt = `Kenyan financial advisor inspired by "The Richest Man in Babylon". Employ all seven cures: Start purse fattening (10% save), control expenditures, make gold multiply (invest wisely), guard against loss (safe options), own home, ensure future income (retirement), increase earning ability (skills/side hustles). For ${userData.householdSize}-member household. Advice: Debt (avalanche method for high-interest), cuts (min ${1000 * userData.householdSize}${currency}/month for essentials), savings (emergency 3-mo scaled for ${userData.householdSize}), invest (MMFs, SACCOs, bonds, call deposits - tie to cures). Data: Salary ${userData.salary}${currency}, Debt ${userData.debtBudget}${currency}, Expenses ${userData.totalExpenses}${currency}. Loans/Expenses: ${JSON.stringify([...userData.loans, ...userData.expenses].slice(0,4))}. Cuts: ${userData.suggestedCuts?.slice(0,100)||'None'}. SACCOs: ${finData.saccos.map(s => `${s.name} ${s.dividend}%`).join(', ')}. Bonds: 10Y ${finData.bonds['10Y']}% . MMFs: ${finData.mmfs.map(m => `${m.name} ${m.net || m.gross}%`).join(', ')}. Call Deposits: ${finData.callDeposits.map(d => `${d.name} ${d.rate}% (min ${currency} ${d.minInvestment.toLocaleString()})`).join(', ')}. Include side hustles suitable for ${userData.householdSize} members, home ownership tips, compound interest example. 5 bullets tying to book cures.`;
+      const minEssentials = (userData.expensesBudget * 0.2).toFixed(0);
+      const prompt = `Kenyan financial advisor inspired by "The Richest Man in Babylon". Employ all seven cures: Start purse fattening (10% save), control expenditures, make gold multiply (invest wisely), guard against loss (safe options), own home, ensure future income (retirement), increase earning ability (skills/side hustles). For ${userData.householdSize}-member household. Advice: Debt (avalanche method for high-interest), cuts (min ${minEssentials}${currency}/month total for essentials), savings (emergency 3-mo scaled for ${userData.householdSize}), invest (MMFs, SACCOs, bonds, call deposits - tie to cures). Data: Salary ${userData.salary}${currency}, Debt ${userData.debtBudget}${currency}, Expenses ${userData.totalExpenses}${currency}. Loans/Expenses: ${JSON.stringify([...userData.loans, ...userData.expenses].slice(0,4))}. Cuts: ${userData.suggestedCuts?.slice(0,100)||'None'}. SACCOs: ${finData.saccos.map(s => `${s.name} ${s.dividend}%`).join(', ')}. Bonds: 10Y ${finData.bonds['10Y']}% . MMFs: ${finData.mmfs.map(m => `${m.name} ${m.net || m.gross}%`).join(', ')}. Call Deposits: ${finData.callDeposits.map(d => `${d.name} ${d.rate}% (min ${currency} ${d.minInvestment.toLocaleString()})`).join(', ')}. Include side hustles suitable for ${userData.householdSize} members, home ownership tips, compound interest example. 5 bullets tying to book cures.`;
       try {
         const response = await fetch(`https://api-inference.huggingface.co/models/${model}`, {
           method: 'POST',
@@ -339,7 +340,8 @@ function App() {
     const highInt = userData.highInterestLoans || 'high-interest loans';
     const saccoRec = finData.saccos[0].name;
     const mmfRec = finData.mmfs[0].name;
-    const fallback = `- First Cure: Start thy purse to fattening - Save ${userData.savingsPct || 10}% in ${saccoRec} (${finData.saccos[0].dividend}%).\n- Second: Control expenditures - Cut non-essentials by ${Math.min(20, 25 - (userData.householdSize || 1)) }%, maintain essentials budget.\n- Third: Make gold multiply - Invest cuts in ${mmfRec} at ${finData.mmfs[0].net}% for growth.\n- Fourth: Guard against loss - Use call deposits (e.g., Absa 7.2%, min ${ (userData.householdSize || 1) * 50000 } ) for safe returns.\n- Fifth-Seventh: Plan home ownership via SACCO loans, secure retirement, boost income with side hustles.`;
+    const dynamicMinDeposit = 50000 * (userData.householdSize || 1);
+    const fallback = `- First Cure: Start thy purse to fattening - Save ${userData.savingsPct || 10}% in ${saccoRec} (${finData.saccos[0].dividend}%).\n- Second: Control expenditures - Cut non-essentials by ${Math.min(20, 25 - (userData.householdSize || 1)) }%, maintain essentials budget.\n- Third: Make gold multiply - Invest cuts in ${mmfRec} at ${finData.mmfs[0].net}% for growth.\n- Fourth: Guard against loss - Use call deposits (e.g., Absa 7.2%, min ${dynamicMinDeposit.toLocaleString()} ) for safe returns.\n- Fifth-Seventh: Plan home ownership via SACCO loans, secure retirement, boost income with side hustles.`;
     return tips.length > 0 ? tips.join('\n\n') : fallback;
   }, [enableAI, currency]);
   const handleCalculate = useCallback(async () => {
@@ -369,11 +371,21 @@ function App() {
       let overageAdvice = '';
       const adjustments = [];
       const expenseAdjustMap = new Map();
-      const baseMinPerPerson = 1000;
-      const nonEssentialMinPerPerson = 500;
-      const householdFactor = 1 + (hs - 1) * 0.2;
-      const minEssentialPerPerson = baseMinPerPerson * householdFactor;
-      const minNonEssentialPerPerson = nonEssentialMinPerPerson * householdFactor;
+      // Dynamic minima based on expensesBudget and household size
+      const baseEssentialFraction = 0.4; // 40% of expenses for core essentials
+      const baseNonEssentialFraction = 0.1; // 10% for non-essentials
+      const minEssentialPerPerson = (expensesBudget * baseEssentialFraction) / hs;
+      const minNonEssentialPerPerson = (expensesBudget * baseNonEssentialFraction) / hs;
+      // Household factors for scaling: linear for food/transport, sqrt for utilities
+      const getHouseholdFactor = (expName) => {
+        const lowerName = expName.toLowerCase();
+        if (lowerName.includes('shopping') || lowerName.includes('food') || lowerName.includes('milk') || lowerName.includes('transport')) {
+          return hs; // Linear scaling
+        } else if (lowerName.includes('kplc') || lowerName.includes('wifi') || lowerName.includes('utility')) {
+          return Math.sqrt(hs); // Diminishing returns for shared
+        }
+        return 1 + (hs - 1) * 0.2; // Default moderate scaling
+      };
       let totalAdjustedOutgo = localAdjustedTotalMinPayments + localAdjustedTotalExpenses + localAdjustedSavings;
       let iteration = 0;
       const maxIterations = 5;
@@ -384,18 +396,22 @@ function App() {
           localAdjustedDebtBudget = localAdjustedTotalMinPayments;
           let coveredFromExpenses = 0;
           const nonEssentialExpenses = expenses.filter(exp => !exp.isEssential);
-          nonEssentialExpenses.forEach(exp => {
-            const minPerPerson = exp.name.toLowerCase().includes('shopping') || exp.name.toLowerCase().includes('food') ? minEssentialPerPerson : minNonEssentialPerPerson;
-            const maxCut = Math.max(0, exp.amount - (minPerPerson * hs));
+          nonEssentialExpenses.forEach((exp, expIndex) => {
+            const key = `${exp.name || `Expense ${expIndex + 1}`}-${expIndex}`;
+            const currentAmount = expenseAdjustMap.get(key) || exp.amount;
+            const householdFactor = getHouseholdFactor(exp.name);
+            const minPerPerson = exp.isEssential ? minEssentialPerPerson : minNonEssentialPerPerson;
+            const minTotal = minPerPerson * householdFactor;
+            const maxCut = Math.max(0, currentAmount - minTotal);
             const cut = Math.min(maxCut * 0.3, debtOverage - coveredFromExpenses);
             if (cut > 0) {
               coveredFromExpenses += cut;
-              expenseAdjustMap.set(exp.name || `Expense ${expenses.indexOf(exp) + 1}`, exp.amount - cut);
+              expenseAdjustMap.set(key, currentAmount - cut);
               adjustments.push({
-                category: exp.name || `Expense ${expenses.indexOf(exp) + 1}`,
-                current: exp.amount,
-                adjusted: exp.amount - cut,
-                suggestion: `Reduced by ${currency} ${cut.toLocaleString()} (up to 30% of excess) to cover debt shortfall, preserving ${currency} ${(minPerPerson * hs).toLocaleString()} minimum for monthly needs`
+                category: exp.name || `Expense ${expIndex + 1}`,
+                current: currentAmount,
+                adjusted: currentAmount - cut,
+                suggestion: `Reduced by ${currency} ${cut.toLocaleString()} (up to 30% of excess) to cover debt shortfall, preserving ${currency} ${minTotal.toLocaleString()} minimum for monthly needs`
               });
             }
           });
@@ -403,7 +419,8 @@ function App() {
           const remainingOverage = debtOverage - coveredFromExpenses;
           if (remainingOverage > 0) {
             const cutFromSavings = Math.min(remainingOverage, localAdjustedSavings * 0.3);
-            localAdjustedSavings = Math.max(salary * (hs <= 2 ? 0.05 : 0.03), localAdjustedSavings - cutFromSavings);
+            const minSavingsPct = hs <= 2 ? 0.05 : 0.03;
+            localAdjustedSavings = Math.max(salary * minSavingsPct, localAdjustedSavings - cutFromSavings);
             adjustments.push({
               category: 'Savings Adjustment for Debt',
               current: localAdjustedSavings + cutFromSavings,
@@ -417,18 +434,22 @@ function App() {
         if (localAdjustedTotalExpenses > expensesBudget) {
           const expOverage = localAdjustedTotalExpenses - expensesBudget;
           const nonEssentialExpenses = expenses.filter(exp => !exp.isEssential).sort((a, b) => b.amount - a.amount);
-          nonEssentialExpenses.forEach(exp => {
-            const minPerPerson = exp.name.toLowerCase().includes('shopping') || exp.name.toLowerCase().includes('food') ? minEssentialPerPerson : minNonEssentialPerPerson;
-            const maxCut = Math.max(0, (expenseAdjustMap.get(exp.name || `Expense ${expenses.indexOf(exp) + 1}`) || exp.amount) - (minPerPerson * hs));
+          nonEssentialExpenses.forEach((exp, expIndex) => {
+            const key = `${exp.name || `Expense ${expIndex + 1}`}-${expIndex}`;
+            const currentAmount = expenseAdjustMap.get(key) || exp.amount;
+            const householdFactor = getHouseholdFactor(exp.name);
+            const minPerPerson = exp.isEssential ? minEssentialPerPerson : minNonEssentialPerPerson;
+            const minTotal = minPerPerson * householdFactor;
+            const maxCut = Math.max(0, currentAmount - minTotal);
             const cut = Math.min(maxCut * 0.3, expOverage - cutAmount);
             if (cut > 0) {
               cutAmount += cut;
-              expenseAdjustMap.set(exp.name || `Expense ${expenses.indexOf(exp) + 1}`, (expenseAdjustMap.get(exp.name || `Expense ${expenses.indexOf(exp) + 1}`) || exp.amount) - cut);
+              expenseAdjustMap.set(key, currentAmount - cut);
               adjustments.push({
-                category: exp.name || `Expense ${expenses.indexOf(exp) + 1}`,
-                current: exp.amount,
-                adjusted: (expenseAdjustMap.get(exp.name || `Expense ${expenses.indexOf(exp) + 1}`) || exp.amount) - cut,
-                suggestion: `Reduced by ${currency} ${cut.toLocaleString()} (up to 30% of excess) to fit 70% expenses allocation, ensuring ${currency} ${(minPerPerson * hs).toLocaleString()} minimum for monthly needs`
+                category: exp.name || `Expense ${expIndex + 1}`,
+                current: currentAmount,
+                adjusted: currentAmount - cut,
+                suggestion: `Reduced by ${currency} ${cut.toLocaleString()} (up to 30% of excess) to fit 70% expenses allocation, ensuring ${currency} ${minTotal.toLocaleString()} minimum for monthly needs`
               });
             }
           });
@@ -437,17 +458,21 @@ function App() {
           overageAdvice += `Expense cuts saved ${currency} ${cutAmount.toLocaleString()}. `;
         }
         if (deficit > 0) {
-          const remainingNonEssentials = expenses.filter(exp => !exp.isEssential && (expenseAdjustMap.get(exp.name || `Expense ${expenses.indexOf(exp) + 1}`) || exp.amount) > (minNonEssentialPerPerson * hs));
+          const remainingNonEssentials = expenses.filter(exp => !exp.isEssential);
           let extraCutNeeded = deficit;
-          remainingNonEssentials.forEach(exp => {
-            const currentAmount = expenseAdjustMap.get(exp.name || `Expense ${expenses.indexOf(exp) + 1}`) || exp.amount;
-            const extraCut = Math.min(currentAmount * 0.2, extraCutNeeded);
-            if (extraCut > 0) {
-              expenseAdjustMap.set(exp.name || `Expense ${expenses.indexOf(exp) + 1}`, currentAmount - extraCut);
+          remainingNonEssentials.forEach((exp, expIndex) => {
+            const key = `${exp.name || `Expense ${expIndex + 1}`}-${expIndex}`;
+            const currentAmount = expenseAdjustMap.get(key) || exp.amount;
+            const householdFactor = getHouseholdFactor(exp.name);
+            const minPerPerson = exp.isEssential ? minEssentialPerPerson : minNonEssentialPerPerson;
+            const minTotal = minPerPerson * householdFactor;
+            const extraCut = Math.min((currentAmount - minTotal) * 0.2, extraCutNeeded);
+            if (extraCut > 0 && currentAmount > minTotal) {
+              expenseAdjustMap.set(key, currentAmount - extraCut);
               localAdjustedTotalExpenses -= extraCut;
               extraCutNeeded -= extraCut;
               adjustments.push({
-                category: `Balance Cut - ${exp.name || `Expense ${expenses.indexOf(exp) + 1}`}`,
+                category: `Balance Cut - ${exp.name || `Expense ${expIndex + 1}`}`,
                 current: currentAmount,
                 adjusted: currentAmount - extraCut,
                 suggestion: `Additional reduction of ${currency} ${extraCut.toLocaleString()} (20% of current) to eliminate deficit and reflect earnings in budget`
@@ -456,8 +481,9 @@ function App() {
           });
         }
         if (deficit > 0) {
-          const savingsCut = Math.min(deficit, localAdjustedSavings - (salary * (hs <= 2 ? 0.05 : 0.03)));
-          localAdjustedSavings = Math.max(salary * (hs <= 2 ? 0.05 : 0.03), localAdjustedSavings - savingsCut);
+          const minSavingsPct = hs <= 2 ? 0.05 : 0.03;
+          const savingsCut = Math.min(deficit, localAdjustedSavings - (salary * minSavingsPct));
+          localAdjustedSavings = Math.max(salary * minSavingsPct, localAdjustedSavings - savingsCut);
           if (savingsCut > 0) {
             adjustments.push({
               category: 'Savings Adjustment for Deficit',
@@ -489,9 +515,10 @@ function App() {
       const spareCashLocal = Math.max(0, salary - totalAdjustedOutgo);
       setSpareCash(spareCashLocal);
       if (totalAdjustedOutgo > salary * 0.95) {
-        localAdjustedSavings = Math.max(localAdjustedSavings, salary * (hs <= 2 ? 0.05 : 0.03));
+        const minSavingsPct = hs <= 2 ? 0.05 : 0.03;
+        localAdjustedSavings = Math.max(localAdjustedSavings, salary * minSavingsPct);
         setAdjustedSavings(localAdjustedSavings);
-        overageAdvice += `Enforced ${hs <= 2 ? 5 : 3}% savings (${currency} ${localAdjustedSavings.toLocaleString()}). `;
+        overageAdvice += `Enforced ${minSavingsPct * 100}% savings (${currency} ${localAdjustedSavings.toLocaleString()}). `;
       }
       const { months: snowMonths, totalInterest: snowInterest } = snowball(loans, localAdjustedDebtBudget);
       const { months: avaMonths, totalInterest: avaInterest } = avalanche(loans, localAdjustedDebtBudget);
@@ -519,9 +546,10 @@ function App() {
       }
       adviceText += `<br><br>Total monthly outflow: ${currency} ${totalAdjustedOutgo.toLocaleString()} vs Salary ${currency} ${salary.toLocaleString()}.`;
       const monthlyExpensesForEmergency = Math.max(localAdjustedTotalExpenses, (minEssentialPerPerson * hs * expenses.length) / 2);
+      const householdFactor = 1 + (hs - 1) * 0.2;
       const threeMonthTarget = Math.max(emergencyTarget, monthlyExpensesForEmergency * 3 * householdFactor);
       const monthsToEmergency = localAdjustedSavings > 0 ? Math.ceil((threeMonthTarget - currentSavings) / localAdjustedSavings) : 0;
-      const thisMonthAdd = Math.min(spareCashLocal, 1000 * hs);
+      const thisMonthAdd = Math.min(spareCashLocal, (minEssentialPerPerson * hs));
       adviceText += `<br><br>Emergency Fund: Target ${currency} ${threeMonthTarget.toLocaleString()} (3 months of expenses, scaled for household). Current: ${currency} ${currentSavings.toLocaleString()}. Projected reach: ~${monthsToEmergency} months. Contribute ${currency} ${thisMonthAdd.toLocaleString()} this month to a SACCO.`;
       const saccoRec = finData.saccos[0].name;
       const bondYield = finData.bonds['10Y'];
@@ -537,18 +565,18 @@ function App() {
       sortedLoans.forEach((loan, idx) => {
         const minPay = loan.minPayment;
         let extraPay = 0;
-        if (remainingExtra > 0 && idx === 0) {  // Apply to highest rate loan first
+        if (remainingExtra > 0 && idx === 0) { // Apply to highest rate loan first
           extraPay = Math.min(remainingExtra, Math.max(0, loan.balance - minPay));
           remainingExtra -= extraPay;
         }
         const totalPay = Math.min(minPay + extraPay, loan.balance > 0 ? loan.balance : minPay);
         let loanNotes = '';
         if (loan.balance <= totalPay) {
-          const estimatedInterestSaved = loan.balance * (loan.rate / 100 / 12);  // Simple 1-month interest estimate
+          const estimatedInterestSaved = loan.balance * (loan.rate / 100 / 12); // Simple 1-month interest estimate
           loanNotes = `Pay ${currency} ${totalPay.toLocaleString()} this month (full payoff). Estimated interest saved: ${currency} ${estimatedInterestSaved.toFixed(0)}. Focus here to eliminate debt.`;
         } else {
           const approxMonths = Math.ceil((loan.balance - totalPay) / (minPay + (extraPay > 0 ? extraPay : 0))) + 1;
-          const approxInterestSaved = (loan.balance * (loan.rate / 100 / 12)) * approxMonths * 0.8;  // Approximate savings from extra
+          const approxInterestSaved = (loan.balance * (loan.rate / 100 / 12)) * approxMonths * 0.8; // Approximate savings from extra
           loanNotes = `Pay ${currency} ${totalPay.toLocaleString()} this month (${minPay.toLocaleString()} min + ${extraPay.toLocaleString()} extra). At this rate, full payoff in ~${approxMonths} months, saving ~${currency} ${approxInterestSaved.toFixed(0)} in interest. Focus here to recover from debt.`;
         }
         plan.push({
@@ -561,16 +589,20 @@ function App() {
         totalPlan += totalPay;
       });
       expenses.forEach((exp, idx) => {
-        const adjAmount = expenseAdjustMap.get(exp.name || `Expense ${idx + 1}`) || exp.amount;
+        const key = `${exp.name || `Expense ${idx + 1}`}-${idx}`;
+        const adjAmount = expenseAdjustMap.get(key) || exp.amount;
         let expNotes = '';
+        const householdFactor = getHouseholdFactor(exp.name);
+        const minPerPerson = exp.isEssential ? minEssentialPerPerson : minNonEssentialPerPerson;
+        const minTotal = minPerPerson * householdFactor;
         if (exp.name.toLowerCase().includes('shopping') || exp.name.toLowerCase().includes('food')) {
-          expNotes = `Allocate ${currency} ${adjAmount.toLocaleString()}; plan weekly bulk buys at market to stretch budget and control spending.`;
+          expNotes = `Allocate ${currency} ${adjAmount.toLocaleString()}; plan weekly bulk buys at market to stretch budget and control spending for ${hs} people (min ${currency} ${minTotal.toLocaleString()}).`;
         } else if (exp.name.toLowerCase().includes('rent')) {
           expNotes = `Pay ${currency} ${adjAmount.toLocaleString()}; negotiate with landlord if possible to reduce future costs.`;
         } else if (exp.name.toLowerCase().includes('fee') || exp.name.toLowerCase().includes('transport')) {
-          expNotes = `Budget ${currency} ${adjAmount.toLocaleString()}; use public options or carpool to minimize.`;
+          expNotes = `Budget ${currency} ${adjAmount.toLocaleString()}; use public options or carpool to minimize for ${hs} people (min ${currency} ${minTotal.toLocaleString()}).`;
         } else {
-          expNotes = `Set aside ${currency} ${adjAmount.toLocaleString()}; track usage weekly to ensure it fits within 70% expenses goal.`;
+          expNotes = `Set aside ${currency} ${adjAmount.toLocaleString()}; track usage weekly to ensure it fits within 70% expenses goal (scaled for ${hs}).`;
         }
         if (!exp.isEssential) {
           expNotes += ` Monitor closely to free up more for debt recovery.`;
@@ -584,7 +616,7 @@ function App() {
         });
         totalPlan += adjAmount;
       });
-      const savingsNotes = `Transfer ${currency} ${localAdjustedSavings.toLocaleString()} immediately to a SACCO or MMF (e.g., Madison at 11%) to start your savings journey and build toward emergency fund.`;
+      const savingsNotes = `Transfer ${currency} ${localAdjustedSavings.toLocaleString()} immediately to a SACCO or MMF (e.g., Madison at 11%) to start your savings journey and build toward emergency fund (scaled for ${hs}).`;
       plan.push({
         category: 'Savings',
         subcategory: 'Emergency/Investments',
@@ -636,7 +668,7 @@ function App() {
       const annualRate = finData.mmfs[0].net / 100;
       const monthlyRate = annualRate / 12;
       const years = 5;
-      const monthlySavingsAdjusted = localAdjustedSavings / Math.max(1, hs);
+      const monthlySavingsAdjusted = localAdjustedSavings; // Total household, not per person
       const futureValue = monthlySavingsAdjusted * ((Math.pow(1 + monthlyRate, 12 * years) - 1) / monthlyRate);
       adviceText += `<br><br>Compounding Example: Investing ${currency} ${monthlySavingsAdjusted.toLocaleString()} monthly (total ${currency} ${localAdjustedSavings.toLocaleString()}) at ${finData.mmfs[0].net}% in ${mmfRec} could grow to ${currency} ${futureValue.toLocaleString()} over 5 years.`;
       const curesProgress = [
@@ -731,9 +763,10 @@ function App() {
       const annualRate = mmfYield / 100;
       const monthlyRate = annualRate / 12;
       const years = 5;
-      const monthlySavingsAdjusted = adjustedSavings / Math.max(1, hs);
+      const monthlySavingsAdjusted = adjustedSavings; // Total
       const futureValue = monthlySavingsAdjusted * ((Math.pow(1 + monthlyRate, 12 * years) - 1) / monthlyRate);
-      let aiTip = advice.split('AI-Generated Insights')[1]?.split('<br>')[0] || '';
+      const aiTipMatch = advice.match(/AI-Generated Insights:<\/br>([\s\S]*?)(<br>|$)/);
+      let aiTip = aiTipMatch ? aiTipMatch[1].trim() : '';
       const doc = new jsPDF();
       let yPos = 10;
       doc.setFontSize(12);
