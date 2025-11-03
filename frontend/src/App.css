@@ -521,6 +521,7 @@ html.dark {
   color: #FFFFFF !important;
 }
 .dark-mode .table td {
+  background-color: var(--bg-secondary);
   color: #FFFFFF !important;
   border-color: #4CAF50;
 }
