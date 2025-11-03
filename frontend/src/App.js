@@ -305,13 +305,13 @@ function App() {
           { name: 'Port DT Sacco', dividend: 20, note: 'Tier 1, assets KSh10.54B' },
           { name: 'Yetu Sacco', dividend: 19, note: 'Assets grew to KSh7.86B' }
         ],
-        bonds: { 
-          '10Y': 13.13, 
-          tBills: { 
-            '91-day': 7.8095, 
-            '182-day': 7.9000, 
-            '364-day': 9.3404 
-          } 
+        bonds: {
+          '10Y': 13.13,
+          tBills: {
+            '91-day': 7.8095,
+            '182-day': 7.9000,
+            '364-day': 9.3404
+          }
         },
         mmfs: [
           { name: 'Cytonn', net: 16.80, note: 'Top yield from Vasili July 2024 data' },
@@ -465,31 +465,37 @@ function App() {
   const avalanche = useCallback((loans, extra) => simulate(loans, extra, (a, b) => b.rate - a.rate), [simulate]);
   const getFreeAIAdvice = useCallback(async (userData, finData) => {
     if (!enableAI) return '';
-    const models = ['distilgpt2', 'gpt2'];
-    let tips = [];
-    for (const model of models) {
-      const minEssentials = (userData.expensesBudget * 0.2).toFixed(0);
-      const prompt = `Kenyan financial advisor inspired by "The Richest Man in Babylon". Employ all seven cures: Start purse fattening (10% save), control expenditures, make gold multiply (invest wisely), guard against loss (safe options), own home, ensure future income (retirement), increase earning ability (skills/side hustles). For ${userData.householdSize}-member household. Advice: Debt (avalanche method for high-interest), cuts (min ${minEssentials}${currency}/month total for essentials), savings (emergency 3-mo scaled for ${userData.householdSize}), invest (MMFs, SACCOs, bonds, call deposits - tie to cures). Data: Salary ${userData.salary}${currency}, Debt ${userData.debtBudget}${currency}, Expenses ${userData.totalExpenses}${currency}. Loans/Expenses: ${JSON.stringify([...userData.loans, ...userData.expenses].slice(0,4))}. Cuts: ${userData.suggestedCuts?.slice(0,100)||'None'}. SACCOs: ${finData.saccos.map(s => `${s.name} ${s.dividend}%`).join(', ')}. Bonds: 10Y ${finData.bonds['10Y']}% . MMFs: ${finData.mmfs.map(m => `${m.name} ${m.net || m.gross}%`).join(', ')}. Call Deposits: ${finData.callDeposits.map(d => `${d.name} ${d.rate}% (min ${currency} ${d.minInvestment.toLocaleString()})`).join(', ')}. Include side hustles suitable for ${userData.householdSize} members, home ownership tips, compound interest example. 5 bullets tying to book cures.`;
-      try {
-        const response = await fetch(`https://api-inference.huggingface.co/models/${model}`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ inputs: prompt, parameters: { max_new_tokens: 150, temperature: 0.7 } })
-        });
-        if (!response.ok) throw new Error(`HTTP ${response.status}`);
-        const data = await response.json();
-        const tip = data[0]?.generated_text?.split('Output:')[1]?.trim() || data[0]?.generated_text?.trim() || '';
-        tips.push(tip);
-      } catch (error) {
-        console.error('AI Error:', error);
-      }
+    const apiKey = process.env.REACT_APP_OPENAI_API_KEY || 'YOUR_OPENAI_API_KEY_HERE'; // Set your OpenAI API key in .env as REACT_APP_OPENAI_API_KEY
+    const today = new Date().toLocaleDateString();
+    const minEssentials = (userData.expensesBudget * 0.2).toFixed(0);
+    const prompt = `Current date: ${today}. Kenyan financial advisor inspired by "The Richest Man in Babylon". Employ all seven cures: Start purse fattening (10% save), control expenditures, make gold multiply (invest wisely), guard against loss (safe options), own home, ensure future income (retirement), increase earning ability (skills/side hustles). For ${userData.householdSize}-member household. Fetch and incorporate the most up-to-date real financial data available in your knowledge for Kenya (e.g., current SACCO dividends, bond yields, MMF rates, deposit rates as of ${today}). Advice: Debt (avalanche method for high-interest), cuts (min ${minEssentials}${currency}/month total for essentials), savings (emergency 3-mo scaled for ${userData.householdSize}), invest (MMFs, SACCOs, bonds, call deposits - tie to cures). Data: Salary ${userData.salary}${currency}, Debt ${userData.debtBudget}${currency}, Expenses ${userData.totalExpenses}${currency}. Loans/Expenses: ${JSON.stringify([...userData.loans, ...userData.expenses].slice(0,4))}. Cuts: ${userData.suggestedCuts?.slice(0,100)||'None'}. SACCOs: ${finData.saccos.map(s => `${s.name} ${s.dividend}%`).join(', ')}. Bonds: 10Y ${finData.bonds['10Y']}% . MMFs: ${finData.mmfs.map(m => `${m.name} ${m.net || m.gross}%`).join(', ')}. Call Deposits: ${finData.callDeposits.map(d => `${d.name} ${d.rate}% (min ${currency} ${d.minInvestment.toLocaleString()})`).join(', ')}. Include side hustles suitable for ${userData.householdSize} members, home ownership tips, compound interest example. 5 bullets tying to book cures.`;
+    try {
+      const response = await fetch('https://api.openai.com/v1/chat/completions', {
+        method: 'POST',
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${apiKey}`
+        },
+        body: JSON.stringify({ 
+          model: 'gpt-3.5-turbo',
+          messages: [{ role: 'user', content: prompt }],
+          max_tokens: 300,
+          temperature: 0.7 
+        })
+      });
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
+      const data = await response.json();
+      const tip = data.choices[0]?.message?.content?.trim() || '';
+      return tip;
+    } catch (error) {
+      console.error('OpenAI Error:', error);
+      const highInt = userData.highInterestLoans || 'high-interest loans';
+      const saccoRec = finData.saccos[0].name;
+      const mmfRec = finData.mmfs[0].name;
+      const dynamicMinDeposit = 50000 * (userData.householdSize || 1);
+      const fallback = `- First Cure: Start thy purse to fattening - Save ${userData.savingsPct || 10}% in ${saccoRec} (${finData.saccos[0].dividend}%).\n- Second: Control expenditures - Cut non-essentials by ${Math.min(20, 25 - (userData.householdSize || 1)) }%, maintain essentials budget.\n- Third: Make gold multiply - Invest cuts in ${mmfRec} at ${finData.mmfs[0].net}% for growth.\n- Fourth: Guard against loss - Use call deposits (e.g., Absa 7.2%, min ${dynamicMinDeposit.toLocaleString()} ) for safe returns.\n- Fifth-Seventh: Plan home ownership via SACCO loans, secure retirement, boost income with side hustles.`;
+      return fallback;
     }
-    const highInt = userData.highInterestLoans || 'high-interest loans';
-    const saccoRec = finData.saccos[0].name;
-    const mmfRec = finData.mmfs[0].name;
-    const dynamicMinDeposit = 50000 * (userData.householdSize || 1);
-    const fallback = `- First Cure: Start thy purse to fattening - Save ${userData.savingsPct || 10}% in ${saccoRec} (${finData.saccos[0].dividend}%).\n- Second: Control expenditures - Cut non-essentials by ${Math.min(20, 25 - (userData.householdSize || 1)) }%, maintain essentials budget.\n- Third: Make gold multiply - Invest cuts in ${mmfRec} at ${finData.mmfs[0].net}% for growth.\n- Fourth: Guard against loss - Use call deposits (e.g., Absa 7.2%, min ${dynamicMinDeposit.toLocaleString()} ) for safe returns.\n- Fifth-Seventh: Plan home ownership via SACCO loans, secure retirement, boost income with side hustles.`;
-    return tips.length > 0 ? tips.join('\n\n') : fallback;
   }, [enableAI, currency]);
   const handleCalculate = useCallback(async () => {
     setIsCalculating(true);
