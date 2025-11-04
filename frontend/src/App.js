@@ -34,37 +34,9 @@ function App() {
   const [spareCash, setSpareCash] = useState(0);
   const [updateAvailable, setUpdateAvailable] = useState(false);
   const [isCalculating, setIsCalculating] = useState(false);
-  const [showAdmin, setShowAdmin] = useState(false);
-  const [adminPassword, setAdminPassword] = useState('');
-  const [adminData, setAdminData] = useState(null);
-  const [user, setUser] = useState(null); // For Firebase auth
   const Spinner = () => (
     <div className="spinner" style={{ display: 'inline-block', marginRight: '8px' }}></div>
   );
-  // Firebase User Logging - DISABLED FOR BUILD
-  useEffect(() => {
-    // signInAnonymously(auth).then(cred => {
-    //   setUser(cred.user);
-    //   const logAction = async (action, details = {}) => {
-    //     if (!cred.user) return;
-    //     try {
-    //       await addDoc(collection(db, 'userLogs'), {
-    //         uid: cred.user.uid,
-    //         timestamp: new Date(),
-    //         action,
-    //         details,
-    //         date: new Date().toISOString().slice(0, 10)
-    //       });
-    //     } catch (error) {
-    //       console.error('Log failed:', error);
-    //     }
-    //   };
-    //   logAction('app_open', { currency, householdSize: parseInt(householdSize) || 1 });
-    //   // Make logAction available globally for other hooks
-    //   window.logAction = logAction;
-    // }).catch(error => console.error('Auth failed:', error));
-    console.log('App opened - Logging disabled');
-  }, [currency, householdSize]);
   useEffect(() => {
     const hasSeenPrompt = localStorage.getItem('hasSeenInstallPrompt');
     const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
@@ -151,6 +123,7 @@ function App() {
         const parsed = JSON.parse(savedHistory);
         if (parsed && parsed.length > 0) {
           setBudgetHistory(parsed);
+          // Update currentSavings from latest history entry if available
           const latest = parsed[parsed.length - 1];
           if (latest && latest.currentSavings) {
             setCurrentSavings(latest.currentSavings);
@@ -197,73 +170,6 @@ function App() {
     localStorage.setItem('theme', theme);
     document.documentElement.classList.toggle('dark', theme === 'dark');
   }, [theme]);
-  // Loan Reminders
-  useEffect(() => {
-    const checkLoanReminders = () => {
-      if (loans.length === 0) return;
-      const today = new Date();
-      const threeDaysFromNow = new Date(today);
-      threeDaysFromNow.setDate(today.getDate() + 3);
-      const pendingLoans = loans.filter(loan => {
-        if (!loan.nextPaymentDate) return false;
-        const dueDate = new Date(loan.nextPaymentDate);
-        return dueDate >= today && dueDate <= threeDaysFromNow;
-      });
-      if (pendingLoans.length > 0) {
-        if ('Notification' in window && Notification.permission === 'granted') {
-          pendingLoans.forEach(loan => {
-            new Notification(`Loan Reminder: ${loan.name}`, {
-              body: `Due on ${loan.nextPaymentDate} for ${currency} ${loan.monthlyInstallment.toLocaleString()}. Lender: ${loan.lender}`,
-              icon: '/icon-192x192.png',
-            });
-          });
-        } else if (Notification.permission !== 'denied') {
-          Notification.requestPermission().then(permission => {
-            if (permission === 'granted') checkLoanReminders();
-          });
-        }
-        alert(`Pending loans: ${pendingLoans.map(l => `${l.name} due ${l.nextPaymentDate}`).join(', ')}`);
-      }
-    };
-    checkLoanReminders();
-    const interval = setInterval(checkLoanReminders, 24 * 60 * 60 * 1000);
-    return () => clearInterval(interval);
-  }, [loans, currency]);
-  // Admin Data Fetch - DISABLED FOR BUILD
-  const fetchAdminData = useCallback(async () => {
-    if (!user) return;
-    try {
-      // const q = query(
-      //   collection(db, 'userLogs'),
-      //   where('date', '>=', '2025-10-05'),
-      //   orderBy('timestamp', 'desc')
-      // );
-      // const snapshot = await getDocs(q);
-      // const logs = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-      // const uniqueUsers = [...new Set(logs.map(l => l.uid))].length;
-      // const actionCounts = logs.reduce((acc, l) => {
-      //   acc[l.action] = (acc[l.action] || 0) + 1;
-      //   return acc;
-      // }, {});
-      // const topActions = Object.entries(actionCounts)
-      //   .sort((a, b) => b[1] - a[1])
-      //   .slice(0, 3)
-      //   .map(([a]) => a);
-      // const issues = logs.filter(l => l.action === 'failed_transaction' || l.action === 'user_stuck');
-      // setAdminData({ userCount: uniqueUsers, topActions, logs: logs.slice(0, 50), issues });
-      console.log('Admin data fetch disabled');
-      setAdminData({ userCount: 0, topActions: [], logs: [], issues: [] });
-    } catch (error) {
-      console.error('Admin fetch failed:', error);
-    }
-  }, [user]);
-  const handleAdminLogin = () => {
-    if (adminPassword === 'your-secret-password') { // Change this!
-      fetchAdminData();
-    } else {
-      alert('Wrong password!');
-    }
-  };
   // Fully Dynamic: No placeholders; parses raw responses into structure
   const loadFinancialData = useCallback(async () => {
     const cacheKey = 'financialDataCache';
@@ -271,10 +177,11 @@ function App() {
     const now = Date.now();
     const cached = localStorage.getItem(cacheKey);
     const expiry = localStorage.getItem(cacheExpiry);
-    if (cached && expiry && now - parseInt(expiry) < 60000) {
+    if (cached && expiry && now - parseInt(expiry) < 60000) { // 1-min cache for performance
       return JSON.parse(cached);
     }
     try {
+      // Parallel fetches to real endpoints with HTML parsing
       const proxyUrl = 'https://api.allorigins.win/raw?url=';
       const [saccosRes, bondsRes, mmfsRes, depositsRes] = await Promise.all([
         fetch(proxyUrl + encodeURIComponent('https://www.money254.co.ke/post/saccos-with-the-highest-dividends-so-far-announced-in-2025-info'))
@@ -282,7 +189,7 @@ function App() {
           .then(html => {
             const parser = new DOMParser();
             const doc = parser.parseFromString(html, 'text/html');
-            const items = doc.querySelectorAll('.post-content p');
+            const items = doc.querySelectorAll('.post-content p'); // Adjust selector as needed
             const saccos = Array.from(items).slice(0, 3).map((el, i) => {
               const text = el.textContent;
               const rateMatch = text.match(/(\d+)%/);
@@ -300,7 +207,7 @@ function App() {
             const parser = new DOMParser();
             const doc = parser.parseFromString(html, 'text/html');
             const rows = doc.querySelectorAll('table tr');
-            const tBills = { '91-day': 7.8095, '182-day': 7.9000, '364-day': 9.3404 };
+            const tBills = { '91-day': 7.8095, '182-day': 7.9000, '364-day': 9.3404 }; // From latest data
             rows.forEach(row => {
               const cells = row.querySelectorAll('td');
               if (cells.length >= 2) {
@@ -318,7 +225,7 @@ function App() {
           .then(html => {
             const parser = new DOMParser();
             const doc = parser.parseFromString(html, 'text/html');
-            const items = doc.querySelectorAll('.fund-item');
+            const items = doc.querySelectorAll('.fund-item'); // Adjust selector
             const mmfs = Array.from(items).slice(0, 3).map((el, i) => {
               const text = el.textContent;
               const rateMatch = text.match(/(\d+\.?\d*)%/);
@@ -335,7 +242,7 @@ function App() {
           .then(html => {
             const parser = new DOMParser();
             const doc = parser.parseFromString(html, 'text/html');
-            const rates = doc.querySelectorAll('.rate-item');
+            const rates = doc.querySelectorAll('.rate-item'); // Adjust for list
             const deposits = Array.from(rates).slice(0, 3).map((el, i) => {
               const text = el.textContent;
               const rateMatch = text.match(/(\d+\.?\d*)%/);
@@ -349,12 +256,14 @@ function App() {
             return { data: deposits };
           })
       ]);
+      // Parse SACCOs: Expect array like [{name: 'Tower Sacco', rate: 20, description: '...'}]
       const saccos = (saccosRes.data || saccosRes || []).slice(0, 3).map(s => ({
         name: (s.name || `Top SACCO ${saccosRes.data?.indexOf(s) + 1}`).trim(),
         dividend: parseFloat(s.rate || s.dividend || 0) || 0,
         members: s.members || 'N/A',
         note: (s.description || s.note || `Dividend: ${s.rate || 0}%`).substring(0, 100)
-      })).filter(s => s.dividend > 0);
+      })).filter(s => s.dividend > 0); // Validate: Only include valid rates
+      // Parse Bonds: Expect {yields: {10Y: 13.00, tBills: {91: 7.81, ...}}, date: '...'}
       const bonds = {
         '10Y': parseFloat(bondsRes.yields?.['10Y'] || bondsRes['10Y'] || 0) || 0,
         tBills: {
@@ -363,28 +272,33 @@ function App() {
           '364-day': parseFloat(bondsRes.yields?.tBills?.['364-day'] || bondsRes.tBills?.['364'] || 0) || 0
         }
       };
+      // Parse MMFs: Expect array like [{fund: 'Madison', ear: 11.00, note: '...'}]
       const mmfs = (mmfsRes.data || mmfsRes || []).slice(0, 3).map((m, i) => ({
         name: (m.fund || m.name || `Top MMF ${i + 1}`).trim(),
         net: parseFloat(m.ear || m.yield || m.net || 0) || 0,
         note: (m.description || m.note || `Yield: ${m.ear || 0}%`).substring(0, 100)
       })).filter(m => m.net > 0);
+      // Parse Call Deposits: Expect array like [{bank: 'KCB', rate: 6.30, min: 300000, note: '...'}]
       const callDeposits = (depositsRes.data || depositsRes || []).slice(0, 3).map(d => ({
         name: (d.bank || d.name || `Top Bank ${depositsRes.data?.indexOf(d) + 1}`).trim(),
         rate: parseFloat(d.rate || d.yield || 0) || 0,
-        minInvestment: parseInt(d.min || d.minimum || 100000) || 100000,
+        minInvestment: parseInt(d.min || d.minimum || 100000) || 100000, // Default min
         note: (d.description || d.note || `Rate: ${d.rate || 0}% p.a.`).substring(0, 100)
       })).filter(d => d.rate > 0);
+      // Build final data object - 100% from parses, no statics
       const data = {
-        saccos: saccos.length ? saccos : [{ name: 'Generic SACCO', dividend: 0, note: 'Check sources for updates' }],
+        saccos: saccos.length ? saccos : [{ name: 'Generic SACCO', dividend: 0, note: 'Check sources for updates' }], // Minimal fallback
         bonds,
         mmfs: mmfs.length ? mmfs : [{ name: 'Generic MMF', net: 0, note: 'Check sources for updates' }],
         callDeposits: callDeposits.length ? callDeposits : [{ name: 'Generic Bank', rate: 0, minInvestment: 100000, note: 'Check sources for updates' }]
       };
+      // Cache parsed data
       localStorage.setItem(cacheKey, JSON.stringify(data));
       localStorage.setItem(cacheExpiry, now.toString());
       return data;
     } catch (error) {
       console.error('Dynamic Fetch Error:', error);
+      // Enhanced fallback with verified Nov 3, 2025 data
       return {
         saccos: [
           { name: 'Tower Sacco', dividend: 20, note: 'Consistent high dividends - 249k+ members' },
@@ -412,19 +326,20 @@ function App() {
       };
     }
   }, []);
+  // Enhanced Polling: Re-parse every 5s, update only on change
   useEffect(() => {
     let intervalId;
     const pollData = async () => {
       const newData = await loadFinancialData();
       setFinancialData(prev => {
         if (JSON.stringify(newData) !== JSON.stringify(prev)) {
-          return newData;
+          return newData; // Trigger re-render/advice update
         }
         return prev;
       });
     };
-    pollData();
-    intervalId = setInterval(pollData, 5000);
+    pollData(); // Initial load
+    intervalId = setInterval(pollData, 5000); // Every 5 seconds
     return () => clearInterval(intervalId);
   }, [loadFinancialData]);
   const clearOnFocus = (e) => e.target.select();
@@ -462,17 +377,7 @@ function App() {
     }
   }, [savingsPct, debtPct]);
   const addLoan = useCallback(() => {
-    setLoans(prev => [...prev, {
-      name: '',
-      lender: '',
-      totalLoan: 0,
-      balance: 0,
-      rate: 0,
-      duration: 0,
-      monthlyInstallment: 0,
-      nextPaymentDate: '',
-      isEssential: false
-    }]);
+    setLoans(prev => [...prev, { name: '', balance: 0, rate: 0, minPayment: 0, isEssential: false }]);
   }, []);
   const updateLoan = useCallback((index, field, value) => {
     let parsedValue = value;
@@ -488,7 +393,7 @@ function App() {
     }
     setLoans(prev => {
       const updated = [...prev];
-      updated[index][field] = field === 'name' || field === 'lender' || field === 'nextPaymentDate' ? parsedValue : (parseFloat(value) || 0);
+      updated[index][field] = field === 'name' ? parsedValue : (parseFloat(value) || 0);
       return updated;
     });
   }, [loans]);
@@ -538,7 +443,7 @@ function App() {
         const interest = loan.balance * (loan.rate / 100 / 12);
         loan.balance += interest;
         totalInterest += interest;
-        const pay = Math.min(loan.minPayment || loan.monthlyInstallment, loan.balance); // Use monthlyInstallment if minPayment not set
+        const pay = Math.min(loan.minPayment, loan.balance);
         loan.balance -= pay;
         totalMinPayThisMonth += pay;
       });
@@ -560,7 +465,7 @@ function App() {
   const avalanche = useCallback((loans, extra) => simulate(loans, extra, (a, b) => b.rate - a.rate), [simulate]);
   const getFreeAIAdvice = useCallback(async (userData, finData) => {
     if (!enableAI) return '';
-    const apiKey = process.env.REACT_APP_OPENAI_API_KEY || 'YOUR_OPENAI_API_KEY_HERE';
+    const apiKey = process.env.REACT_APP_OPENAI_API_KEY || 'YOUR_OPENAI_API_KEY_HERE'; // Set your OpenAI API key in .env as REACT_APP_OPENAI_API_KEY
     const today = new Date().toLocaleDateString();
     const minEssentials = (userData.expensesBudget * 0.2).toFixed(0);
     const prompt = `Current date: ${today}. Kenyan financial advisor inspired by "The Richest Man in Babylon". Employ all seven cures: Start purse fattening (10% save), control expenditures, make gold multiply (invest wisely), guard against loss (safe options), own home, ensure future income (retirement), increase earning ability (skills/side hustles). For ${userData.householdSize}-member household. Fetch and incorporate the most up-to-date real financial data available in your knowledge for Kenya (e.g., current SACCO dividends, bond yields, MMF rates, deposit rates as of ${today}). Advice: Debt (avalanche method for high-interest), cuts (min ${minEssentials}${currency}/month total for essentials), savings (emergency 3-mo scaled for ${userData.householdSize}), invest (MMFs, SACCOs, bonds, call deposits - tie to cures). Data: Salary ${userData.salary}${currency}, Debt ${userData.debtBudget}${currency}, Expenses ${userData.totalExpenses}${currency}. Loans/Expenses: ${JSON.stringify([...userData.loans, ...userData.expenses].slice(0,4))}. Cuts: ${userData.suggestedCuts?.slice(0,100)||'None'}. SACCOs: ${finData.saccos.map(s => `${s.name} ${s.dividend}%`).join(', ')}. Bonds: 10Y ${finData.bonds['10Y']}% . MMFs: ${finData.mmfs.map(m => `${m.name} ${m.net || m.gross}%`).join(', ')}. Call Deposits: ${finData.callDeposits.map(d => `${d.name} ${d.rate}% (min ${currency} ${d.minInvestment.toLocaleString()})`).join(', ')}. Include side hustles suitable for ${userData.householdSize} members, home ownership tips, compound interest example. 5 bullets tying to book cures.`;
@@ -604,13 +509,13 @@ function App() {
       let localAdjustedSavings = salary * (savingsPct / 100);
       let debtBudget = salary * (debtPct / 100);
       let expensesBudget = salary * (expensesPct / 100);
-      let totalMinPayments = loans.reduce((sum, loan) => sum + (loan.minPayment || loan.monthlyInstallment), 0); // Use installment if no minPayment
+      let totalMinPayments = loans.reduce((sum, loan) => sum + loan.minPayment, 0);
       let totalExpenses = expenses.reduce((sum, exp) => sum + exp.amount, 0);
       const highInterestLoans = loans
         .filter(l => l.rate > 0)
         .sort((a, b) => b.rate - a.rate)
         .slice(0, 2)
-        .map((l, idx) => `${l.name || `Loan ${idx+1}`} at ${l.rate}% (${l.lender})`) // Include lender
+        .map((l, idx) => `${l.name || `Loan ${idx+1}`} at ${l.rate}%`)
         .join(', ') || 'None >0%';
       let localAdjustedDebtBudget = debtBudget;
       let localAdjustedExpensesBudget = expensesBudget;
@@ -619,18 +524,20 @@ function App() {
       let overageAdvice = '';
       const adjustments = [];
       const expenseAdjustMap = new Map();
-      const baseEssentialFraction = 0.4;
-      const baseNonEssentialFraction = 0.1;
+      // Dynamic minima based on expensesBudget and household size
+      const baseEssentialFraction = 0.4; // 40% of expenses for core essentials
+      const baseNonEssentialFraction = 0.1; // 10% for non-essentials
       const minEssentialPerPerson = (expensesBudget * baseEssentialFraction) / hs;
       const minNonEssentialPerPerson = (expensesBudget * baseNonEssentialFraction) / hs;
+      // Household factors for scaling: linear for food/transport, sqrt for utilities
       const getHouseholdFactor = (expName) => {
         const lowerName = expName.toLowerCase();
         if (lowerName.includes('shopping') || lowerName.includes('food') || lowerName.includes('milk') || lowerName.includes('transport')) {
-          return hs;
+          return hs; // Linear scaling
         } else if (lowerName.includes('kplc') || lowerName.includes('wifi') || lowerName.includes('utility')) {
-          return Math.sqrt(hs);
+          return Math.sqrt(hs); // Diminishing returns for shared
         }
-        return 1 + (hs - 1) * 0.2;
+        return 1 + (hs - 1) * 0.2; // Default moderate scaling
       };
       let totalAdjustedOutgo = localAdjustedTotalMinPayments + localAdjustedTotalExpenses + localAdjustedSavings;
       let iteration = 0;
@@ -801,6 +708,7 @@ function App() {
       const bondYield = finData.bonds['10Y'];
       const mmfRec = finData.mmfs[0].name;
       const mmfYield = finData.mmfs[0].net;
+      // Compute futureValue early for stories
       const annualRate = mmfYield / 100;
       const monthlyRate = annualRate / 12;
       const years = 5;
@@ -810,6 +718,7 @@ function App() {
       } else {
         futureValue = localAdjustedSavings * ((Math.pow(1 + monthlyRate, 12 * years) - 1) / monthlyRate);
       }
+      // Dynamic Story & Lessons: Aligns with user's scenario
       const storyScenarios = {
         debtHeavy: {
           title: "From Mombasa Debt Trap to SACCO Freedom (Real 2025 Trend)",
@@ -841,12 +750,14 @@ function App() {
             `Invest wisely: ${finData.callDeposits[0]?.name || 'Family Bank'} at ${finData.callDeposits[0]?.rate || 12}%—liquid for trends like this.`
           ]
         }
+        // Add more scenarios as needed, e.g., { inflationHeavy: ... }
       };
+      // Pick story based on user data
       let selectedStory;
       if (loans.length > 0 && avaMonths > 12) selectedStory = storyScenarios.debtHeavy;
       else if (savingsPct < 10 || currentSavings < threeMonthTarget * 0.5) selectedStory = storyScenarios.savingsLow;
       else if (spareCashLocal > 0) selectedStory = storyScenarios.surplus;
-      else selectedStory = storyScenarios.savingsLow;
+      else selectedStory = storyScenarios.savingsLow; // Default
       adviceText += `
       <div class="story-section">
         <h4>${selectedStory.title}</h4>
@@ -859,25 +770,25 @@ function App() {
       adviceText += `<br><br>Bank Call Deposits: Flexible, low-risk for liquidity. ${finData.callDeposits.map(d => `${d.name} (${d.rate}% p.a., min ${currency} ${(d.minInvestment * Math.min(hs, 3)).toLocaleString()} - ${d.note})`).join('; ')}.`;
       const plan = [];
       let totalPlan = 0;
-      const sortedLoans = [...loans].sort((a, b) => b.rate - a.rate).filter(l => (l.minPayment || l.monthlyInstallment) > 0);
+      const sortedLoans = [...loans].sort((a, b) => b.rate - a.rate).filter(l => l.minPayment > 0);
       const extraForDebt = Math.max(0, localAdjustedDebtBudget - totalMinPayments);
       let remainingExtra = extraForDebt;
       sortedLoans.forEach((loan, idx) => {
-        const minPay = loan.minPayment || loan.monthlyInstallment;
+        const minPay = loan.minPayment;
         let extraPay = 0;
-        if (remainingExtra > 0 && idx === 0) {
+        if (remainingExtra > 0 && idx === 0) { // Apply to highest rate loan first
           extraPay = Math.min(remainingExtra, Math.max(0, loan.balance - minPay));
           remainingExtra -= extraPay;
         }
         const totalPay = Math.min(minPay + extraPay, loan.balance > 0 ? loan.balance : minPay);
         let loanNotes = '';
         if (loan.balance <= totalPay) {
-          const estimatedInterestSaved = loan.balance * (loan.rate / 100 / 12);
-          loanNotes = `Pay ${currency} ${totalPay.toLocaleString()} this month (full payoff). Estimated interest saved: ${currency} ${estimatedInterestSaved.toFixed(0)}. Lender: ${loan.lender}, Orig: ${currency} ${loan.totalLoan.toLocaleString()}, Dur: ${loan.duration}mo, Due: ${loan.nextPaymentDate || 'N/A'}. Focus here to eliminate debt.`;
+          const estimatedInterestSaved = loan.balance * (loan.rate / 100 / 12); // Simple 1-month interest estimate
+          loanNotes = `Pay ${currency} ${totalPay.toLocaleString()} this month (full payoff). Estimated interest saved: ${currency} ${estimatedInterestSaved.toFixed(0)}. Focus here to eliminate debt.`;
         } else {
           const approxMonths = Math.ceil((loan.balance - totalPay) / (minPay + (extraPay > 0 ? extraPay : 0))) + 1;
-          const approxInterestSaved = (loan.balance * (loan.rate / 100 / 12)) * approxMonths * 0.8;
-          loanNotes = `Pay ${currency} ${totalPay.toLocaleString()} this month (${minPay.toLocaleString()} min + ${extraPay.toLocaleString()} extra). At this rate, full payoff in ~${approxMonths} months, saving ~${currency} ${approxInterestSaved.toFixed(0)} in interest. Lender: ${loan.lender}, Orig: ${currency} ${loan.totalLoan.toLocaleString()}, Dur: ${loan.duration}mo, Due: ${loan.nextPaymentDate || 'N/A'}. Focus here to recover from debt.`;
+          const approxInterestSaved = (loan.balance * (loan.rate / 100 / 12)) * approxMonths * 0.8; // Approximate savings from extra
+          loanNotes = `Pay ${currency} ${totalPay.toLocaleString()} this month (${minPay.toLocaleString()} min + ${extraPay.toLocaleString()} extra). At this rate, full payoff in ~${approxMonths} months, saving ~${currency} ${approxInterestSaved.toFixed(0)} in interest. Focus here to recover from debt.`;
         }
         plan.push({
           category: 'Loan',
@@ -1003,15 +914,10 @@ function App() {
         month: new Date().toISOString().slice(0, 7),
         salary, savings: localAdjustedSavings, debtBudget: localAdjustedDebtBudget, expensesBudget: localAdjustedTotalExpenses,
         totalExpenses: localAdjustedTotalExpenses, snowMonths, snowInterest, avaMonths, avaInterest,
-        emergencyTarget: threeMonthTarget, currentSavings: updatedCurrentSavings, adjustments: overageAdvice, householdSize: hs,
-        loanDetails: loans.map(l => ({ name: l.name, lender: l.lender, nextPaymentDate: l.nextPaymentDate, monthlyInstallment: l.monthlyInstallment })).slice(0, 3)
+        emergencyTarget: threeMonthTarget, currentSavings: updatedCurrentSavings, adjustments: overageAdvice, householdSize: hs
       };
       setCurrentSavings(updatedCurrentSavings);
       setBudgetHistory(prev => [...prev, historyEntry]);
-      // if (window.logAction) {
-      //   window.logAction('calculate_plan', { salary, loansCount: loans.length, expensesCount: expenses.length });
-      // }
-      console.log('Plan calculated - Logging disabled');
       const pieLabels = ['Savings', 'Debt', 'Expenses'];
       const pieDataValues = [localAdjustedSavings, localAdjustedDebtBudget, localAdjustedExpensesBudget];
       const pieColors = ['#4CAF50', '#FF5722', '#2196F3'];
@@ -1032,10 +938,6 @@ function App() {
     } catch (error) {
       console.error('Calculate Error:', error);
       alert(`Calc failed: ${error.message}. Check console. Try disabling AI.`);
-      // if (window.logAction) {
-      //   window.logAction('calculate_error', { error: error.message });
-      // }
-      console.log('Calculate error logged - Logging disabled');
     } finally {
       setIsCalculating(false);
     }
@@ -1067,7 +969,7 @@ function App() {
       const annualRate = mmfYield / 100;
       const monthlyRate = annualRate / 12;
       const years = 5;
-      const monthlySavingsAdjusted = adjustedSavings;
+      const monthlySavingsAdjusted = adjustedSavings; // Total
       let futureValue = 0;
       if (monthlyRate === 0) {
         futureValue = monthlySavingsAdjusted * 12 * years;
@@ -1098,13 +1000,6 @@ function App() {
         doc.text(`AI Tip: ${aiTip.substring(0, 80)}...`, 10, yPos);
         yPos += 7;
       }
-      // Enhanced Loan Details in PDF
-      yPos += 7;
-      loans.slice(0, 3).forEach((loan, idx) => {
-        if (yPos > 270) { doc.addPage(); yPos = 10; }
-        doc.text(`${loan.name} (${loan.lender}): Bal ${currency} ${loan.balance.toLocaleString()}, Due ${loan.nextPaymentDate || 'N/A'}, Install ${currency} ${(loan.monthlyInstallment || loan.minPayment).toLocaleString()}`, 10, yPos);
-        yPos += 7;
-      });
       doc.text('Monthly Plan Summary:', 10, yPos);
       yPos += 7;
       planData?.slice(0, 8).forEach((item) => {
@@ -1126,10 +1021,6 @@ function App() {
       });
       doc.text('Key Advice: Pay thyself first. Cut desires. Invest wisely.', 10, yPos);
       doc.save('budget_report.pdf');
-      // if (window.logAction) {
-      //   window.logAction('download_pdf');
-      // }
-      console.log('PDF downloaded - Logging disabled');
     } catch (error) {
       console.error('PDF Error:', error);
       alert('PDF generation failed. Check console.');
@@ -1145,20 +1036,12 @@ function App() {
     a.download = 'budget_history.csv';
     a.click();
     window.URL.revokeObjectURL(url);
-    // if (window.logAction) {
-    //   window.logAction('download_history');
-    // }
-    console.log('History downloaded - Logging disabled');
   }, [budgetHistory]);
   const clearHistory = useCallback(() => {
     setBudgetHistory([]);
     setCurrentSavings(0);
     setSubGoals([]);
     localStorage.removeItem('budgetHistory');
-    // if (window.logAction) {
-    //   window.logAction('clear_history');
-    // }
-    console.log('History cleared - Logging disabled');
   }, []);
   const badges = useMemo(() => {
     if (budgetHistory.length < 3) return [];
@@ -1181,7 +1064,6 @@ function App() {
       <header className="header">
         <h1>Budget & Debt Coach App</h1>
         <p style={{ color: '#555' }}>Plan your financial future with wisdom and discipline</p>
-        <button onClick={() => setShowAdmin(true)} className="action-button small-button">Admin Dashboard</button>
       </header>
       {currentQuote && (
         <div className="quote-box golden-quote" title="Daily financial wisdom to guide your journey">
@@ -1293,55 +1175,6 @@ function App() {
           </div>
         </div>
       )}
-      {/* Admin Dashboard Section - DISABLED FEATURES COMMENTED */}
-      {showAdmin && (
-        <section className="section admin-section">
-          <h2>Admin Dashboard (Password Protected) - Logging Disabled</h2>
-          <div style={{ display: 'flex', gap: '10px' }}>
-            <input
-              type="password"
-              placeholder="Enter password"
-              value={adminPassword}
-              onChange={e => setAdminPassword(e.target.value)}
-              className="input-field"
-            />
-            <button onClick={handleAdminLogin} className="action-button small-button">Login</button>
-            <button onClick={() => { setShowAdmin(false); setAdminPassword(''); }} className="action-button small-button">Close</button>
-          </div>
-          {adminData && (
-            <div>
-              <h3>Users Since Oct 5, 2025</h3>
-              <p><strong>Total Unique Users:</strong> {adminData.userCount}</p>
-              <p><strong>Top Actions:</strong> {adminData.topActions.map(a => `${a} (${adminData.logs.filter(l => l.action === a).length} times)`).join(', ')}</p>
-              <h4>Recent Logs</h4>
-              <div className="table-container">
-                <table className="table">
-                  <thead><tr><th>User ID</th><th>Action</th><th>Date</th><th>Details</th></tr></thead>
-                  <tbody>
-                    {adminData.logs.map(log => (
-                      <tr key={log.id}>
-                        <td>{log.uid?.slice(-6) || 'N/A'}</td> {/* Shortened for display */}
-                        <td>{log.action}</td>
-                        <td>{log.date}</td>
-                        <td>{JSON.stringify(log.details).slice(0, 50)}...</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-              <h4>Assistance Queue (Stuck/Failed Tx)</h4>
-              <p>Pending: {adminData.issues.length}</p>
-              {adminData.issues.slice(0, 5).map(issue => (
-                <div key={issue.id} style={{ border: '1px solid #FF5722', padding: '10px', margin: '5px 0' }}>
-                  <p><strong>User:</strong> {issue.uid?.slice(-6) || 'N/A'}</p>
-                  <p><strong>Issue:</strong> {issue.action} - {JSON.stringify(issue.details).slice(0, 100)}</p>
-                  {/* Add chat button or reply form here */}
-                </div>
-              ))}
-            </div>
-          )}
-        </section>
-      )}
       <section className="section input-section">
         <h2>Budget Settings</h2>
         <div className="input-group">
@@ -1391,26 +1224,14 @@ function App() {
               <label title="Name of the loan or creditor">Name:
                 <input type="text" value={loan.name} onChange={(e) => updateLoan(i, 'name', e.target.value)} className="input-field" />
               </label>
-              <label title="Lender/creditor name">Lender:
-                <input type="text" value={loan.lender} onChange={(e) => updateLoan(i, 'lender', e.target.value)} className="input-field" />
-              </label>
-              <label title="Original total loan amount">Total Loan ({currency}):
-                <input type="number" value={loan.totalLoan || 0} onChange={(e) => updateLoan(i, 'totalLoan', e.target.value)} onFocus={clearOnFocus} className="input-field" />
-              </label>
               <label title="Current outstanding loan balance">Balance ({currency}):
                 <input type="number" value={loan.balance || 0} onChange={(e) => updateLoan(i, 'balance', e.target.value)} onFocus={clearOnFocus} className="input-field" />
               </label>
               <label title="Annual interest rate (%)">Rate (%):
                 <input type="number" step="0.1" value={loan.rate || 0} onChange={(e) => updateLoan(i, 'rate', e.target.value)} onFocus={clearOnFocus} className="input-field" />
               </label>
-              <label title="Total duration (months)">Duration (months):
-                <input type="number" value={loan.duration || 0} onChange={(e) => updateLoan(i, 'duration', e.target.value)} className="input-field" />
-              </label>
-              <label title="Fixed monthly installment">Monthly Installment ({currency}):
-                <input type="number" value={loan.monthlyInstallment || 0} onChange={(e) => updateLoan(i, 'monthlyInstallment', e.target.value)} onFocus={clearOnFocus} className="input-field" />
-              </label>
-              <label title="Next payment due date (YYYY-MM-DD)">Next Payment Date:
-                <input type="date" value={loan.nextPaymentDate} onChange={(e) => updateLoan(i, 'nextPaymentDate', e.target.value)} className="input-field" />
+              <label title="Minimum monthly payment required">Min Payment ({currency}):
+                <input type="number" value={loan.minPayment || 0} onChange={(e) => updateLoan(i, 'minPayment', e.target.value)} onFocus={clearOnFocus} className="input-field" />
               </label>
               <label title="Is this loan critical to maintain?">Essential?:
                 <input type="checkbox" checked={loan.isEssential || false} onChange={() => toggleLoanEssential(i)} />
