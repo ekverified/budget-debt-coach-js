@@ -2,26 +2,8 @@ import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { Chart as ChartJS, ArcElement, Tooltip, Legend, LineElement, PointElement, LinearScale, CategoryScale } from 'chart.js';
 import { Pie, Line } from 'react-chartjs-2';
 import jsPDF from 'jspdf';
-import { initializeApp } from 'firebase/app';
-import { getFirestore, collection, addDoc, query, where, getDocs, orderBy } from 'firebase/firestore';
-import { getAuth, signInAnonymously } from 'firebase/auth';
 import './App.css';
-
 ChartJS.register(ArcElement, Tooltip, Legend, LineElement, PointElement, LinearScale, CategoryScale);
-
-// Firebase Config - Replace with your actual config from Firebase Console
-const firebaseConfig = {
-  apiKey: "your-api-key",
-  authDomain: "your-project.firebaseapp.com",
-  projectId: "your-project-id",
-  storageBucket: "your-project.appspot.com",
-  messagingSenderId: "123456789",
-  appId: "your-app-id"
-};
-const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
-const auth = getAuth(app);
-
 function App() {
   const [salary, setSalary] = useState(0);
   const [savingsPct, setSavingsPct] = useState(10);
@@ -55,36 +37,34 @@ function App() {
   const [showAdmin, setShowAdmin] = useState(false);
   const [adminPassword, setAdminPassword] = useState('');
   const [adminData, setAdminData] = useState(null);
-  const [user, setUser] = useState(null);  // For Firebase auth
-
+  const [user, setUser] = useState(null); // For Firebase auth
   const Spinner = () => (
     <div className="spinner" style={{ display: 'inline-block', marginRight: '8px' }}></div>
   );
-
-  // Firebase User Logging
+  // Firebase User Logging - DISABLED FOR BUILD
   useEffect(() => {
-    signInAnonymously(auth).then(cred => {
-      setUser(cred.user);
-      const logAction = async (action, details = {}) => {
-        if (!cred.user) return;
-        try {
-          await addDoc(collection(db, 'userLogs'), {
-            uid: cred.user.uid,
-            timestamp: new Date(),
-            action,
-            details,
-            date: new Date().toISOString().slice(0, 10)
-          });
-        } catch (error) {
-          console.error('Log failed:', error);
-        }
-      };
-      logAction('app_open', { currency, householdSize: parseInt(householdSize) || 1 });
-      // Make logAction available globally for other hooks
-      window.logAction = logAction;
-    }).catch(error => console.error('Auth failed:', error));
+    // signInAnonymously(auth).then(cred => {
+    //   setUser(cred.user);
+    //   const logAction = async (action, details = {}) => {
+    //     if (!cred.user) return;
+    //     try {
+    //       await addDoc(collection(db, 'userLogs'), {
+    //         uid: cred.user.uid,
+    //         timestamp: new Date(),
+    //         action,
+    //         details,
+    //         date: new Date().toISOString().slice(0, 10)
+    //       });
+    //     } catch (error) {
+    //       console.error('Log failed:', error);
+    //     }
+    //   };
+    //   logAction('app_open', { currency, householdSize: parseInt(householdSize) || 1 });
+    //   // Make logAction available globally for other hooks
+    //   window.logAction = logAction;
+    // }).catch(error => console.error('Auth failed:', error));
+    console.log('App opened - Logging disabled');
   }, [currency, householdSize]);
-
   useEffect(() => {
     const hasSeenPrompt = localStorage.getItem('hasSeenInstallPrompt');
     const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
@@ -102,7 +82,6 @@ function App() {
       };
     }
   }, []);
-
   useEffect(() => {
     if ('serviceWorker' in navigator) {
       navigator.serviceWorker.addEventListener('controllerchange', () => {
@@ -113,7 +92,6 @@ function App() {
       }
     }
   }, []);
-
   useEffect(() => {
     if ('serviceWorker' in navigator) {
       navigator.serviceWorker.register('/service-worker.js').then((registration) => {
@@ -138,18 +116,15 @@ function App() {
       });
     }
   }, []);
-
   const handleUpdateClick = () => {
     if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
       navigator.serviceWorker.controller.postMessage({ type: 'SKIP_WAITING' });
       setUpdateAvailable(false);
     }
   };
-
   const handleDismissUpdate = () => {
     setUpdateAvailable(false);
   };
-
   const handleInstallClick = () => {
     if (deferredPrompt) {
       deferredPrompt.prompt();
@@ -165,12 +140,10 @@ function App() {
       });
     }
   };
-
   const handleDismissInstall = () => {
     setShowInstallPrompt(false);
     localStorage.setItem('hasSeenInstallPrompt', 'true');
   };
-
   useEffect(() => {
     const savedHistory = localStorage.getItem('budgetHistory');
     if (savedHistory) {
@@ -189,11 +162,9 @@ function App() {
       }
     }
   }, []);
-
   useEffect(() => {
     localStorage.setItem('budgetHistory', JSON.stringify(budgetHistory));
   }, [budgetHistory]);
-
   useEffect(() => {
     const countryToCurrency = {
       'KE': 'KES', 'US': 'USD', 'GB': 'GBP', 'DE': 'EUR', 'FR': 'EUR', 'IN': 'INR', 'NG': 'NGN', 'ZA': 'ZAR',
@@ -208,7 +179,6 @@ function App() {
         setCurrency('KES');
       });
   }, []);
-
   useEffect(() => {
     const quotes = [
       { text: '"A part of all you earn is yours to keep. It should be not less than a tenth no matter how little you earn."', author: 'George S. Clason' },
@@ -223,12 +193,10 @@ function App() {
     const dayIndex = today.getDate() % quotes.length;
     setCurrentQuote(quotes[dayIndex]);
   }, []);
-
   useEffect(() => {
     localStorage.setItem('theme', theme);
     document.documentElement.classList.toggle('dark', theme === 'dark');
   }, [theme]);
-
   // Loan Reminders
   useEffect(() => {
     const checkLoanReminders = () => {
@@ -261,42 +229,41 @@ function App() {
     const interval = setInterval(checkLoanReminders, 24 * 60 * 60 * 1000);
     return () => clearInterval(interval);
   }, [loans, currency]);
-
-  // Admin Data Fetch
+  // Admin Data Fetch - DISABLED FOR BUILD
   const fetchAdminData = useCallback(async () => {
     if (!user) return;
     try {
-      const q = query(
-        collection(db, 'userLogs'),
-        where('date', '>=', '2025-10-05'),
-        orderBy('timestamp', 'desc')
-      );
-      const snapshot = await getDocs(q);
-      const logs = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-      const uniqueUsers = [...new Set(logs.map(l => l.uid))].length;
-      const actionCounts = logs.reduce((acc, l) => {
-        acc[l.action] = (acc[l.action] || 0) + 1;
-        return acc;
-      }, {});
-      const topActions = Object.entries(actionCounts)
-        .sort((a, b) => b[1] - a[1])
-        .slice(0, 3)
-        .map(([a]) => a);
-      const issues = logs.filter(l => l.action === 'failed_transaction' || l.action === 'user_stuck');
-      setAdminData({ userCount: uniqueUsers, topActions, logs: logs.slice(0, 50), issues });
+      // const q = query(
+      //   collection(db, 'userLogs'),
+      //   where('date', '>=', '2025-10-05'),
+      //   orderBy('timestamp', 'desc')
+      // );
+      // const snapshot = await getDocs(q);
+      // const logs = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      // const uniqueUsers = [...new Set(logs.map(l => l.uid))].length;
+      // const actionCounts = logs.reduce((acc, l) => {
+      //   acc[l.action] = (acc[l.action] || 0) + 1;
+      //   return acc;
+      // }, {});
+      // const topActions = Object.entries(actionCounts)
+      //   .sort((a, b) => b[1] - a[1])
+      //   .slice(0, 3)
+      //   .map(([a]) => a);
+      // const issues = logs.filter(l => l.action === 'failed_transaction' || l.action === 'user_stuck');
+      // setAdminData({ userCount: uniqueUsers, topActions, logs: logs.slice(0, 50), issues });
+      console.log('Admin data fetch disabled');
+      setAdminData({ userCount: 0, topActions: [], logs: [], issues: [] });
     } catch (error) {
       console.error('Admin fetch failed:', error);
     }
   }, [user]);
-
   const handleAdminLogin = () => {
-    if (adminPassword === 'your-secret-password') {  // Change this!
+    if (adminPassword === 'your-secret-password') { // Change this!
       fetchAdminData();
     } else {
       alert('Wrong password!');
     }
   };
-
   // Fully Dynamic: No placeholders; parses raw responses into structure
   const loadFinancialData = useCallback(async () => {
     const cacheKey = 'financialDataCache';
@@ -445,7 +412,6 @@ function App() {
       };
     }
   }, []);
-
   useEffect(() => {
     let intervalId;
     const pollData = async () => {
@@ -461,9 +427,7 @@ function App() {
     intervalId = setInterval(pollData, 5000);
     return () => clearInterval(intervalId);
   }, [loadFinancialData]);
-
   const clearOnFocus = (e) => e.target.select();
-
   const updateSavingsPct = useCallback((newVal) => {
     const val = parseInt(newVal);
     setSavingsPct(val);
@@ -475,7 +439,6 @@ function App() {
       setExpensesPct(100 - val - debtNew);
     }
   }, [debtPct, expensesPct]);
-
   const updateDebtPct = useCallback((newVal) => {
     const val = parseInt(newVal);
     setDebtPct(val);
@@ -487,7 +450,6 @@ function App() {
       setExpensesPct(100 - val - savingsNew);
     }
   }, [savingsPct, expensesPct]);
-
   const updateExpensesPct = useCallback((newVal) => {
     const val = parseInt(newVal);
     setExpensesPct(val);
@@ -499,7 +461,6 @@ function App() {
       setDebtPct(100 - val - savingsNew);
     }
   }, [savingsPct, debtPct]);
-
   const addLoan = useCallback(() => {
     setLoans(prev => [...prev, {
       name: '',
@@ -513,7 +474,6 @@ function App() {
       isEssential: false
     }]);
   }, []);
-
   const updateLoan = useCallback((index, field, value) => {
     let parsedValue = value;
     if (field === 'name') {
@@ -532,7 +492,6 @@ function App() {
       return updated;
     });
   }, [loans]);
-
   const toggleLoanEssential = useCallback((index) => {
     setLoans(prev => {
       const updated = [...prev];
@@ -540,11 +499,9 @@ function App() {
       return updated;
     });
   }, []);
-
   const addExpense = useCallback(() => {
     setExpenses(prev => [...prev, { name: '', amount: 0, isEssential: false }]);
   }, []);
-
   const updateExpense = useCallback((index, field, value) => {
     let parsedValue = value;
     if (field === 'name') {
@@ -563,7 +520,6 @@ function App() {
       return updated;
     });
   }, [expenses]);
-
   const toggleExpenseEssential = useCallback((index) => {
     setExpenses(prev => {
       const updated = [...prev];
@@ -571,7 +527,6 @@ function App() {
       return updated;
     });
   }, []);
-
   const simulate = useCallback((loans, extra, sorter) => {
     const clonedLoans = loans.map(l => ({ ...l }));
     let months = 0;
@@ -583,7 +538,7 @@ function App() {
         const interest = loan.balance * (loan.rate / 100 / 12);
         loan.balance += interest;
         totalInterest += interest;
-        const pay = Math.min(loan.minPayment || loan.monthlyInstallment, loan.balance);  // Use monthlyInstallment if minPayment not set
+        const pay = Math.min(loan.minPayment || loan.monthlyInstallment, loan.balance); // Use monthlyInstallment if minPayment not set
         loan.balance -= pay;
         totalMinPayThisMonth += pay;
       });
@@ -601,10 +556,8 @@ function App() {
     }
     return { months, totalInterest };
   }, []);
-
   const snowball = useCallback((loans, extra) => simulate(loans, extra, (a, b) => a.balance - b.balance), [simulate]);
   const avalanche = useCallback((loans, extra) => simulate(loans, extra, (a, b) => b.rate - a.rate), [simulate]);
-
   const getFreeAIAdvice = useCallback(async (userData, finData) => {
     if (!enableAI) return '';
     const apiKey = process.env.REACT_APP_OPENAI_API_KEY || 'YOUR_OPENAI_API_KEY_HERE';
@@ -639,7 +592,6 @@ function App() {
       return fallback;
     }
   }, [enableAI, currency]);
-
   const handleCalculate = useCallback(async () => {
     setIsCalculating(true);
     try {
@@ -652,13 +604,13 @@ function App() {
       let localAdjustedSavings = salary * (savingsPct / 100);
       let debtBudget = salary * (debtPct / 100);
       let expensesBudget = salary * (expensesPct / 100);
-      let totalMinPayments = loans.reduce((sum, loan) => sum + (loan.minPayment || loan.monthlyInstallment), 0);  // Use installment if no minPayment
+      let totalMinPayments = loans.reduce((sum, loan) => sum + (loan.minPayment || loan.monthlyInstallment), 0); // Use installment if no minPayment
       let totalExpenses = expenses.reduce((sum, exp) => sum + exp.amount, 0);
       const highInterestLoans = loans
         .filter(l => l.rate > 0)
         .sort((a, b) => b.rate - a.rate)
         .slice(0, 2)
-        .map((l, idx) => `${l.name || `Loan ${idx+1}`} at ${l.rate}% (${l.lender})`)  // Include lender
+        .map((l, idx) => `${l.name || `Loan ${idx+1}`} at ${l.rate}% (${l.lender})`) // Include lender
         .join(', ') || 'None >0%';
       let localAdjustedDebtBudget = debtBudget;
       let localAdjustedExpensesBudget = expensesBudget;
@@ -1056,9 +1008,10 @@ function App() {
       };
       setCurrentSavings(updatedCurrentSavings);
       setBudgetHistory(prev => [...prev, historyEntry]);
-      if (window.logAction) {
-        window.logAction('calculate_plan', { salary, loansCount: loans.length, expensesCount: expenses.length });
-      }
+      // if (window.logAction) {
+      //   window.logAction('calculate_plan', { salary, loansCount: loans.length, expensesCount: expenses.length });
+      // }
+      console.log('Plan calculated - Logging disabled');
       const pieLabels = ['Savings', 'Debt', 'Expenses'];
       const pieDataValues = [localAdjustedSavings, localAdjustedDebtBudget, localAdjustedExpensesBudget];
       const pieColors = ['#4CAF50', '#FF5722', '#2196F3'];
@@ -1079,14 +1032,14 @@ function App() {
     } catch (error) {
       console.error('Calculate Error:', error);
       alert(`Calc failed: ${error.message}. Check console. Try disabling AI.`);
-      if (window.logAction) {
-        window.logAction('calculate_error', { error: error.message });
-      }
+      // if (window.logAction) {
+      //   window.logAction('calculate_error', { error: error.message });
+      // }
+      console.log('Calculate error logged - Logging disabled');
     } finally {
       setIsCalculating(false);
     }
   }, [salary, savingsPct, debtPct, expensesPct, householdSize, currency, loans, expenses, emergencyTarget, currentSavings, enableAI, budgetHistory, snowball, avalanche, getFreeAIAdvice, loadFinancialData, isCalculating]);
-
   const addSurplusToGoal = useCallback(() => {
     const surplus = spareCash || 0;
     if (surplus > 0) {
@@ -1094,7 +1047,6 @@ function App() {
       alert(`Added ${currency} ${surplus.toLocaleString()} to savings goal!`);
     }
   }, [spareCash, currency]);
-
   const handleDownloadPDF = useCallback(() => {
     try {
       const hs = Math.max(1, parseInt(householdSize) || 1);
@@ -1174,15 +1126,15 @@ function App() {
       });
       doc.text('Key Advice: Pay thyself first. Cut desires. Invest wisely.', 10, yPos);
       doc.save('budget_report.pdf');
-      if (window.logAction) {
-        window.logAction('download_pdf');
-      }
+      // if (window.logAction) {
+      //   window.logAction('download_pdf');
+      // }
+      console.log('PDF downloaded - Logging disabled');
     } catch (error) {
       console.error('PDF Error:', error);
       alert('PDF generation failed. Check console.');
     }
   }, [householdSize, currency, displaySalary, financialData, adjustedSavings, adjustedTotalExpenses, adjustedTotalMinPayments, snowball, avalanche, loans, emergencyTarget, advice, planData, adjustedData, budgetHistory]);
-
   const downloadHistory = useCallback(() => {
     const csv = 'Month,Salary,Savings,Debt Budget,Expenses Budget,Total Expenses,Snowball Months,Snowball Interest,Avalanche Months,Avalanche Interest,Emergency Target,Current Savings,Adjustments,Household Size\n' +
       budgetHistory.map(entry => `${entry.month},${entry.salary},${entry.savings},${entry.debtBudget},${entry.expensesBudget},${entry.totalExpenses},${entry.snowMonths},${entry.snowInterest},${entry.avaMonths},${entry.avaInterest},${entry.emergencyTarget},${entry.currentSavings},"${entry.adjustments || ''}",${entry.householdSize || 1}`).join('\n');
@@ -1193,21 +1145,21 @@ function App() {
     a.download = 'budget_history.csv';
     a.click();
     window.URL.revokeObjectURL(url);
-    if (window.logAction) {
-      window.logAction('download_history');
-    }
+    // if (window.logAction) {
+    //   window.logAction('download_history');
+    // }
+    console.log('History downloaded - Logging disabled');
   }, [budgetHistory]);
-
   const clearHistory = useCallback(() => {
     setBudgetHistory([]);
     setCurrentSavings(0);
     setSubGoals([]);
     localStorage.removeItem('budgetHistory');
-    if (window.logAction) {
-      window.logAction('clear_history');
-    }
+    // if (window.logAction) {
+    //   window.logAction('clear_history');
+    // }
+    console.log('History cleared - Logging disabled');
   }, []);
-
   const badges = useMemo(() => {
     if (budgetHistory.length < 3) return [];
     const latest = budgetHistory[budgetHistory.length - 1];
@@ -1217,7 +1169,6 @@ function App() {
     if (latest.avaMonths <= 12) badgesList.push({ name: 'Debt Slayer', desc: 'Debt payoff under 1 year – Avalanche win!' });
     return badgesList;
   }, [budgetHistory]);
-
   const historyData = {
     labels: budgetHistory.map(entry => entry.month).reverse(),
     datasets: [
@@ -1225,7 +1176,6 @@ function App() {
       { label: 'Expenses', data: budgetHistory.map(entry => entry.totalExpenses).reverse(), borderColor: 'rgb(76, 175, 80)', backgroundColor: 'rgba(76, 175, 80, 0.2)', tension: 0.1 }
     ]
   };
-
   return (
     <div className={`app-container ${theme === 'dark' ? 'dark-mode' : ''}`}>
       <header className="header">
@@ -1343,16 +1293,16 @@ function App() {
           </div>
         </div>
       )}
-      {/* Admin Dashboard Section */}
+      {/* Admin Dashboard Section - DISABLED FEATURES COMMENTED */}
       {showAdmin && (
         <section className="section admin-section">
-          <h2>Admin Dashboard (Password Protected)</h2>
+          <h2>Admin Dashboard (Password Protected) - Logging Disabled</h2>
           <div style={{ display: 'flex', gap: '10px' }}>
-            <input 
-              type="password" 
-              placeholder="Enter password" 
-              value={adminPassword} 
-              onChange={e => setAdminPassword(e.target.value)} 
+            <input
+              type="password"
+              placeholder="Enter password"
+              value={adminPassword}
+              onChange={e => setAdminPassword(e.target.value)}
               className="input-field"
             />
             <button onClick={handleAdminLogin} className="action-button small-button">Login</button>
@@ -1370,7 +1320,7 @@ function App() {
                   <tbody>
                     {adminData.logs.map(log => (
                       <tr key={log.id}>
-                        <td>{log.uid.slice(-6)}</td>  {/* Shortened for display */}
+                        <td>{log.uid?.slice(-6) || 'N/A'}</td> {/* Shortened for display */}
                         <td>{log.action}</td>
                         <td>{log.date}</td>
                         <td>{JSON.stringify(log.details).slice(0, 50)}...</td>
@@ -1383,7 +1333,7 @@ function App() {
               <p>Pending: {adminData.issues.length}</p>
               {adminData.issues.slice(0, 5).map(issue => (
                 <div key={issue.id} style={{ border: '1px solid #FF5722', padding: '10px', margin: '5px 0' }}>
-                  <p><strong>User:</strong> {issue.uid.slice(-6)}</p>
+                  <p><strong>User:</strong> {issue.uid?.slice(-6) || 'N/A'}</p>
                   <p><strong>Issue:</strong> {issue.action} - {JSON.stringify(issue.details).slice(0, 100)}</p>
                   {/* Add chat button or reply form here */}
                 </div>
@@ -1624,5 +1574,4 @@ function App() {
     </div>
   );
 }
-
 export default App;
