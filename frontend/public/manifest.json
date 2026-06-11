@@ -1,6 +1,9 @@
 {
   "short_name": "Budget Coach",
-  "name": "Budget & Debt Coach - Kenyan Finance Planner",
+  "name": "Budget & Debt Coach — Kenyan Finance Planner",
+  "description": "Free personal finance tool for Kenyans. Track expenses, pay off debt with snowball/avalanche strategies, and build your emergency fund in KES.",
+  "lang": "en-KE",
+  "dir": "ltr",
   "icons": [
     {
       "src": "favicon.ico",
@@ -10,16 +13,59 @@
     {
       "src": "logo192.png",
       "type": "image/png",
-      "sizes": "192x192"
+      "sizes": "192x192",
+      "purpose": "any"
+    },
+    {
+      "src": "logo192.png",
+      "type": "image/png",
+      "sizes": "192x192",
+      "purpose": "maskable"
     },
     {
       "src": "logo512.png",
       "type": "image/png",
-      "sizes": "512x512"
+      "sizes": "512x512",
+      "purpose": "any"
+    },
+    {
+      "src": "logo512.png",
+      "type": "image/png",
+      "sizes": "512x512",
+      "purpose": "maskable"
     }
   ],
-  "start_url": ".",
+  "start_url": "/?source=pwa",
+  "scope": "/",
   "display": "standalone",
-  "theme_color": "#27ae60",  // Kenyan green for finance/success theme
-  "background_color": "#f8f9fa"  // Matches your light gray body bg
+  "display_override": ["standalone", "minimal-ui", "browser"],
+  "orientation": "portrait-primary",
+  "theme_color": "#27ae60",
+  "background_color": "#f8f9fa",
+  "categories": ["finance", "productivity", "utilities"],
+  "shortcuts": [
+    {
+      "name": "New Budget",
+      "short_name": "Budget",
+      "description": "Start a new monthly budget calculation",
+      "url": "/?tab=budget&source=shortcut",
+      "icons": [{ "src": "logo192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "View Results",
+      "short_name": "Results",
+      "description": "View your latest budget plan and AI advice",
+      "url": "/?tab=results&source=shortcut",
+      "icons": [{ "src": "logo192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Investment Guide",
+      "short_name": "Invest",
+      "description": "Browse Kenyan MMFs, SACCOs and T-Bills",
+      "url": "/?tab=invest&source=shortcut",
+      "icons": [{ "src": "logo192.png", "sizes": "192x192" }]
+    }
+  ],
+  "prefer_related_applications": false,
+  "related_applications": []
 }
