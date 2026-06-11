@@ -2,64 +2,138 @@
 <html lang="en-KE">
   <head>
     <meta charset="utf-8" />
-    <link rel="icon" href="%PUBLIC_URL%/favicon.ico" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="theme-color" content="#3498db" /> <!-- Matches app's primary blue -->
+
+    <!-- Viewport & rendering -->
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+
+    <!-- Primary meta -->
+    <title>Budget & Debt Coach — Free Kenyan Personal Finance Planner (KES)</title>
     <meta
       name="description"
-      content="Budget & Debt Coach: Free Kenyan personal finance planner. Track expenses, manage loans with snowball/avalanche methods, get AI advice, and build emergency funds in KES."
+      content="Free personal finance planner built for Kenyans. Track expenses, pay off Fuliza, Tala, SACCO and bank loans using snowball or avalanche strategies. Get AI-powered budgeting advice in KES."
     />
-    <!-- Open Graph for social sharing -->
-    <meta property="og:title" content="Budget & Debt Coach" />
-    <meta property="og:description" content="Empower your finances: Budget, pay off debt, and save smarter with tailored Kenyan advice." />
-    <meta property="og:image" content="%PUBLIC_URL%/logo192.png" />
-    <meta property="og:url" content="%PUBLIC_URL%" />
-    <meta property="og:type" content="website" />
-    <!-- Twitter Card -->
-    <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:title" content="Budget & Debt Coach" />
-    <meta name="twitter:description" content="Track expenses, crush debt, and build savings—free AI-powered tool for Kenyans." />
-    <meta name="twitter:image" content="%PUBLIC_URL%/logo192.png" />
-    <!-- Apple Touch Icon & PWA -->
+    <meta name="keywords" content="Kenya budget app, debt tracker Kenya, KES planner, Fuliza payoff, SACCO investment, MMF Kenya, snowball debt, avalanche debt, personal finance Kenya" />
+    <meta name="author" content="Budget & Debt Coach" />
+    <meta name="robots" content="index, follow" />
+
+    <!-- Canonical -->
+    <link rel="canonical" href="https://budget-debt-coach-js.onrender.com/" />
+
+    <!-- Favicon & PWA icons -->
+    <link rel="icon" href="%PUBLIC_URL%/favicon.ico" />
     <link rel="apple-touch-icon" href="%PUBLIC_URL%/logo192.png" />
+    <link rel="apple-touch-icon" sizes="192x192" href="%PUBLIC_URL%/logo192.png" />
+    <link rel="apple-touch-icon" sizes="512x512" href="%PUBLIC_URL%/logo512.png" />
+
+    <!-- PWA manifest & theme -->
     <link rel="manifest" href="%PUBLIC_URL%/manifest.json" />
-    <!-- Google Analytics 4 (GA4) Snippet -->
+    <meta name="theme-color" content="#27ae60" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <meta name="apple-mobile-web-app-title" content="Budget Coach" />
+    <meta name="mobile-web-app-capable" content="yes" />
+
+    <!-- Open Graph -->
+    <meta property="og:type"        content="website" />
+    <meta property="og:url"         content="https://budget-debt-coach-js.onrender.com/" />
+    <meta property="og:title"       content="Budget & Debt Coach — Free Kenyan Finance Planner" />
+    <meta property="og:description" content="Crush debt, build savings, and invest wisely. Free AI-powered budgeting tool tailored for Kenyans — works offline too." />
+    <meta property="og:image"       content="https://budget-debt-coach-js.onrender.com/logo512.png" />
+    <meta property="og:image:width"  content="512" />
+    <meta property="og:image:height" content="512" />
+    <meta property="og:locale"      content="en_KE" />
+    <meta property="og:site_name"   content="Budget & Debt Coach" />
+
+    <!-- Twitter Card -->
+    <meta name="twitter:card"        content="summary_large_image" />
+    <meta name="twitter:site"        content="@B_D_coach_app" />
+    <meta name="twitter:title"       content="Budget & Debt Coach — Free Kenyan Finance Planner" />
+    <meta name="twitter:description" content="Track expenses, pay off Fuliza & Tala, build your emergency fund. Free AI-powered tool for Kenyans." />
+    <meta name="twitter:image"       content="https://budget-debt-coach-js.onrender.com/logo512.png" />
+
+    <!-- Preconnect to external origins used at runtime -->
+    <!-- Speeds up first fetch by resolving DNS + TLS early -->
+    <link rel="preconnect" href="https://ipapi.co" crossorigin />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+
+    <!-- DNS-prefetch fallback for browsers that don't support preconnect -->
+    <link rel="dns-prefetch" href="https://api.allorigins.win" />
+    <link rel="dns-prefetch" href="https://www.googletagmanager.com" />
+
+    <!-- Google Analytics 4 — loaded async, does not block rendering -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-H0RM4JEHQG"></script>
     <script>
       window.dataLayer = window.dataLayer || [];
-      function gtag(){dataLayer.push(arguments);}
+      function gtag(){ dataLayer.push(arguments); }
       gtag('js', new Date());
-      gtag('config', 'G-H0RM4JEHQG');
+      gtag('config', 'G-H0RM4JEHQG', {
+        page_title: 'Budget & Debt Coach',
+        anonymize_ip: true
+      });
     </script>
-    <!--
-      Notice the use of %PUBLIC_URL% in the tags above.
-      It will be replaced with the URL of the `public` folder during the build.
-      Only files inside the `public` folder can be referenced from the HTML.
 
-      Unlike "/favicon.ico" or "favicon.ico", "%PUBLIC_URL%/favicon.ico" will
-      work correctly both with client-side routing and a non-root public URL.
-      Learn how to configure a non-root public URL by running `npm run build`.
-    -->
-    <title>Budget & Debt Coach - Personal Finance & Debt Planner (KES)</title>
+    <!-- Structured data: SoftwareApplication (helps Google rich results) -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "SoftwareApplication",
+      "name": "Budget & Debt Coach",
+      "description": "Free AI-powered personal finance planner for Kenyans. Debt snowball/avalanche, MMF recommendations, emergency fund tracker.",
+      "url": "https://budget-debt-coach-js.onrender.com/",
+      "applicationCategory": "FinanceApplication",
+      "operatingSystem": "Web, Android, iOS",
+      "offers": {
+        "@type": "Offer",
+        "price": "0",
+        "priceCurrency": "KES"
+      },
+      "author": {
+        "@type": "Organization",
+        "name": "Budget & Debt Coach",
+        "url": "https://budget-debt-coach-js.onrender.com/"
+      }
+    }
+    </script>
   </head>
+
   <body>
+    <!-- Shown only when JavaScript is disabled -->
     <noscript>
-      <div style="padding: 20px; text-align: center; background: #f8f9fa; color: #333; border: 1px solid #ddd; margin: 20px;">
-        <h2>JavaScript is Required</h2>
-        <p>This budgeting app relies on JavaScript for calculations, charts, and AI advice. Please enable it in your browser settings to get started with managing your finances.</p>
-        <p><strong>Quick Tip:</strong> If you're in Kenya, try refreshing or checking your connection—most modern browsers support JS by default.</p>
+      <div style="
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+        max-width: 560px;
+        margin: 60px auto;
+        padding: 32px;
+        background: #fff;
+        border: 1px solid #e0e0e0;
+        border-radius: 12px;
+        text-align: center;
+        color: #333;
+      ">
+        <h2 style="color: #27ae60; margin-bottom: 8px;">Budget & Debt Coach</h2>
+        <p style="font-size: 16px;">This app requires JavaScript to run calculations, display charts, and provide AI advice.</p>
+        <p style="margin-top: 16px; font-size: 14px; color: #666;">
+          <strong>To enable JavaScript:</strong><br/>
+          Chrome: Settings → Privacy and security → Site settings → JavaScript → Allow<br/>
+          Firefox: about:config → javascript.enabled → true
+        </p>
+        <p style="margin-top: 16px; font-size: 13px; color: #999;">
+          Using a Kenyan mobile browser? Most support JS by default — try refreshing, or switch to Chrome.
+        </p>
       </div>
     </noscript>
+
+    <!-- React mounts here -->
     <div id="root"></div>
+
     <!--
-      This HTML file is a template.
-      If you open it directly in the browser, you will see an empty page.
-
-      You can add webfonts, meta tags, or analytics to this file.
-      The build step will place the bundled scripts into the <body> tag.
-
-      To begin the development, run `npm start` or `yarn start`.
-      To create a production bundle, use `npm run build` or `yarn build`.
+      Production build notes:
+      • Run `npm run build` to generate hashed static assets in /build
+      • The service worker at /public/service-worker.js handles offline caching
+      • Bump CACHE_VERSION in service-worker.js with every deploy
+      • Set REACT_APP_BACKEND_URL in Render environment variables
     -->
   </body>
 </html>
