@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en-KE">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Offline — Budget & Debt Coach</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: #f8f9fa;
+      color: #333;
+      padding: 24px;
+    }
+    .card {
+      background: #fff;
+      border-radius: 16px;
+      padding: 40px 32px;
+      max-width: 440px;
+      width: 100%;
+      text-align: center;
+      box-shadow: 0 4px 24px rgba(0,0,0,0.08);
+    }
+    .icon { font-size: 56px; margin-bottom: 16px; }
+    h1 { font-size: 22px; color: #27ae60; margin-bottom: 8px; }
+    p  { font-size: 15px; color: #666; line-height: 1.6; margin-bottom: 16px; }
+    .tip {
+      background: #f0faf4;
+      border-left: 3px solid #27ae60;
+      padding: 12px 16px;
+      border-radius: 6px;
+      font-size: 13px;
+      color: #2d7a4f;
+      text-align: left;
+      margin-bottom: 24px;
+    }
+    button {
+      background: #27ae60;
+      color: #fff;
+      border: none;
+      padding: 12px 28px;
+      border-radius: 8px;
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+      width: 100%;
+    }
+    button:hover { background: #219150; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <div class="icon">📡</div>
+    <h1>You're offline</h1>
+    <p>Budget & Debt Coach needs a connection to load. Your previously calculated plan and history are still stored on this device.</p>
+    <div class="tip">
+      💡 <strong>Tip:</strong> Once you're back online, all your budget history and savings data will still be right where you left them — nothing is lost.
+    </div>
+    <button onclick="window.location.reload()">Try again</button>
+  </div>
+</body>
+</html>
